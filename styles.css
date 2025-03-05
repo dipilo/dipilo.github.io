@@ -31,3 +31,26 @@ body {
     padding: 1rem;
   }
   
+.social-button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  background-color: #7289da; /* Discord's signature blurple (adjust if needed) */
+  border-radius: 10px; /* Rounded edges */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.social-button:hover {
+  background-color: #677bc4;
+}
+
+.social-button img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
