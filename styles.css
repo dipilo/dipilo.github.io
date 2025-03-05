@@ -32,25 +32,24 @@ body {
   }
   
 .social-button {
-  width: 50px;
-  height: 50px;
+  width: 50px;            /* Button width */
+  height: 50px;           /* Button height */
+  border-radius: 8px;     /* Rounded corners */
+  background-color: #5865F2; /* Optional Discord-like color */
   border: none;
-  background-color: #7289da; /* Discord's signature blurple (adjust if needed) */
-  border-radius: 10px; /* Rounded edges */
+  cursor: pointer;
+  
+  /* Center the icon */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  
+  /* Spacing around buttons */
   margin: 0.5rem;
-  transition: background-color 0.3s ease;
-}
-
-.social-button:hover {
-  background-color: #677bc4;
 }
 
 .social-button img {
-  width: 24px;
-  height: 24px;
-  display: block;
+  width: 24px;  /* Logo width */
+  height: 24px; /* Logo height */
 }
+
