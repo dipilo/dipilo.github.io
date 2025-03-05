@@ -35,7 +35,7 @@ body {
   width: 50px;            /* Button width */
   height: 50px;           /* Button height */
   border-radius: 8px;     /* Rounded corners */
-  background-color: #5865F2; /* Optional Discord-like color */
+  background-color: #ffffff; /* Optional Discord-like color */
   border: none;
   cursor: pointer;
   
