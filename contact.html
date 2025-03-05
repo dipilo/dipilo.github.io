@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
   <main>
     <div class="contact-form-container">
       <h2>Contact Us</h2>
@@ -57,11 +56,19 @@
           ></textarea>
         </div>
         
-        <!-- Send Button -->
-        <button type="submit" class="send-button">Send</button>
+        <!-- Form Action Buttons -->
+        <div class="form-actions">
+          <button type="submit" class="send-button">Send</button>
+          <!-- Return Home button -->
+          <button 
+            type="button" 
+            class="home-button" 
+            onclick="window.location.href='index.html'">
+            Return Home
+          </button>
+        </div>
       </form>
     </div>
   </main>
-
 </body>
 </html>
