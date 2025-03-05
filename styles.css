@@ -6,60 +6,24 @@ body {
   background-color: #EDE7F6; /* Light lilac page background */
 }
 
-/* Contact form container */
+/* Contact form container (example) */
 .contact-form-container {
   max-width: 600px;
-  margin: 2rem auto;             /* Center the form on the page */
-  background-color: #F3E5F5;     /* Lilac container background */
+  margin: 2rem auto;
+  background-color: #F3E5F5;
   padding: 2rem;
   border-radius: 12px;
-  border: 2px solid #BA68C8;     /* Purple border */
+  border: 2px solid #BA68C8;
 }
 
-/* Form title */
-.contact-form-container h2 {
-  margin-bottom: 1rem;
-  color: #4A148C; /* Deep purple for the text */
-}
-
-/* Spacing for label + input groups */
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-/* Label styling */
-.form-group label {
-  display: block;           /* Each label on its own line */
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #4A148C;           /* Deep purple for label text */
-}
-
-/* Side-by-side name fields */
-.name-row {
+/* Form actions container */
+.form-actions {
   display: flex;
-  gap: 1rem;                /* Space between first/last name inputs */
+  gap: 1rem; /* space between the two buttons */
+  margin-top: 1rem;
 }
 
-/* Input and textarea styling */
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #7B1FA2; /* Lighter purple border */
-  border-radius: 20px;
-  outline: none;
-  font-size: 1rem;
-  box-sizing: border-box;     /* Ensures padding is included in width */
-}
-
-/* Make the textarea resizable vertically only */
-.form-group textarea {
-  resize: vertical;
-  min-height: 100px;          /* Give a minimum height */
-}
-
-/* Submit button styling */
+/* Send button styling */
 .send-button {
   background-color: #7B1FA2;
   color: #fff;
@@ -70,10 +34,52 @@ body {
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
 }
-
-/* Button hover effect */
 .send-button:hover {
   background-color: #6A1B9A;
+}
+
+/* Return Home button styling */
+.home-button {
+  background-color: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+.home-button:hover {
+  background-color: #6A1B9A;
+}
+
+/* Example styling for text fields, just in case */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #4A148C;
+}
+.name-row {
+  display: flex;
+  gap: 1rem;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #7B1FA2;
+  border-radius: 20px;
+  outline: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
 }
   
   header {
