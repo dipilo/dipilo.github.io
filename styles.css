@@ -1,8 +1,80 @@
+/* General body styling (optional) */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-  }
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #EDE7F6; /* Light lilac page background */
+}
+
+/* Contact form container */
+.contact-form-container {
+  max-width: 600px;
+  margin: 2rem auto;             /* Center the form on the page */
+  background-color: #F3E5F5;     /* Lilac container background */
+  padding: 2rem;
+  border-radius: 12px;
+  border: 2px solid #BA68C8;     /* Purple border */
+}
+
+/* Form title */
+.contact-form-container h2 {
+  margin-bottom: 1rem;
+  color: #4A148C; /* Deep purple for the text */
+}
+
+/* Spacing for label + input groups */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Label styling */
+.form-group label {
+  display: block;           /* Each label on its own line */
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #4A148C;           /* Deep purple for label text */
+}
+
+/* Side-by-side name fields */
+.name-row {
+  display: flex;
+  gap: 1rem;                /* Space between first/last name inputs */
+}
+
+/* Input and textarea styling */
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #7B1FA2; /* Lighter purple border */
+  border-radius: 20px;
+  outline: none;
+  font-size: 1rem;
+  box-sizing: border-box;     /* Ensures padding is included in width */
+}
+
+/* Make the textarea resizable vertically only */
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;          /* Give a minimum height */
+}
+
+/* Submit button styling */
+.send-button {
+  background-color: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Button hover effect */
+.send-button:hover {
+  background-color: #6A1B9A;
+}
   
   header {
     background-color: #333;
