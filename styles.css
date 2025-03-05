@@ -31,20 +31,20 @@ body {
     padding: 1rem;
   }
   
+/* Replace the old .discord-btn with .social-button */
 .social-button {
   width: 50px;            /* Button width */
   height: 50px;           /* Button height */
   border-radius: 8px;     /* Rounded corners */
-  background-color: #ffffff; /* Optional Discord-like color */
-  border: none;
+  background-color: #fff; /* White background */
+  border: 2px solid #ccc; /* Light gray border */
   cursor: pointer;
-  
+
   /* Center the icon */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  
-  /* Spacing around buttons */
+
   margin: 0.5rem;
 }
 
