@@ -146,13 +146,15 @@ body {
   .discord-logo {
     width: 24px;
     height: 24px;
-    fill: #7B1FA2;  /* This color sets the logo's fill */
+    color: #7B1FA2;       /* Set the element's color so currentColor becomes #7B1FA2 */
+    fill: currentColor;   /* Ensures the path uses the computed color */
     transition: fill 0.2s ease-in-out;
   }
   
   .social-button:hover .discord-logo {
-    fill: #6A1B9A;
-  }
+    color: #6A1B9A;       /* Change the color on hover */
+    fill: currentColor;
+  }  
   
   /* Dropdown Section Styling */
   .dropdown-section {
@@ -192,16 +194,34 @@ body {
   
   .dropdown-content iframe {
     width: 100%;
-    height: 300px;
+    height: 100%;
     border: none;
   }
 
   .resizable-container {
     width: 100%;
-    min-height: 300px;  /* Initial minimum height */
-    resize: vertical;   /* Allow vertical resizing only */
-    overflow: auto;     /* Add scrollbars if content overflows */
-    border: 1px solid #BA68C8; /* Optional: visual cue */
+    min-height: 300px;  /* initial minimum height */
+    height: 300px;      /* start at 300px */
+    position: relative;
+    overflow: auto;
+    border: 1px solid #BA68C8; /* optional visual cue */
   }
   
+  /* Make the iframe fill the container */
+  .resizable-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  
+  /* Style the custom drag handle */
+  .drag-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;       /* adjust as needed */
+    background-color: #ccc;  /* or transparent with a border, etc. */
+    cursor: ns-resize;
+  }
   
