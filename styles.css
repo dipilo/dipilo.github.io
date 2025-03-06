@@ -1,133 +1,133 @@
 /* General body styling (optional) */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background-color: #EDE7F6; /* Light lilac page background */
-}
-
-/* Contact form container (example) */
-.contact-form-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  background-color: #F3E5F5;
-  padding: 2rem;
-  border-radius: 12px;
-  border: 2px solid #BA68C8;
-}
-
-/* Form actions container */
-.form-actions {
-  display: flex;
-  gap: 1rem; /* space between the two buttons */
-  margin-top: 1rem;
-}
-
-/* Send button styling */
-.send-button {
-  background-color: #7B1FA2;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-.send-button:hover {
-  background-color: #6A1B9A;
-}
-
-/* Return Home button styling */
-.home-button {
-  background-color: #7B1FA2;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-.home-button:hover {
-  background-color: #6A1B9A;
-}
-
-/* Example styling for text fields, just in case */
-.form-group {
-  margin-bottom: 1.5rem;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #4A148C;
-}
-.name-row {
-  display: flex;
-  gap: 1rem;
-}
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #7B1FA2;
-  border-radius: 20px;
-  outline: none;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-.form-group textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-  
-  header {
-    background-color: #333;
-    color: #fff;
-    padding: 1rem;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #EDE7F6; /* Light lilac page background */
   }
   
-  nav ul {
-    list-style: none;
+  /* Contact form container (example) */
+  .contact-form-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    background-color: #F3E5F5;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 2px solid #BA68C8;
+  }
+  
+  /* Form actions container */
+  .form-actions {
+    display: flex;
+    gap: 1rem; /* space between the two buttons */
+    margin-top: 1rem;
+  }
+  
+  /* Send button styling */
+  .send-button {
+    background-color: #7B1FA2;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  .send-button:hover {
+    background-color: #6A1B9A;
+  }
+  
+  /* Return Home button styling */
+  .home-button {
+    background-color: #7B1FA2;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  .home-button:hover {
+    background-color: #6A1B9A;
+  }
+  
+  /* Example styling for text fields, just in case */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #4A148C;
+  }
+  .name-row {
     display: flex;
     gap: 1rem;
   }
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #7B1FA2;
+    border-radius: 20px;
+    outline: none;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+    
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 1rem;
+    }
+    
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+    }
+    
+    nav a {
+      color: #fff;
+      text-decoration: none;
+    }
+    
+    main {
+      padding: 2rem;
+    }
+    
+    footer {
+      background-color: #eee;
+      text-align: center;
+      padding: 1rem;
+    }
+    
+  /* Replace the old .discord-btn with .social-button */
+  .social-button {
+    width: 50px;            /* Button width */
+    height: 50px;           /* Button height */
+    border-radius: 8px;     /* Rounded corners */
+    background-color: #7B1FA2; /* White background */
+    border: 2px solid #6A1B9A; /* Light gray border */
+    cursor: pointer;
   
-  nav a {
-    color: #fff;
-    text-decoration: none;
+    /* Center the icon */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  
+    margin: 0.5rem;
   }
   
-  main {
-    padding: 2rem;
+  .social-button img {
+    width: 24px;  /* Logo width */
+    height: 24px; /* Logo height */
   }
   
-  footer {
-    background-color: #eee;
-    text-align: center;
-    padding: 1rem;
-  }
-  
-/* Replace the old .discord-btn with .social-button */
-.social-button {
-  width: 50px;            /* Button width */
-  height: 50px;           /* Button height */
-  border-radius: 8px;     /* Rounded corners */
-  background-color: #fff; /* White background */
-  border: 2px solid #ccc; /* Light gray border */
-  cursor: pointer;
-
-  /* Center the icon */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  margin: 0.5rem;
-}
-
-.social-button img {
-  width: 24px;  /* Logo width */
-  height: 24px; /* Logo height */
-}
-
