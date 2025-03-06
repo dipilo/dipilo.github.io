@@ -1,5 +1,4 @@
-
-/* General body styling (optional) */
+/* General body styling */
 body {
     margin: 0;
     padding: 0;
@@ -7,7 +6,49 @@ body {
     background-color: #EDE7F6; /* Light lilac page background */
   }
   
-  /* Contact form container (example) */
+  /* Header styling */
+  header {
+    background-color: #7B1FA2;  /* Theme header color */
+    color: #fff;
+    padding: 1rem;
+  }
+  
+  /* Navigation buttons styled like contact page buttons */
+  .nav-buttons {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .nav-button {
+    background-color: #7B1FA2;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .nav-button:hover {
+    background-color: #6A1B9A;
+  }
+  
+  /* Main content */
+  main {
+    padding: 2rem;
+  }
+  
+  /* Footer styling */
+  footer {
+    background-color: #BA68C8; /* More discernable footer color */
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  /* Contact form container (for contact page) */
   .contact-form-container {
     max-width: 600px;
     margin: 2rem auto;
@@ -20,26 +61,12 @@ body {
   /* Form actions container */
   .form-actions {
     display: flex;
-    gap: 1rem; /* space between the two buttons */
+    gap: 1rem;
     margin-top: 1rem;
   }
   
-  /* Send button styling */
-  .send-button {
-    background-color: #7B1FA2;
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-  }
-  .send-button:hover {
-    background-color: #6A1B9A;
-  }
-  
-  /* Return Home button styling */
+  /* Send and Home button styling (for contact page) */
+  .send-button,
   .home-button {
     background-color: #7B1FA2;
     color: #fff;
@@ -50,24 +77,29 @@ body {
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
   }
+  
+  .send-button:hover,
   .home-button:hover {
     background-color: #6A1B9A;
   }
   
-  /* Example styling for text fields, just in case */
+  /* Form group styling */
   .form-group {
     margin-bottom: 1.5rem;
   }
+  
   .form-group label {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: bold;
     color: #4A148C;
   }
+  
   .name-row {
     display: flex;
     gap: 1rem;
   }
+  
   .form-group input,
   .form-group textarea {
     width: 100%;
@@ -78,64 +110,77 @@ body {
     font-size: 1rem;
     box-sizing: border-box;
   }
+  
   .form-group textarea {
     min-height: 100px;
     resize: vertical;
   }
-    
-    header {
-      background-color: #333;
-      color: #fff;
-      padding: 1rem;
-    }
-    
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 1rem;
-    }
-    
-    nav a {
-      color: #fff;
-      text-decoration: none;
-    }
-    
-    main {
-      padding: 2rem;
-    }
-    
-    footer {
-      background-color: #F3E5F5;
-      text-align: center;
-      padding: 1rem;
-    }
-
-  .social-button {
-    width: 50px;              /* Button width */
-    height: 50px;             /* Button height */
-    border-radius: 8px;       /* Rounded corners */
-    background-color: #EDE7F6;   /* Customize button background here */
-    border: 2px solid #EDE7F6;/* Customize border here */
-    cursor: pointer;
   
-    /* Center the SVG icon */
+  /* Social button styling */
+  .social-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    background-color: #EDE7F6;  /* Button background color (customizable) */
+    border: 2px solid #EDE7F6;  /* Button border (customizable) */
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-  
     margin: 0.5rem;
   }
-
-  /* Control the color of the SVG logo */
+  
+  /* SVG logo styling for socials */
   .discord-logo {
-    width: 24px;              /* Logo width */
-    height: 24px;             /* Logo height */
-    fill: #7B1FA2;            /* Customize logo (icon) color here */
+    width: 24px;
+    height: 24px;
+    fill: #7B1FA2;  /* Logo color (customizable) */
     transition: fill 0.2s ease-in-out;
   }
-
+  
   .social-button:hover .discord-logo {
-    fill: #6A1B9A;            /* Optional hover effect for logo color */
+    fill: #6A1B9A;
   }
-
+  
+  /* Dropdown Section Styling */
+  .dropdown-section {
+    margin-bottom: 2rem;
+    border: 2px solid #BA68C8;
+    border-radius: 12px;
+    background-color: #F3E5F5;
+  }
+  
+  .dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+  }
+  
+  .section-link {
+    font-size: 1.25rem;
+    color: #7B1FA2;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .dropdown-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #7B1FA2;
+  }
+  
+  .dropdown-content {
+    display: none;
+    padding: 1rem;
+    border-top: 1px solid #BA68C8;
+  }
+  
+  .dropdown-content iframe {
+    width: 100%;
+    height: 300px;
+    border: none;
+  }
   

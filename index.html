@@ -6,47 +6,66 @@
   <title>My Project Hub</title>
   <!-- Link to your CSS file for styling -->
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Simple toggle function for dropdown panels
+    function toggleDropdown(id) {
+      var content = document.getElementById(id);
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    }
+  </script>
 </head>
 <body>
   <header>
     <h1>Dipilodopilasaurus Nest</h1>
     <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="/privacy/Dipilodopilasaurus-Nest.html">Privacy Policy</a></li>
-        <li><a href="terms.html">Terms of Service</a></li>
-        <li><a href="contact.html">Contact</a></li>
+      <ul class="nav-buttons">
+        <li><a class="nav-button" href="index.html">Home</a></li>
+        <li><a class="nav-button" href="/privacy/Dipilodopilasaurus-Nest.html">Privacy Policy</a></li>
+        <li><a class="nav-button" href="terms.html">Terms of Service</a></li>
+        <li><a class="nav-button" href="contact.html">Contact</a></li>
       </ul>
     </nav>
   </header>
   
   <main>
-    <section id="discord-bots">
-      <h2>Discord Bots</h2>
-      <ul>
-        <li><a href="Zoople TCG.html">Zoople TCG</a></li>
-        <li><a href="Anon-Vent.html">Anon-Vent</a></li>
-        <li><a href="Skedooler.html">Skedooler</a></li>
-        <li><a href="Dip'n'Dots'n'Boxes.html">Dip'n'Dots'n'Boxes</a></li>
-        <li><a href="The Voices.html">The Voices</a></li>
-        <li><a href="PinPick.html">PinPick</a></li>
-      </ul>
-    </section>
+    <!-- Dropdown Section for Discord Bots -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="DiscordBots.html">Discord Bots</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('discord-dropdown')">&#9660;</button>
+      </div>
+      <div id="discord-dropdown" class="dropdown-content">
+        <iframe src="DiscordBots.html" frameborder="0"></iframe>
+      </div>
+    </div>
     
-    <section id="minecraft-mods">
-      <h2>Minecraft Mods</h2>
-      <ul>
-        <li><a href="https://modrinth.com/user/dipilodopilasaurus" target="_blank">Modrinth</a></li>
-        <li><a href="https://modrinth.com/organization/lyftosaurus" target="_blank">Modrinth Organization</a></li>
-        <li><a href="https://www.curseforge.com/members/dipilodopilasaur/projects" target="_blank">CurseForge</a></li>
-      </ul>
-    </section>
+    <!-- Dropdown Section for Minecraft Mods -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="MinecraftMods.html">Minecraft Mods</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('mods-dropdown')">&#9660;</button>
+      </div>
+      <div id="mods-dropdown" class="dropdown-content">
+        <iframe src="MinecraftMods.html" frameborder="0"></iframe>
+      </div>
+    </div>
     
-    <section id="other-projects">
-      <h2>Other Projects</h2>
-      <p>Under Construction...</p>
-    </section>
+    <!-- Dropdown Section for Other Projects -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="OtherProjects.html">Other Projects</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('projects-dropdown')">&#9660;</button>
+      </div>
+      <div id="projects-dropdown" class="dropdown-content">
+        <iframe src="OtherProjects.html" frameborder="0"></iframe>
+      </div>
+    </div>
     
+    <!-- Socials Section -->
     <section id="socials">
       <h2>Socials</h2>
       <button class="social-button" onclick="window.open('https://discord.gg/D336wq8rsM', '_blank')">
@@ -58,7 +77,6 @@
         </svg>
       </button>
       <button class="social-button" onclick="window.open('https://discord.gg/5xdRQJp2QR', '_blank')">
-        <!-- Same inline SVG for the second button -->
         <svg class="discord-logo" viewBox="0 -28.5 256 256" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
           <g>
             <path d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z" fill="currentColor" fill-rule="nonzero"></path>
@@ -66,7 +84,8 @@
         </svg>
       </button>
     </section>
-
+  </main>
+  
   <footer>
     <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
   </footer>
