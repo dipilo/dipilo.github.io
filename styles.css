@@ -195,4 +195,13 @@ body {
     height: 300px;
     border: none;
   }
+
+  .resizable-container {
+    width: 100%;
+    min-height: 300px;  /* Initial minimum height */
+    resize: vertical;   /* Allow vertical resizing only */
+    overflow: auto;     /* Add scrollbars if content overflows */
+    border: 1px solid #BA68C8; /* Optional: visual cue */
+  }
+  
   
