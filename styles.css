@@ -108,26 +108,33 @@ body {
       text-align: center;
       padding: 1rem;
     }
-    
-  /* Replace the old .discord-btn with .social-button */
+
   .social-button {
-    width: 50px;            /* Button width */
-    height: 50px;           /* Button height */
-    border-radius: 8px;     /* Rounded corners */
-    background-color: #7B1FA2; /* White background */
-    border: 2px solid #6A1B9A; /* Light gray border */
+    width: 50px;              /* Button width */
+    height: 50px;             /* Button height */
+    border-radius: 8px;       /* Rounded corners */
+    background-color: #fff;   /* Customize button background here */
+    border: 2px solid #6A1B9A;/* Customize border here */
     cursor: pointer;
   
-    /* Center the icon */
+    /* Center the SVG icon */
     display: inline-flex;
     align-items: center;
     justify-content: center;
   
     margin: 0.5rem;
   }
-  
-  .social-button img {
-    width: 24px;  /* Logo width */
-    height: 24px; /* Logo height */
+
+  /* Control the color of the SVG logo */
+  .social-logo {
+    width: 24px;              /* Logo width */
+    height: 24px;             /* Logo height */
+    fill: #7B1FA2;            /* Customize logo (icon) color here */
+    transition: fill 0.2s ease-in-out;
   }
+
+  .social-button:hover .social-logo {
+    fill: #6A1B9A;            /* Optional hover effect for logo color */
+  }
+
   
