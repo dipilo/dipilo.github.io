@@ -9,10 +9,10 @@
   <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
   <script defer src="https://pyscript.net/latest/pyscript.js"></script>
   
-  <!-- Configure PyScript to include your repository directory -->
+  <!-- Configure PyScript to include the other-projects directory -->
   <py-config>
     {
-      "paths": ["."]
+      "paths": ["./other-projects"]
     }
   </py-config>
 </head>
@@ -23,7 +23,7 @@
       <ul class="nav-buttons">
         <li><a class="nav-button" href="OtherProjects.html">Other Projects</a></li>
         <li><a class="nav-button" href="index.html">Home</a></li>
-        <li><a class="nav-button" href="/privacy/Dipilodopilasaurus-Nest.html">Privacy Policy</a></li>
+        <li><a class="nav-button" href="/privacy/dipilodopilasaurus-nest.html">Privacy Policy</a></li>
         <li><a class="nav-button" href="terms.html">Terms of Service</a></li>
         <li><a class="nav-button" href="contact.html">Contact</a></li>
       </ul>
@@ -36,20 +36,21 @@
     <button id="simulate-btn" class="send-button">Simulate</button>
     <pre id="output" style="background: #F3E5F5; padding: 1rem; border-radius: 8px; border: 1px solid #BA68C8;"></pre>
 
-    <!-- PyScript block that imports your external Python module -->
+    <!-- Import your external Python module -->
     <py-script>
-from hybrid import generate_random_species_result
+from fantasyHybridSimulator import generate_random_species_result
 
 def run_simulation():
     return generate_random_species_result()
 
-# Expose the function so it can be called from JavaScript
+# Expose the function to be callable from JavaScript.
 run_simulation_func = run_simulation
     </py-script>
-    
-    <!-- Script to call the PyScript function on button click -->
+
+    <!-- JavaScript to call the PyScript function -->
     <script>
       document.getElementById("simulate-btn").addEventListener("click", async function() {
+        // Use pyodide.runPythonAsync to call our exposed function
         let result = await pyodide.runPythonAsync("run_simulation_func()");
         document.getElementById("output").innerText = result;
       });
