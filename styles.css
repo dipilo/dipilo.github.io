@@ -113,8 +113,8 @@ body {
     width: 50px;              /* Button width */
     height: 50px;             /* Button height */
     border-radius: 8px;       /* Rounded corners */
-    background-color: #fff;   /* Customize button background here */
-    border: 2px solid #6A1B9A;/* Customize border here */
+    background-color: #EDE7F6;   /* Customize button background here */
+    border: 2px solid #EDE7F6;/* Customize border here */
     cursor: pointer;
   
     /* Center the SVG icon */
