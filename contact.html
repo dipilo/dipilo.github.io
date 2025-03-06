@@ -2,60 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Contact - Dipilodopilasaurus Nest</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="contact-form-container">
-    <h2>Contact Us</h2>
-    <!-- Use a local script (process.php) as the form action -->
-    <form action="process.php" method="POST">
-      
-      <div class="form-group">
-        <label for="firstName">First Name</label>
-        <input 
-          type="text" 
-          id="firstName" 
-          name="firstName" 
-          placeholder="First Name" 
-          required
-        >
-      </div>
-      
-      <div class="form-group">
-        <label for="lastName">Last Name</label>
-        <input 
-          type="text" 
-          id="lastName" 
-          name="lastName" 
-          placeholder="Last Name" 
-          required
-        >
-      </div>
-      
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input 
-          type="email" 
-          id="email" 
-          name="email" 
-          placeholder="Your Email" 
-          required
-        >
-      </div>
-      
-      <div class="form-group">
-        <label for="message">Message</label>
-        <textarea 
-          id="message" 
-          name="message" 
-          placeholder="Type your message here..." 
-          required
-        ></textarea>
-      </div>
-      
-      <button type="submit" class="send-button">Send</button>
-    </form>
-  </div>
+  <main>
+    <div class="contact-form-container">
+      <h2>Contact Us</h2>
+      <!-- Form now submits to process.php using POST -->
+      <form action="process.php" method="post">
+        
+        <!-- Name Fields -->
+        <div class="form-group">
+          <label for="firstName">Name (required)</label>
+          <div class="name-row">
+            <input 
+              type="text" 
+              id="firstName" 
+              name="firstName" 
+              placeholder="First Name" 
+              required
+            >
+            <input 
+              type="text" 
+              id="lastName" 
+              name="lastName" 
+              placeholder="Last Name" 
+              required
+            >
+          </div>
+        </div>
+        
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="email">Email (required)</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            placeholder="Your Email" 
+            required
+          >
+        </div>
+        
+        <!-- Message Field -->
+        <div class="form-group">
+          <label for="message">Message (required)</label>
+          <textarea 
+            id="message" 
+            name="message" 
+            placeholder="Type your message here..." 
+            required
+          ></textarea>
+        </div>
+        
+        <!-- Form Action Buttons -->
+        <div class="form-actions">
+          <button type="submit" class="send-button">Send</button>
+          <!-- Return Home button -->
+          <button 
+            type="button" 
+            class="home-button" 
+            onclick="window.location.href='index.html'">
+            Return Home
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
 </body>
 </html>
