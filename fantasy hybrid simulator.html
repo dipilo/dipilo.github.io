@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fantasy Hybrid Simulator - Dipilodopilasaurus Nest</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- PyScript resources -->
+  <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+  <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  
+  <!-- Configure PyScript to include your repository directory -->
+  <py-config>
+    {
+      "paths": ["."]
+    }
+  </py-config>
+</head>
+<body>
+  <header>
+    <h1>Fantasy Hybrid Simulator</h1>
+    <nav>
+      <ul class="nav-buttons">
+        <li><a class="nav-button" href="OtherProjects.html">Other Projects</a></li>
+        <li><a class="nav-button" href="index.html">Home</a></li>
+        <li><a class="nav-button" href="/privacy/Dipilodopilasaurus-Nest.html">Privacy Policy</a></li>
+        <li><a class="nav-button" href="terms.html">Terms of Service</a></li>
+        <li><a class="nav-button" href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <h2>Interactive Fantasy Hybrid Simulator</h2>
+    <p>Click the button below to generate a random hybrid.</p>
+    <button id="simulate-btn" class="send-button">Simulate</button>
+    <pre id="output" style="background: #F3E5F5; padding: 1rem; border-radius: 8px; border: 1px solid #BA68C8;"></pre>
+
+    <!-- PyScript block that imports your external Python module -->
+    <py-script>
+from hybrid import generate_random_species_result
+
+def run_simulation():
+    return generate_random_species_result()
+
+# Expose the function so it can be called from JavaScript
+run_simulation_func = run_simulation
+    </py-script>
+    
+    <!-- Script to call the PyScript function on button click -->
+    <script>
+      document.getElementById("simulate-btn").addEventListener("click", async function() {
+        let result = await pyodide.runPythonAsync("run_simulation_func()");
+        document.getElementById("output").innerText = result;
+      });
+    </script>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
+  </footer>
+</body>
+</html>
