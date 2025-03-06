@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Other Projects - Dipilodopilasaurus Nest</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    function toggleDropdown(id) {
+      var content = document.getElementById(id);
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Other Projects</h1>
+    <nav>
+      <ul class="nav-buttons">
+        <li><a class="nav-button" href="index.html">Home</a></li>
+        <li><a class="nav-button" href="/privacy/Dipilodopilasaurus-Nest.html">Privacy Policy</a></li>
+        <li><a class="nav-button" href="terms.html">Terms of Service</a></li>
+        <li><a class="nav-button" href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <!-- Dropdown for Project Alpha (Placeholder) -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="ProjectAlpha.html">Project Alpha</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('alpha-dropdown')">&#9660;</button>
+      </div>
+      <div id="alpha-dropdown" class="dropdown-content">
+        <iframe src="ProjectAlpha.html" frameborder="0"></iframe>
+      </div>
+    </div>
+
+    <!-- Dropdown for Project Beta (Placeholder) -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="ProjectBeta.html">Project Beta</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('beta-dropdown')">&#9660;</button>
+      </div>
+      <div id="beta-dropdown" class="dropdown-content">
+        <iframe src="ProjectBeta.html" frameborder="0"></iframe>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
+  </footer>
+</body>
+</html>

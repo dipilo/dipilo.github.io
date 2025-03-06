@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Mods - Dipilodopilasaurus Nest</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    function toggleDropdown(id) {
+      var content = document.getElementById(id);
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Minecraft Mods</h1>
+    <nav>
+      <ul class="nav-buttons">
+        <li><a class="nav-button" href="index.html">Home</a></li>
+        <li><a class="nav-button" href="/privacy/Dipilodopilasaurus-Nest.html">Privacy Policy</a></li>
+        <li><a class="nav-button" href="terms.html">Terms of Service</a></li>
+        <li><a class="nav-button" href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <!-- Dropdown for Modrinth -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="https://modrinth.com/user/dipilodopilasaurus" target="_blank">Modrinth</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('modrinth-dropdown')">&#9660;</button>
+      </div>
+      <div id="modrinth-dropdown" class="dropdown-content">
+        <iframe src="https://modrinth.com/user/dipilodopilasaurus" frameborder="0"></iframe>
+      </div>
+    </div>
+
+    <!-- Dropdown for Modrinth Organization -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="https://modrinth.com/organization/lyftosaurus" target="_blank">Modrinth Organization</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('org-dropdown')">&#9660;</button>
+      </div>
+      <div id="org-dropdown" class="dropdown-content">
+        <iframe src="https://modrinth.com/organization/lyftosaurus" frameborder="0"></iframe>
+      </div>
+    </div>
+
+    <!-- Dropdown for CurseForge -->
+    <div class="dropdown-section">
+      <div class="dropdown-header">
+        <a class="section-link" href="https://www.curseforge.com/members/dipilodopilasaur/projects" target="_blank">CurseForge</a>
+        <button class="dropdown-toggle" onclick="toggleDropdown('curse-dropdown')">&#9660;</button>
+      </div>
+      <div id="curse-dropdown" class="dropdown-content">
+        <iframe src="https://www.curseforge.com/members/dipilodopilasaur/projects" frameborder="0"></iframe>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
+  </footer>
+</body>
+</html>
