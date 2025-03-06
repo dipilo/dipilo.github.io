@@ -1,3 +1,4 @@
+
 /* General body styling (optional) */
 body {
     margin: 0;
@@ -104,7 +105,7 @@ body {
     }
     
     footer {
-      background-color: #eee;
+      background-color: #F3E5F5;
       text-align: center;
       padding: 1rem;
     }
