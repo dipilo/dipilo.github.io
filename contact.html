@@ -10,8 +10,7 @@
   <main>
     <div class="contact-form-container">
       <h2>Contact Us</h2>
-      <!-- Updated form action to use FormSpree -->
-      <form action="https://formspree.io/f/mqapzkna" method="POST">
+      <form id="contactForm">
         
         <!-- Name Fields -->
         <div class="form-group">
@@ -69,7 +68,13 @@
           </button>
         </div>
       </form>
+      <div id="confirmationMessage" style="display:none; color: green; margin-top: 20px;">
+        Your message has been sent successfully!
+      </div>
     </div>
   </main>
+
+  <!-- Include the external contact script -->
+  <script src="contact.js"></script>
 </body>
 </html>
