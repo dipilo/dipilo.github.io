@@ -215,7 +215,7 @@ body {
   }
   
   /* Style the custom drag handle */
-  .drag-handle {
+.drag-handle {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -224,12 +224,11 @@ body {
     background-color: #7B1FA2;  /* Change to a visible color */
     cursor: ns-resize;
     z-index: 10;        /* Ensure it sits on top */
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+    border-radius: 8px; /* Round all corners */
     transition: background-color 0.2s ease;
-  }  
+}  
 
-  .drag-handle:hover {
-    background-color: #6A1B9A;
-  }
+.drag-handle:hover {
+  background-color: #6A1B9A;
+}
   
