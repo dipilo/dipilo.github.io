@@ -17,10 +17,10 @@ document.getElementById('contactForm').addEventListener('submit', async function
         document.getElementById('confirmationMessage').style.display = 'block';
         form.reset(); // Clear the form fields
       } else {
-        showAlert('Uh Oh.');
+        showAlert('There was a problem with your submission. Please try again.');
       }
     } catch (error) {
-      showAlert('It no submit.');
+      showAlert('There was a problem with your submission. Please try again.');
     }
 });
 
