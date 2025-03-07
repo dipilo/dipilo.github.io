@@ -3,14 +3,20 @@ document.getElementById('contactForm').addEventListener('submit', async function
   
     const form = event.target;
     const formData = new FormData(form);
+    const data = {
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      email: formData.get('email'),
+      message: formData.get('message')
+    };
   
     try {
-      const response = await fetch(form.action, {
-        method: form.method,
-        body: formData,
+      const response = await fetch('/send-email', {
+        method: 'POST',
         headers: {
-          'Accept': 'application/json'
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
       });
   
       if (response.ok) {
