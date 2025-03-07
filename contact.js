@@ -17,9 +17,20 @@ document.getElementById('contactForm').addEventListener('submit', async function
         document.getElementById('confirmationMessage').style.display = 'block';
         form.reset(); // Clear the form fields
       } else {
-        alert('There was a problem with your submission. Please try again.');
+        showAlert('There was a problem with your submission. Please try again.');
       }
     } catch (error) {
-      alert('There was a problem with your submission. Please try again.');
+      showAlert('There was a problem with your submission. Please try again.');
     }
-  });
+});
+
+function showAlert(message) {
+  const alertBox = document.getElementById('alertBox');
+  const alertMessage = document.getElementById('alertMessage');
+  alertMessage.textContent = message;
+  alertBox.style.display = 'block';
+}
+
+document.getElementById('closeAlert').addEventListener('click', function() {
+  document.getElementById('alertBox').style.display = 'none';
+});
