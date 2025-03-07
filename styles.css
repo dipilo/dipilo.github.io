@@ -231,4 +231,11 @@ body {
 .drag-handle:hover {
   background-color: #6A1B9A;
 }
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
   
