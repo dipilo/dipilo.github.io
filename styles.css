@@ -203,7 +203,7 @@ body {
     min-height: 300px;  /* initial minimum height */
     height: 300px;      /* start at 300px */
     position: relative;
-    overflow: auto;
+    overflow: hidden;
     border: 1px solid #BA68C8; /* optional visual cue */
   }
   
@@ -224,5 +224,12 @@ body {
     background-color: #7B1FA2;  /* Change to a visible color */
     cursor: ns-resize;
     z-index: 10;        /* Ensure it sits on top */
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    transition: background-color 0.2s ease;
   }  
+
+  .drag-handle:hover {
+    background-color: #6A1B9A;
+  }
   
