@@ -915,14 +915,40 @@ def simulate_random(n):
     for sp, count in frequency.items():
         print(f"{sp}: {count} times")
 
-def toggle_save_mode():
-    global SAVE_MODE
-    SAVE_MODE = not SAVE_MODE
-    mode_status = "ON" if SAVE_MODE else "OFF"
-    print(f"Save mode toggled {mode_status}.")
+class HybridCLI:
+    def __init__(self):
+        self.SAVE_MODE = False
+        self.SAVED_FILE = "hybrids.json"
+        self.saved_hybrids = {}
+        self.load_saved_hybrids()
 
-def print_help():
-    help_text = """
+    def load_saved_hybrids(self):
+        if os.path.exists(self.SAVED_FILE):
+            try:
+                with open(self.SAVED_FILE, "r") as f:
+                    loaded = json.load(f)
+                    self.saved_hybrids = {k.lower(): v for k, v in loaded.items()}
+            except Exception as e:
+                print("Error loading saved hybrids:", e)
+                self.saved_hybrids = {}
+        else:
+            self.saved_hybrids = {}
+
+    def save_saved_hybrids(self):
+        try:
+            with open(self.SAVED_FILE, "w") as f:
+                json.dump(self.saved_hybrids, f, indent=4)
+        except Exception as e:
+            print("Error saving hybrids:", e)
+
+    def process_command(self, command_line: str) -> str:
+        parts = shlex.split(command_line)
+        if not parts:
+            return ""
+
+        cmd = parts[0].lower()
+        if cmd == "help":
+            return """
 Commands:
   toggle                    - Toggle save mode ON/OFF
   list                      - List available known species and saved hybrids
@@ -935,44 +961,160 @@ Commands:
 
 Note: Enclose hybrid names containing spaces in quotes.
 """
-    print(help_text)
-
-def main():
-    load_saved_hybrids()
-    print("Welcome to the Expanded Hybrid Breeding Simulator!")
-    print_help()
-    while True:
-        command = input("\nEnter command: ").strip()
-        if not command:
-            continue
-        parts = shlex.split(command)
-        if not parts:
-            continue
-        cmd = parts[0].lower()
-        if cmd == "quit":
-            print("Exiting the simulator. Goodbye!")
-            break
-        elif cmd == "help":
-            print_help()
         elif cmd == "toggle":
-            toggle_save_mode()
+            self.SAVE_MODE = not self.SAVE_MODE
+            mode_status = "ON" if self.SAVE_MODE else "OFF"
+            return f"Save mode toggled {mode_status}.\n"
         elif cmd == "list":
-            list_species()
+            output = "Available species (from known definitions):\n"
+            for sp in sorted(phenotype_genotypes.keys()):
+                output += "  " + sp + "\n"
+            if self.SAVE_MODE:
+                output += "\nSaved hybrids:\n"
+                for name in sorted(self.saved_hybrids.keys()):
+                    record = self.saved_hybrids[name]
+                    output += f"  {record['name']} (Species: {record['species']}, Genotype: {record.get('genotype','N/A')})\n"
+            return output
         elif cmd == "breed":
-            breed_species(parts[1:])
+            if len(parts) != 3:
+                return "Usage: breed [species_or_saved_name1] [species_or_saved_name2]\n"
+            arg1, arg2 = parts[1].lower(), parts[2].lower()
+            if self.SAVE_MODE and (arg1 in self.saved_hybrids and arg2 in self.saved_hybrids):
+                offspring_data = breed_from_saved(arg1, arg2)
+                if offspring_data is None:
+                    return ""
+                offspring, mutations = offspring_data
+                output = "\n--- BREEDING RESULT (from saved hybrids) ---\n"
+                output += f"Parent 1: {self.saved_hybrids[arg1]['name']} (Species: {self.saved_hybrids[arg1]['species']}, Genotype: {self.saved_hybrids[arg1].get('genotype','N/A')})\n"
+                output += f"Parent 2: {self.saved_hybrids[arg2]['name']} (Species: {self.saved_hybrids[arg2]['species']}, Genotype: {self.saved_hybrids[arg2].get('genotype','N/A')})\n"
+                output += f"Offspring name: {offspring['name']}\n"
+                output += f"Inherited species: {offspring['species']}\n"
+                output += "Offspring genotype:\n"
+                output += f"  Top   : {offspring['genotype']['top']}\n"
+                output += f"  Mid   : {offspring['genotype']['mid']}\n"
+                output += f"  Bottom: {offspring['genotype']['bottom']}\n"
+                output += "Inherited stats:\n"
+                for stat, value in offspring["stats"].items():
+                    output += f"  {stat:15s}: {value}"
+                    if stat in mutations:
+                        output += f"  <-- {mutations[stat]}\n"
+                    else:
+                        output += "\n"
+                return output
+            else:
+                try:
+                    MAX_ATTEMPTS = 10
+                    attempt = 0
+                    result = None
+                    while attempt < MAX_ATTEMPTS:
+                        result = cross_breed_random(arg1, arg2)
+                        if result["phenotype"] is not None:
+                            break
+                        attempt += 1
+                    if result is None or result["phenotype"] is None:
+                        return "Miscarriage: Offspring species could not be determined after several attempts.\n"
+                except ValueError as e:
+                    return f"Error: {e}\n"
+                output = "\n--- BREEDING RESULT (from known species simulation) ---\n"
+                output += f"Parent 1 ({arg1}) - Genotype: {result['parent1_genotype']}\n"
+                output += f"Parent 2 ({arg2}) - Genotype: {result['parent2_genotype']}\n"
+                output += "\nOffspring genotype:\n"
+                output += f"  Top   : {result['offspring_top']}\n"
+                output += f"  Mid   : {result['offspring_mid']}\n"
+                output += f"  Bottom: {result['offspring_bottom']}\n"
+                output += f"Offspring species: {result['phenotype']}\n"
+                if result["phenotype"] is not None:
+                    off_top = top_expression(result["offspring_top"])
+                    off_mid = mid_expression(result["offspring_mid"])
+                    off_bottom = bottom_expression(result["offspring_bottom"])
+                    stats, mutations = generate_individual_stats(result["phenotype"], off_top, off_mid, off_bottom)
+                    if self.SAVE_MODE:
+                        new_name = generate_unique_name(result["phenotype"])
+                        record = {
+                            "name": new_name,
+                            "genotype": {
+                                "top": list(result["offspring_top"]),
+                                "mid": list(result["offspring_mid"]),
+                                "bottom": list(result["offspring_bottom"])
+                            },
+                            "species": result["phenotype"],
+                            "stats": stats,
+                            "mode": "generated",
+                            "parents": []
+                        }
+                        self.saved_hybrids[new_name.lower()] = record
+                        self.save_saved_hybrids()
+                        output += f"\nAssigned unique name: {new_name}\n"
+                    output += "\nOffspring stats (sources per stat are defined by species):\n"
+                    for stat, value in stats.items():
+                        output += f"  {stat:15s}: {value}"
+                        if stat in mutations:
+                            output += f"  <-- {mutations[stat]}\n"
+                        else:
+                            output += "\n"
+                else:
+                    output += "The offspring species is unknown.\n"
+                return output
         elif cmd == "random":
-            generate_random_species()
+            genotype, sp = random.choice(all_full_genotypes)
+            output = "\n--- RANDOM SPECIES GENERATED ---\n"
+            output += "Genotype:\n"
+            output += f"  Top   : {genotype['top']}\n"
+            output += f"  Mid   : {genotype['mid']}\n"
+            output += f"  Bottom: {genotype['bottom']}\n"
+            output += f"Species: {sp}\n"
+            expr_top = top_expression(genotype["top"])
+            expr_mid = mid_expression(genotype["mid"])
+            expr_bottom = bottom_expression(genotype["bottom"])
+            stats, mutations = generate_individual_stats(sp, expr_top, expr_mid, expr_bottom)
+            if self.SAVE_MODE:
+                new_name = generate_unique_name(sp)
+                record = {
+                    "name": new_name,
+                    "genotype": {
+                        "top": list(genotype["top"]),
+                        "mid": list(genotype["mid"]),
+                        "bottom": list(genotype["bottom"])
+                    },
+                    "species": sp,
+                    "stats": stats,
+                    "mode": "generated",
+                    "parents": []
+                }
+                self.saved_hybrids[new_name.lower()] = record
+                self.save_saved_hybrids()
+                output += f"Assigned unique name: {new_name}\n"
+            output += "\nStats:\n"
+            for stat, value in stats.items():
+                output += f"  {stat:15s}: {value}"
+                if stat in mutations:
+                    output += f"  <-- {mutations[stat]}\n"
+                else:
+                    output += "\n"
+            return output
         elif cmd == "simulate":
             if len(parts) < 2:
-                print("Usage: simulate [number of iterations]")
+                return "Usage: simulate [number of iterations]\n"
             else:
                 try:
                     n = int(parts[1])
-                    simulate_random(n)
+                    frequency = defaultdict(int)
+                    for _ in range(n):
+                        _, species = random.choice(all_full_genotypes)
+                        frequency[species] += 1
+                    output = "\n--- RANDOM SIMULATION RESULTS ---\n"
+                    for sp, count in frequency.items():
+                        output += f"{sp}: {count} times\n"
+                    return output
                 except ValueError:
-                    print("Please enter a valid integer for number of iterations.")
+                    return "Please enter a valid integer for number of iterations.\n"
+        elif cmd == "quit":
+            return "Use your browser's controls to exit the page.\n"
         else:
-            print("Unknown command. Type 'help' to see available commands.")
+            return f"Unknown command: {cmd}\n"
 
-if __name__ == '__main__':
-    main()
+# Create a global CLI instance
+cli = HybridCLI()
+
+def run_command(command_line: str) -> str:
+    return cli.process_command(command_line)
