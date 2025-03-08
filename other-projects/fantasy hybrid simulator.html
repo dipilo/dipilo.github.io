@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>Fantasy Hybrid Simulator - Dipilodopilasaurus Nest</title>
   <link rel="stylesheet" href="/styles.css">
-
-  <!-- Load PyScript -->
+  
+  <!-- Load PyScript from the 2025.2.4 release -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.4/core.css" />
   <script type="module" src="https://pyscript.net/releases/2025.2.4/core.js"></script>
   
@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "list", "simulate 10", etc.).</p>
+    <p>Type your commands below (e.g. "help", "list", "breed centaur mermaid", "simulate 10", etc.), then press Enter.</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -44,7 +44,7 @@
       border-radius: 8px;
       font-family: Consolas, monospace;
     ">
-      <!-- We'll append user commands and responses here -->
+      <!-- Command output will be appended here -->
     </div>
     
     <!-- Text input for commands -->
@@ -63,58 +63,44 @@
     />
     
     <!-- Import your run_command function from fantasyHybridSimulator.py -->
-    <script type="py" src="./fantasyHybridSimulator.py"></script>
+    <script type="py">
+from fantasyHybridSimulator import run_command
+    </script>
     
     <!-- JavaScript to handle user input and call run_command -->
-    <script>
+    <script type="module">
       document.addEventListener("DOMContentLoaded", async () => {
-        console.log("DOMContentLoaded event fired");
-
-        // Wait for PyScript to finish loading
         document.addEventListener("py-loaded", async () => {
-          console.log("PyScript loaded");
-
           const consoleDiv = document.getElementById("console");
           const cmdInput = document.getElementById("commandInput");
 
-          // Helper function to append lines to our console
+          // Append text to the console area
           function appendToConsole(text, isUser=false) {
             const line = document.createElement("div");
             line.textContent = (isUser ? "> " : "") + text;
             consoleDiv.appendChild(line);
-            // auto-scroll to bottom
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
           }
 
-          // Listen for Enter key in the command input
+          // Listen for Enter key on the command input field
           cmdInput.addEventListener("keydown", async (e) => {
-            console.log("Keydown event fired");
             if (e.key === "Enter") {
               e.preventDefault();
               const cmd = cmdInput.value.trim();
               if (!cmd) return;
-              
-              // Show user command in console
               appendToConsole(cmd, true);
               cmdInput.value = "";
-
-              console.log(`Running command: ${cmd}`);
-
-              // We'll run: run_command("""some user text""")
-              // using the PyScript runtime
+              
+              // Prepare the code string to call run_command with the user command
               let code = `run_command("""${cmd}""")`;
               
               try {
-                // This runs code in the default PyScript interpreter
-                let result = await pyscript.interpreter.run(code);
-                // 'result' is a PyProxy object. Convert it to string
-                let output = result.toString();
-                console.log(`Command output: ${output}`);
-                if (output) {
-                  appendToConsole(output);
+                // Use pyodide.runPythonAsync to execute the Python function
+                let result = await pyodide.runPythonAsync(code);
+                if (result) {
+                  appendToConsole(result.toString());
                 }
               } catch (err) {
-                console.error(`Error running command: ${err}`);
                 appendToConsole("Error: " + err);
               }
             }
