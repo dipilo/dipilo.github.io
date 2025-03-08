@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "list", "random", "simulate 10", etc.), then press Enter.</p>
+    <p>Type your commands below (e.g. "help", "random", "list", "simulate 10", etc.), then press Enter.</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -69,6 +69,12 @@
         const pythonCode = await response.text();
         await pyscript.interpreter.run(pythonCode);
         console.log("fantasyHybridSimulator.py loaded successfully");
+
+        // Verify function registration
+        await pyscript.interpreter.run(`
+            if 'run_command' not in globals():
+                print("Error: run_command() is not available.")
+        `);
       }
 
       async function executeCommand(cmd) {
@@ -87,6 +93,7 @@
         // Wait for PyScript to finish loading
         document.addEventListener("py-loaded", async () => {
           console.log("PyScript loaded");
+          console.log("PyScript Interpreter:", pyscript.interpreter);
 
           await loadPythonScript();
 
@@ -103,6 +110,7 @@
           }
 
           // Listen for Enter key in the command input
+          console.log("Listening for Enter key...");
           cmdInput.addEventListener("keydown", async (e) => {
             console.log("Keydown event fired");
             if (e.key === "Enter") {
@@ -121,6 +129,11 @@
           });
         });
       });
+
+      // Check if the file is actually loading
+      fetch('./other-projects/fantasyHybridSimulator.py')
+        .then(response => console.log(response.status))
+        .catch(error => console.error('Error fetching script:', error));
     </script>
   </main>
   
