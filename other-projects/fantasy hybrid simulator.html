@@ -101,7 +101,7 @@
             
             try {
               // This runs code in the default PyScript interpreter
-              let result = await pyscript.runtime.run(code);
+              let result = await pyscript.interpreter.run(code);
               // 'result' is a PyProxy object. Convert it to string
               let output = result.toString();
               if (output) {
