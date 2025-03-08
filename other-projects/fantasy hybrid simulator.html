@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <title>Fantasy Hybrid Simulator - Dipilodopilasaurus Nest</title>
   <link rel="stylesheet" href="/styles.css">
-  
+
   <!-- Load PyScript -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.4/core.css" />
   <script type="module" src="https://pyscript.net/releases/2025.2.4/core.js"></script>
   
-  <!-- Configure PyScript to include /other-projects so we can import fantasyHybridSimulator.py -->
+  <!-- Configure PyScript to include the current directory so we can import fantasyHybridSimulator.py -->
   <py-config>
   {
     "paths": ["./"]
@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "breed centaur mermaid", "simulate 10", etc.).</p>
+    <p>Type your commands below (e.g. "help", "random", "simulate 10", etc.).</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -90,9 +90,9 @@
 
           // Call the python function
           try {
-            const result = await pyodide.runPythonAsync(`run_command("""${cmd}""")`);
+            const result = await pyscript.interpreter.run(`run_command("""${cmd}""")`);
             if (result) {
-              appendToConsole(result);
+              appendToConsole(result.toString());
             }
           } catch (err) {
             appendToConsole("Error: " + err);
