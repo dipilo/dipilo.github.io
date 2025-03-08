@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "list", "random", "simulate 10", etc.), then press Enter.</p>
+    <p>Type your commands below (e.g. "help", "random", "list", "simulate 10", etc.), then press Enter.</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -94,6 +94,38 @@ exec(${JSON.stringify(pythonCode)}, globals())
       document.addEventListener("DOMContentLoaded", async () => {
         console.log("DOMContentLoaded event fired");
 
+        const consoleDiv = document.getElementById("console");
+        const cmdInput = document.getElementById("commandInput");
+
+        // Helper function to append lines to our console
+        function appendToConsole(text, isUser=false) {
+          const line = document.createElement("div");
+          line.textContent = (isUser ? "> " : "") + text;
+          consoleDiv.appendChild(line);
+          // auto-scroll to bottom
+          consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        // Listen for Enter key in the command input
+        console.log("Listening for Enter key...");
+        cmdInput.addEventListener("keydown", async (e) => {
+          console.log("Key pressed:", e.key);  // Debug log
+          if (e.key === "Enter") {
+            e.preventDefault();
+            console.log("Enter key detected!");  // Debug log
+            const cmd = cmdInput.value.trim();
+            if (!cmd) return;
+            
+            // Show user command in console
+            appendToConsole(cmd, true);
+            cmdInput.value = "";
+
+            console.log(`Running command: ${cmd}`);
+
+            await executeCommand(cmd);
+          }
+        });
+
         // Wait for PyScript to finish loading
         document.addEventListener("py-loaded", async () => {
           console.log("PyScript loaded");
@@ -101,36 +133,8 @@ exec(${JSON.stringify(pythonCode)}, globals())
 
           await loadPythonScript();
 
-          const consoleDiv = document.getElementById("console");
-          const cmdInput = document.getElementById("commandInput");
-
-          // Helper function to append lines to our console
-          function appendToConsole(text, isUser=false) {
-            const line = document.createElement("div");
-            line.textContent = (isUser ? "> " : "") + text;
-            consoleDiv.appendChild(line);
-            // auto-scroll to bottom
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
-          }
-
-          // Listen for Enter key in the command input
-          console.log("Listening for Enter key...");
-          cmdInput.addEventListener("keydown", async (e) => {
-            console.log("Keydown event fired");
-            if (e.key === "Enter") {
-              e.preventDefault();
-              const cmd = cmdInput.value.trim();
-              if (!cmd) return;
-              
-              // Show user command in console
-              appendToConsole(cmd, true);
-              cmdInput.value = "";
-
-              console.log(`Running command: ${cmd}`);
-
-              await executeCommand(cmd);
-            }
-          });
+          // Focus the command input
+          document.getElementById("commandInput").focus();
         });
       });
 
