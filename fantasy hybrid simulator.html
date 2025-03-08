@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fantasy Hybrid Simulator - Dipilodopilasaurus Nest</title>
+  <link rel="stylesheet" href="/styles.css">
+
+  <!-- Load PyScript -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.4/core.css" />
+  <script type="module" src="https://pyscript.net/releases/2025.2.4/core.js"></script>
+  
+  <!-- Configure PyScript to look in /other-projects for your .py file -->
+  <py-config>
+  {
+    "paths": ["./other-projects"]
+  }
+  </py-config>
+</head>
+<body>
+  <header>
+    <h1>Fantasy Hybrid Simulator</h1>
+    <nav>
+      <ul class="nav-buttons">
+        <li><a class="nav-button" href="/other-projects.html">Other Projects</a></li>
+        <li><a class="nav-button" href="/index.html">Home</a></li>
+        <li><a class="nav-button" href="/privacy/dipilodopilasaurus-nest.html">Privacy Policy</a></li>
+        <li><a class="nav-button" href="/terms/dipilodopilasaurus-nest.html">Terms of Service</a></li>
+        <li><a class="nav-button" href="/contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <h2>Interactive Fantasy Hybrid Simulator</h2>
+    <p>Type your commands below (e.g. <code>help</code>, <code>random</code>, <code>simulate 10</code>, etc.), then press Enter.</p>
+    
+    <!-- Console area -->
+    <div id="console" style="
+      background: #1e1e1e;
+      color: #fff;
+      padding: 1rem;
+      height: 300px;
+      overflow-y: auto;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+    ">
+      <!-- The command output gets appended here -->
+    </div>
+    
+    <!-- Text input for commands -->
+    <input 
+      type="text" 
+      id="commandInput" 
+      placeholder="Type a command and press Enter..."
+      style="
+        width: 100%; 
+        padding: 0.5rem; 
+        margin-top: 1rem; 
+        border: 2px solid #7B1FA2; 
+        border-radius: 6px;
+        font-family: Consolas, monospace;
+      "
+    />
+    
+    <!-- Import your run_command function from fantasyHybridSimulator.py -->
+    <script type="py" src="./fantasyHybridSimulator.py"></script>
+
+    <!-- JavaScript to handle user commands and display output -->
+    <script type="module">
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Wait for PyScript to finish loading
+      document.addEventListener("py-loaded", async () => {
+        console.log("PyScript loaded");
+
+        const consoleDiv = document.getElementById("console");
+        const cmdInput = document.getElementById("commandInput");
+
+        // Helper function to append lines to our console
+        function appendToConsole(text, isUser=false) {
+          const line = document.createElement("div");
+          line.textContent = (isUser ? "> " : "") + text;
+          consoleDiv.appendChild(line);
+          // auto-scroll to bottom
+          consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        // Listen for Enter key in the command input
+        cmdInput.addEventListener("keydown", async (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            const cmd = cmdInput.value.trim();
+            if (!cmd) return;
+            
+            // Show user command in console
+            appendToConsole(cmd, true);
+            cmdInput.value = "";
+
+            // We'll run: run_command("""some user text""")
+            // using the PyScript runtime
+            let code = `run_command("""${cmd}""")`;
+            
+            try {
+              // This runs code in the default PyScript interpreter
+              let result = await pyscript.runtime.run(code);
+              // 'result' is a PyProxy object. Convert it to string
+              let output = result.toString();
+              if (output) {
+                appendToConsole(output);
+              }
+            } catch (err) {
+              appendToConsole("Error: " + err);
+            }
+          }
+        });
+      });
+    });
+    </script>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
+  </footer>
+</body>
+</html>
