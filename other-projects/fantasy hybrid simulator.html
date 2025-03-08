@@ -64,48 +64,66 @@
     
     <!-- Import your run_command function from fantasyHybridSimulator.py -->
     <script type="py">
-from fantasyHybridSimulator import run_command
-    </script>
-
-    <py-script>
 import sys
 print("Module search paths:", sys.path)
-</py-script>
+from fantasyHybridSimulator import run_command
+    </script>
     
     <!-- JavaScript to handle user input and call run_command -->
-    <script type="module">
-      document.addEventListener("py-loaded", async () => {
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        console.log("DOMContentLoaded event fired");
+
+        // Wait for PyScript to finish loading
+        document.addEventListener("py-loaded", async () => {
+          console.log("PyScript loaded");
+
           const consoleDiv = document.getElementById("console");
           const cmdInput = document.getElementById("commandInput");
 
-          // Append text to the console area
-          function appendToConsole(text, isUser = false) {
+          // Helper function to append lines to our console
+          function appendToConsole(text, isUser=false) {
             const line = document.createElement("div");
             line.textContent = (isUser ? "> " : "") + text;
             consoleDiv.appendChild(line);
+            // auto-scroll to bottom
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
           }
 
-          // Listen for Enter key on the command input field
+          // Listen for Enter key in the command input
           cmdInput.addEventListener("keydown", async (e) => {
+            console.log("Keydown event fired");
             if (e.key === "Enter") {
               e.preventDefault();
               const cmd = cmdInput.value.trim();
               if (!cmd) return;
+              
+              // Show user command in console
               appendToConsole(cmd, true);
               cmdInput.value = "";
 
+              console.log(`Running command: ${cmd}`);
+
+              // We'll run: run_command("""some user text""")
+              // using the PyScript runtime
               let code = `run_command("""${cmd}""")`;
+              
               try {
-                let result = await pyodide.runPythonAsync(code);
-                if (result) {
-                  appendToConsole(result.toString());
+                // This runs code in the default PyScript interpreter
+                let result = await pyscript.interpreter.run(code);
+                // 'result' is a PyProxy object. Convert it to string
+                let output = result.toString();
+                console.log(`Command output: ${output}`);
+                if (output) {
+                  appendToConsole(output);
                 }
               } catch (err) {
+                console.error(`Error running command: ${err}`);
                 appendToConsole("Error: " + err);
               }
             }
           });
+        });
       });
     </script>
   </main>
