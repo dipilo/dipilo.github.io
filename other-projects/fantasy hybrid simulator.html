@@ -6,8 +6,8 @@
   <link rel="stylesheet" href="/styles.css">
 
   <!-- Load PyScript -->
-  <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-  <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.4/core.css" />
+  <script type="module" src="https://pyscript.net/releases/2025.2.4/core.js"></script>
   
   <!-- Configure PyScript to look in /other-projects for your .py file -->
   <py-config>
@@ -63,9 +63,7 @@
     />
     
     <!-- Import your run_command function from fantasyHybridSimulator.py -->
-    <py-script>
-from fantasyHybridSimulator import run_command
-    </py-script>
+    <script type="py" src="./other-projects/fantasyHybridSimulator.py"></script>
 
     <!-- JavaScript to handle user commands and display output -->
     <script type="module">
