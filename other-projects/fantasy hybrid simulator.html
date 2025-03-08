@@ -62,21 +62,33 @@
       "
     />
     
-    <!-- Import your run_command function from fantasyHybridSimulator.py -->
-    <script type="py">
-import sys
-print("Module search paths:", sys.path)
-from fantasyHybridSimulator import run_command
-    </script>
-    
-    <!-- JavaScript to handle user input and call run_command -->
+    <!-- JavaScript to load the Python script and handle user input -->
     <script>
+      async function loadPythonScript() {
+        const response = await fetch('https://raw.githubusercontent.com/dipilo/dipilo.github.io/main/other-projects/fantasyHybridSimulator.py');
+        const pythonCode = await response.text();
+        await pyscript.interpreter.run(pythonCode);
+        console.log("fantasyHybridSimulator.py loaded successfully");
+      }
+
+      async function executeCommand(cmd) {
+        try {
+          let code = `run_command("""${cmd}""")`;
+          let result = await pyscript.interpreter.run(code);
+          document.getElementById("console").innerText += `\n> ${cmd}\n${result}\n`;
+        } catch (err) {
+          console.error("Error executing command:", err);
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", async () => {
         console.log("DOMContentLoaded event fired");
 
         // Wait for PyScript to finish loading
         document.addEventListener("py-loaded", async () => {
           console.log("PyScript loaded");
+
+          await loadPythonScript();
 
           const consoleDiv = document.getElementById("console");
           const cmdInput = document.getElementById("commandInput");
@@ -104,23 +116,7 @@ from fantasyHybridSimulator import run_command
 
               console.log(`Running command: ${cmd}`);
 
-              // We'll run: run_command("""some user text""")
-              // using the PyScript runtime
-              let code = `run_command("""${cmd}""")`;
-              
-              try {
-                // This runs code in the default PyScript interpreter
-                let result = await pyscript.interpreter.run(code);
-                // 'result' is a PyProxy object. Convert it to string
-                let output = result.toString();
-                console.log(`Command output: ${output}`);
-                if (output) {
-                  appendToConsole(output);
-                }
-              } catch (err) {
-                console.error(`Error running command: ${err}`);
-                appendToConsole("Error: " + err);
-              }
+              await executeCommand(cmd);
             }
           });
         });
