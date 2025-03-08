@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fantasy Hybrid Simulator - Dipilodopilasaurus Nest</title>
+  <link rel="stylesheet" href="/styles.css">
+  
+  <!-- Load PyScript from the 2025.2.4 release -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.4/core.css" />
+  <script type="module" src="https://pyscript.net/releases/2025.2.4/core.js"></script>
+  
+  <!-- Configure PyScript to include the current directory so it can find fantasyHybridSimulator.py -->
+  <py-config>
+  {
+    "paths": ["./"]
+  }
+  </py-config>
+</head>
+<body>
+  <header>
+    <h1>Fantasy Hybrid Simulator</h1>
+    <nav>
+      <ul class="nav-buttons">
+        <li><a class="nav-button" href="/other-projects.html">Other Projects</a></li>
+        <li><a class="nav-button" href="/index.html">Home</a></li>
+        <li><a class="nav-button" href="/privacy/dipilodopilasaurus-nest.html">Privacy Policy</a></li>
+        <li><a class="nav-button" href="/terms/dipilodopilasaurus-nest.html">Terms of Service</a></li>
+        <li><a class="nav-button" href="/contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <h2>Interactive Fantasy Hybrid Simulator</h2>
+    <p>Type your commands below (e.g. "help", "list", "list", "simulate 10", etc.), then press Enter.</p>
+    
+    <!-- "Console" area -->
+    <div id="console" style="
+      background: #1e1e1e;
+      color: #fff;
+      padding: 1rem;
+      height: 300px;
+      overflow-y: auto;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+    ">
+      <!-- Command output will be appended here -->
+    </div>
+    
+    <!-- Text input for commands -->
+    <input 
+      type="text" 
+      id="commandInput" 
+      placeholder="Type a command and press Enter..." 
+      style="
+        width: 100%; 
+        padding: 0.5rem; 
+        margin-top: 1rem; 
+        border: 2px solid #7B1FA2; 
+        border-radius: 6px;
+        font-family: Consolas, monospace;
+      "
+    />
+    
+    <!-- JavaScript to load the Python script and handle user input -->
+    <script>
+      async function loadPythonScript() {
+        const response = await fetch('https://raw.githubusercontent.com/dipilo/dipilo.github.io/main/other-projects/fantasyHybridSimulator.py');
+        const pythonCode = await response.text();
+        await pyscript.interpreter.run(pythonCode);
+        console.log("fantasyHybridSimulator.py loaded successfully");
+
+        // Verify function registration
+        await pyscript.interpreter.run(`
+            if 'run_command' not in globals():
+                print("Error: run_command() is not available.")
+        `);
+      }
+
+      async function executeCommand(cmd) {
+        try {
+          let code = `run_command("""${cmd}""")`;
+          let result = await pyscript.interpreter.run(code);
+          document.getElementById("console").innerText += `\n> ${cmd}\n${result}\n`;
+        } catch (err) {
+          console.error("Error executing command:", err);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        console.log("DOMContentLoaded event fired");
+
+        // Wait for PyScript to finish loading
+        document.addEventListener("py-loaded", async () => {
+          console.log("PyScript loaded");
+          console.log("PyScript Interpreter:", pyscript.interpreter);
+
+          await loadPythonScript();
+
+          const consoleDiv = document.getElementById("console");
+          const cmdInput = document.getElementById("commandInput");
+
+          // Helper function to append lines to our console
+          function appendToConsole(text, isUser=false) {
+            const line = document.createElement("div");
+            line.textContent = (isUser ? "> " : "") + text;
+            consoleDiv.appendChild(line);
+            // auto-scroll to bottom
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+          }
+
+          // Listen for Enter key in the command input
+          console.log("Listening for Enter key...");
+          cmdInput.addEventListener("keydown", async (e) => {
+            console.log("Keydown event fired");
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const cmd = cmdInput.value.trim();
+              if (!cmd) return;
+              
+              // Show user command in console
+              appendToConsole(cmd, true);
+              cmdInput.value = "";
+
+              console.log(`Running command: ${cmd}`);
+
+              await executeCommand(cmd);
+            }
+          });
+        });
+      });
+
+      // Check if the file is actually loading
+      fetch('./other-projects/fantasyHybridSimulator.py')
+        .then(response => console.log(response.status))
+        .catch(error => console.error('Error fetching script:', error));
+    </script>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
+  </footer>
+</body>
+</html>
