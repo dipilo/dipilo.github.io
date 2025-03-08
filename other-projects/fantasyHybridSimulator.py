@@ -579,3 +579,6 @@ def run_command(command_line: str) -> str:
     It returns the output of the command as a string.
     """
     return cli.process_command(command_line)
+
+# Explicitly add run_command to the global scope
+globals()["run_command"] = run_command
