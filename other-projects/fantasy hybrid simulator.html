@@ -68,6 +68,8 @@
     <!-- JavaScript to handle user commands and display output -->
     <script type="module">
     document.addEventListener("DOMContentLoaded", async () => {
+      console.log("DOMContentLoaded event fired");
+
       // Wait for PyScript to finish loading
       document.addEventListener("py-loaded", async () => {
         console.log("PyScript loaded");
@@ -86,6 +88,7 @@
 
         // Listen for Enter key in the command input
         cmdInput.addEventListener("keydown", async (e) => {
+          console.log("Keydown event fired");
           if (e.key === "Enter") {
             e.preventDefault();
             const cmd = cmdInput.value.trim();
