@@ -12,7 +12,7 @@
   <!-- Configure PyScript to include the current directory so it can find fantasyHybridSimulator.py -->
   <py-config>
   {
-    "paths": ["./"]
+    "paths": ["./other-projects"]
   }
   </py-config>
 </head>
@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "list", "list", "simulate 10", etc.), then press Enter.</p>
+    <p>Type your commands below (e.g. "help", "random", "list", "simulate 10", etc.), then press Enter.</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -131,7 +131,7 @@
       });
 
       // Check if the file is actually loading
-      fetch('./other-projects/fantasyHybridSimulator.py')
+      fetch('./fantasyHybridSimulator.py')
         .then(response => console.log(response.status))
         .catch(error => console.error('Error fetching script:', error));
     </script>
