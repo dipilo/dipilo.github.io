@@ -95,6 +95,8 @@
             appendToConsole(cmd, true);
             cmdInput.value = "";
 
+            console.log(`Running command: ${cmd}`);
+
             // We'll run: run_command("""some user text""")
             // using the PyScript runtime
             let code = `run_command("""${cmd}""")`;
@@ -104,10 +106,12 @@
               let result = await pyscript.interpreter.run(code);
               // 'result' is a PyProxy object. Convert it to string
               let output = result.toString();
+              console.log(`Command output: ${output}`);
               if (output) {
                 appendToConsole(output);
               }
             } catch (err) {
+              console.error(`Error running command: ${err}`);
               appendToConsole("Error: " + err);
             }
           }
