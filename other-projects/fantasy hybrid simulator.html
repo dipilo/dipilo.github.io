@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "list", "simulate 10", etc.).</p>
+    <p>Type your commands below (e.g. "help", "random", "simulate 10", etc.).</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -98,20 +98,11 @@
               appendToConsole(cmd, true);
               cmdInput.value = "";
 
-              console.log(`Running command: ${cmd}`);
-
-              // We'll run: run_command("""some user text""")
-              // using the PyScript runtime
-              let code = `run_command("""${cmd}""")`;
-              
-              try {
-                // This runs code in the default PyScript interpreter
-                let result = await pyscript.interpreter.run(code);
-                // 'result' is a PyProxy object. Convert it to string
-                let output = result.toString();
-                console.log(`Command output: ${output}`);
-                if (output) {
-                  appendToConsole(output);
+              // Call the python function
+          try {
+            const result = await pyscript.interpreter.run(`run_command("""${cmd}""")`);
+                if (result) {
+                  appendToConsole(result.toString());
                 }
               } catch (err) {
                 console.error(`Error running command: ${err}`);
