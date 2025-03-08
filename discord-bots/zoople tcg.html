@@ -23,36 +23,11 @@
     <!-- Invite link is now the header text -->
     <h2><a class="invite-link" href="https://discord.com/oauth2/authorize?client_id=1328639374086115402&scope=bot&permissions=257088" target="_blank">Invite Zoople TCG</a></h2>
     
-    <!-- Discord Widget Embed -->
-    <iframe src="https://discord.com/widget?id=1183654081257033768&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0"></iframe>
+    <!-- (Additional content for Zoople TCG page can go here) -->
     
-    <!-- Display messages from a specific channel -->
-    <div id="discord-messages"></div>
   </main>
   <footer>
     <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
   </footer>
-
-  <script>
-    async function fetchDiscordMessages() {
-      const webhookUrl = 'https://discord.com/api/webhooks/1347781912621613056/uzJ5HCq1KhJi_ZuAkRgP3hew7Ha8_llyjZwmdqc4IcesKGfFoWFo8rHrvnxgsiyGm6V_';
-      const response = await fetch(webhookUrl);
-      const messages = await response.json();
-
-      const messagesContainer = document.getElementById('discord-messages');
-      messagesContainer.innerHTML = '';
-
-      messages.forEach(message => {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('discord-message');
-        messageElement.innerHTML = `
-          <p><strong>${message.author.username}:</strong> ${message.content}</p>
-        `;
-        messagesContainer.appendChild(messageElement);
-      });
-    }
-
-    fetchDiscordMessages();
-  </script>
 </body>
 </html>
