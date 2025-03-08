@@ -135,7 +135,7 @@ exec(${JSON.stringify(pythonCode)}, globals())
       });
 
       // Check if the file is actually loading
-      fetch('./other-projects/fantasyHybridSimulator.py')
+      fetch('./fantasyHybridSimulator.py')
         .then(response => console.log(response.status))
         .catch(error => console.error('Error fetching script:', error));
     </script>
