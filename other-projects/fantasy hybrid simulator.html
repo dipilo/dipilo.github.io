@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "random", "list", "simulate 10", etc.), then press Enter.</p>
+    <p>Type your commands below (e.g. "help", "list", "random", "simulate 10", etc.), then press Enter.</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -83,8 +83,9 @@ exec(${JSON.stringify(pythonCode)}, globals())
 
       async function executeCommand(cmd) {
         try {
+          await pyscript.runtime.run("import pyodide");
           let code = `run_command("""${cmd}""")`;
-          let result = await pyscript.interpreter.run(code);
+          let result = await pyscript.runtime.run(code);
           document.getElementById("console").innerText += `\n> ${cmd}\n${result}\n`;
         } catch (err) {
           console.error("Error executing command:", err);
