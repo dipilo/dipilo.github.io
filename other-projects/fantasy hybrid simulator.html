@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. <code>list</code>, <code>breed centaur mermaid</code>, <code>simulate 10</code>, etc.), then press Enter.</p>
+    <p>Type your commands below (e.g. <code>help</code>, <code>random</code>, <code>simulate 10</code>, etc.), then press Enter.</p>
     
     <!-- Console area -->
     <div id="console" style="
@@ -68,16 +68,10 @@
     <!-- JavaScript to handle user commands and display output -->
     <script type="module">
     document.addEventListener("DOMContentLoaded", async () => {
-      // We'll wait for PyScript to finish loading
-      // In current PyScript, we can wait for the 'py-loaded' event or do a short delay.
-      // 'py-loaded' event fires once PyScript is initialized.
+      // Wait for PyScript to finish loading
       document.addEventListener("py-loaded", async () => {
-        
-        // The default PyScript interpreter can be accessed via:
-        //   pyscript.runtime.globals
-        // or we can directly run code with:
-        //   pyscript.runtime.run("python code here")
-        
+        console.log("PyScript loaded");
+
         const consoleDiv = document.getElementById("console");
         const cmdInput = document.getElementById("commandInput");
 
