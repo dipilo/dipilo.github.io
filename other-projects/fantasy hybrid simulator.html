@@ -12,7 +12,7 @@
   <!-- Configure PyScript to look in /other-projects for your .py file -->
   <py-config>
   {
-    "paths": ["./"]
+    "paths": ["./other-projects"]
   }
   </py-config>
 </head>
@@ -64,7 +64,7 @@
     
     <!-- PyScript block to import your run_command function -->
     <py-script>
-from fantasyHybridSimulator import run_command
+from other_projects.fantasyHybridSimulator import run_command
     </py-script>
     
     <!-- JavaScript to handle user input and call run_command -->
