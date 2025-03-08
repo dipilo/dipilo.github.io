@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "HELP", "breed centaur mermaid", "simulate 10", etc.).</p>
+    <p>Type your commands below (e.g. "help", "breed centaur mermaid", "simulate 10", etc.).</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -63,9 +63,7 @@
     />
     
     <!-- PyScript block to import your run_command function -->
-    <py-script>
-from fantasyHybridSimulator import run_command
-    </py-script>
+    <script type="py" src="./fantasyHybridSimulator.py"></script>
     
     <!-- JavaScript to handle user input and call run_command -->
     <script>
