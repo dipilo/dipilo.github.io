@@ -32,7 +32,7 @@
   
   <main>
     <h2>Interactive Fantasy Hybrid Simulator</h2>
-    <p>Type your commands below (e.g. "help", "list", "random", "simulate 10", etc.), then press Enter.</p>
+    <p>Type your commands below (e.g. "help", "random", "random", "simulate 10", etc.), then press Enter.</p>
     
     <!-- "Console" area -->
     <div id="console" style="
@@ -64,18 +64,18 @@
     
     <!-- JavaScript to load the Python script and handle user input -->
     <script type="module">
-      // Function to load fantasyHybridSimulator.py manually
+      // Function to load fantasyHybridSimulator.py manually from GitHub
       async function loadPythonScript() {
         const response = await fetch('https://raw.githubusercontent.com/dipilo/dipilo.github.io/main/other-projects/fantasyHybridSimulator.py');
         const pythonCode = await response.text();
-        // Use exec() to evaluate the code in the global scope
+        // Use exec() to evaluate the code in the global scope so run_command() is registered
         await pyodide.runPythonAsync(`exec(${JSON.stringify(pythonCode)}, globals())`);
         console.log("fantasyHybridSimulator.py loaded successfully");
         let check = await pyodide.runPythonAsync(`"run_command" in globals()`);
         console.log("run_command is available:", check);
       }
 
-      // Function to execute a command by calling run_command in Python
+      // Function to execute a command by calling run_command() in Python
       async function executeCommand(cmd) {
         try {
           let code = `run_command("""${cmd}""")`;
@@ -87,7 +87,7 @@
         }
       }
 
-      // Set up the event listeners
+      // Set up event listeners
       document.addEventListener("DOMContentLoaded", async () => {
         console.log("DOMContentLoaded event fired");
         const consoleDiv = document.getElementById("console");
