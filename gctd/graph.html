@@ -262,11 +262,46 @@
       updateTooltip(document.getElementById('repel-force'), document.getElementById('repel-force-tooltip'));
       updateTooltip(document.getElementById('link-force'), document.getElementById('link-force-tooltip'));
       updateTooltip(document.getElementById('link-distance'), document.getElementById('link-distance-tooltip'));
+
+      updateGraphOptions();
+    }
+
+    function updateGraphOptions() {
+      const options = {
+        nodes: {
+          shape: 'dot',
+          size: parseFloat(document.getElementById('node-size').value),
+          font: {
+            size: 14,
+            color: '#ffffff' // White text color
+          },
+          borderWidth: 2
+        },
+        edges: {
+          width: parseFloat(document.getElementById('link-thickness').value),
+          color: { inherit: 'from' },
+          smooth: {
+            type: 'continuous'
+          }
+        },
+        physics: {
+          stabilization: false,
+          barnesHut: {
+            gravitationalConstant: -8000,
+            springConstant: parseFloat(document.getElementById('link-force').value),
+            springLength: parseFloat(document.getElementById('link-distance').value)
+          }
+        }
+      };
+      network.setOptions(options);
     }
 
     document.querySelectorAll('.slider-container input[type="range"]').forEach(slider => {
       const tooltip = slider.nextElementSibling;
-      slider.addEventListener('input', () => updateTooltip(slider, tooltip));
+      slider.addEventListener('input', () => {
+        updateTooltip(slider, tooltip);
+        updateGraphOptions();
+      });
     });
 
     fetch('graph.json')
