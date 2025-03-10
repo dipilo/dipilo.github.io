@@ -1,0 +1,18 @@
+{
+  "nodes": [
+    {
+      "id": "c504ca02f3b704fd",
+      "label": "c504ca02f3b704fd"
+    },
+    {
+      "id": "3ef93d7492dcd162",
+      "label": "New tab"
+    }
+  ],
+  "edges": [
+    {
+      "from": "c504ca02f3b704fd",
+      "to": "3ef93d7492dcd162"
+    }
+  ]
+}
