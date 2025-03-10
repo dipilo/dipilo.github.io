@@ -34,6 +34,10 @@ class GraphAssembly {
     GraphAssembly.minRadius = GraphAssembly.radii.reduce(((e, r) => Math.min(e, r)));
     r = this.loadState();
     Module.HEAP32.set(new Int32Array(r.buffer), GraphAssembly.#e / r.BYTES_PER_ELEMENT);
+    Module.HEAP32.set(new Int32Array(GraphAssembly.radii.buffer), GraphAssembly.#t / GraphAssembly.radii.BYTES_PER_ELEMENT);
+    Module.HEAP32.set(new Int32Array(GraphAssembly.linkSources.buffer), GraphAssembly.#a / GraphAssembly.linkSources.BYTES_PER_ELEMENT);
+    Module.HEAP32.set(new Int32Array(GraphAssembly.linkTargets.buffer), GraphAssembly.#s / GraphAssembly.linkTargets.BYTES_PER_ELEMENT);
+    Module._Init(GraphAssembly.#e, GraphAssembly.#t, GraphAssembly.#a, GraphAssembly.#s, GraphAssembly.nodeCount, GraphAssembly.linkCount, batchFraction, dt, e.graphOptions.attractionForce, e.graphOptions.linkLength, e.graphOptions.repulsionForce, e.graphOptions.centralForce);
   }
 
   static get positions() {
@@ -390,13 +394,22 @@ function initializeGraphEvents() {
 
   function s() {
     let r = t.clientWidth, s = t.clientHeight;
-    t.classList.add("scale-down"), t.animate({ opacity: 0 }, { duration: 100, easing: "ease-in", fill: "forwards" }).addEventListener("finish", function () {
-      t.classList.toggle("expanded"), graphRenderer.autoResizeCanvas(), graphRenderer.centerCamera();
+    t.classList.add("scale-down");
+    t.animate({ opacity: 0 }, { duration: 100, easing: "ease-in", fill: "forwards" }).addEventListener("finish", function () {
+      t.classList.toggle("expanded");
+      graphRenderer.autoResizeCanvas();
+      graphRenderer.centerCamera();
       let e = t.clientWidth, a = t.clientHeight;
-      graphRenderer.cameraScale *= (e / r + a / s) / 2, t.classList.remove("scale-down"), t.classList.add("scale-up"), updateGraph(), t.animate({ opacity: 1 }, { duration: 200, easing: "ease-out", fill: "forwards" }).addEventListener("finish", function () {
+      graphRenderer.cameraScale *= (e / r + a / s) / 2;
+      t.classList.remove("scale-down");
+      t.classList.add("scale-up");
+      updateGraph();
+      t.animate({ opacity: 1 }, { duration: 200, easing: "ease-out", fill: "forwards" }).addEventListener("finish", function () {
         t.classList.remove("scale-up");
       });
-    }), e = !e, e ? document.addEventListener("pointerdown", a) : document.removeEventListener("pointerdown", a);
+    });
+    e = !e;
+    e ? document.addEventListener("pointerdown", a) : document.removeEventListener("pointerdown", a);
   }
 
   function i(e) {
@@ -410,18 +423,28 @@ function initializeGraphEvents() {
     let t = 0, a = !1;
 
     function b(e) {
-      n = i(e), mouseWorldPos = graphRenderer.vecToWorldspace(n), d = { x: n.x - h.x, y: n.y - h.y }, h = n, -1 != graphRenderer.grabbedNode && (l = { x: n.x - o.x, y: n.y - o.y }), p && -1 != graphRenderer.hoveredNode && -1 == graphRenderer.grabbedNode && graphRenderer.hoveredNode != graphRenderer.grabbedNode && (graphRenderer.grabbedNode = graphRenderer.hoveredNode), p && -1 == graphRenderer.hoveredNode && -1 == graphRenderer.grabbedNode || m ? graphRenderer.cameraOffset = { x: graphRenderer.cameraOffset.x + d.x, y: graphRenderer.cameraOffset.y + d.y } : -1 != graphRenderer.hoveredNode ? graphRenderer.canvas.style.cursor = "pointer" : graphRenderer.canvas.style.cursor = "default";
+      n = i(e);
+      mouseWorldPos = graphRenderer.vecToWorldspace(n);
+      d = { x: n.x - h.x, y: n.y - h.y };
+      h = n;
+      -1 != graphRenderer.grabbedNode && (l = { x: n.x - o.x, y: n.y - o.y });
+      p && -1 != graphRenderer.hoveredNode && -1 == graphRenderer.grabbedNode && graphRenderer.hoveredNode != graphRenderer.grabbedNode && (graphRenderer.grabbedNode = graphRenderer.hoveredNode);
+      p && -1 == graphRenderer.hoveredNode && -1 == graphRenderer.grabbedNode || m ? graphRenderer.cameraOffset = { x: graphRenderer.cameraOffset.x + d.x, y: graphRenderer.cameraOffset.y + d.y } : -1 != graphRenderer.hoveredNode ? graphRenderer.canvas.style.cursor = "pointer" : graphRenderer.canvas.style.cursor = "default";
     }
 
     function v(e) {
       if (1 == e.touches?.length) return a && (h = i(e), a = !1), void b(e);
       if (2 == e.touches?.length) {
         let r = getTouchPosition(e.touches[0]), s = getTouchPosition(e.touches[1]);
-        n = i(e), d = { x: n.x - h.x, y: n.y - h.y }, h = n;
+        n = i(e);
+        d = { x: n.x - h.x, y: n.y - h.y };
+        h = n;
         let o = Math.sqrt(Math.pow(r.x - s.x, 2) + Math.pow(r.y - s.y, 2));
         a || (a = !0, t = o, d = { x: 0, y: 0 }, mouseWorldPos = { x: void 0, y: void 0 }, graphRenderer.grabbedNode = -1, graphRenderer.hoveredNode = -1);
         let l = (o - t) / t;
-        scaleGraphViewAroundPoint(graphRenderer.vecToWorldspace(n), 1 + l, .15, 15), graphRenderer.cameraOffset = { x: graphRenderer.cameraOffset.x + d.x, y: graphRenderer.cameraOffset.y + d.y }, t = o;
+        scaleGraphViewAroundPoint(graphRenderer.vecToWorldspace(n), 1 + l, .15, 15);
+        graphRenderer.cameraOffset = { x: graphRenderer.cameraOffset.x + d.x, y: graphRenderer.cameraOffset.y + d.y };
+        t = o;
       }
     }
 
@@ -433,27 +456,55 @@ function initializeGraphEvents() {
           e ? s() : GraphAssembly.saveState(graphRenderer);
           let t = graphData.paths[r];
           window.location.pathname.endsWith(graphData.paths[r]) || await loadDocument(t, !0, !0);
-        }(graphRenderer.hoveredNode), p && -1 != graphRenderer.grabbedNode && (graphRenderer.grabbedNode = -1), 0 == r.button && (p = !1), "touch" == r.pointerType && y == r.pointerId && (y = -1, p = !1), 1 == r.button && (m = !1), g || (document.removeEventListener("mousemove", b), document.removeEventListener("touchmove", v));
+        }(graphRenderer.hoveredNode);
+        p && -1 != graphRenderer.grabbedNode && (graphRenderer.grabbedNode = -1);
+        0 == r.button && (p = !1);
+        "touch" == r.pointerType && y == r.pointerId && (y = -1, p = !1);
+        1 == r.button && (m = !1);
+        g || (document.removeEventListener("mousemove", b), document.removeEventListener("touchmove", v));
       }, 0);
     }
 
     function R(e) {
-      document.addEventListener("pointerup", f), mouseWorldPos = graphRenderer.vecToWorldspace(n), l = { x: 0, y: 0 }, 0 == e.button && (p = !0), "touch" == e.pointerType && -1 == y && (y = e.pointerId, p = !0), 1 == e.button && (m = !0), o = n, c = Date.now(), p && -1 != graphRenderer.hoveredNode && (graphRenderer.grabbedNode = graphRenderer.hoveredNode);
+      document.addEventListener("pointerup", f);
+      mouseWorldPos = graphRenderer.vecToWorldspace(n);
+      l = { x: 0, y: 0 };
+      0 == e.button && (p = !0);
+      "touch" == e.pointerType && -1 == y && (y = e.pointerId, p = !0);
+      1 == e.button && (m = !0);
+      o = n;
+      c = Date.now();
+      p && -1 != graphRenderer.hoveredNode && (graphRenderer.grabbedNode = graphRenderer.hoveredNode);
     }
 
-    n = i(r), mouseWorldPos = graphRenderer.vecToWorldspace(n), h = i(r), g = !0, document.addEventListener("mousemove", b), document.addEventListener("touchmove", v), u.addEventListener("pointerdown", R), u.addEventListener("pointerleave", function e(r) {
+    n = i(r);
+    mouseWorldPos = graphRenderer.vecToWorldspace(n);
+    h = i(r);
+    g = !0;
+    document.addEventListener("mousemove", b);
+    document.addEventListener("touchmove", v);
+    u.addEventListener("pointerdown", R);
+    u.addEventListener("pointerleave", function e(r) {
       setTimeout(() => {
-        g = !1, p || (document.removeEventListener("mousemove", b), document.removeEventListener("touchmove", v), mouseWorldPos = { x: void 0, y: void 0 }), u.removeEventListener("pointerdown", R), u.removeEventListener("pointerleave", e);
+        g = !1;
+        p || (document.removeEventListener("mousemove", b), document.removeEventListener("touchmove", v), mouseWorldPos = { x: void 0, y: void 0 });
+        u.removeEventListener("pointerdown", R);
+        u.removeEventListener("pointerleave", e);
       }, 1);
     });
-  }), document.querySelector(".graph-expand.graph-icon")?.addEventListener("click", e => {
-    e.stopPropagation(), s();
-  }), u.addEventListener("wheel", function (e) {
+  });
+  document.querySelector(".graph-expand.graph-icon")?.addEventListener("click", e => {
+    e.stopPropagation();
+    s();
+  });
+  u.addEventListener("wheel", function (e) {
     let r = .09;
     e.deltaY > 0 ? (scrollVelocity >= -.09 && (scrollVelocity = -.09), scrollVelocity *= 1.4) : (scrollVelocity <= r && (scrollVelocity = r), scrollVelocity *= 1.4);
-  }), u.addEventListener("dblclick", function (e) {
+  });
+  u.addEventListener("dblclick", function (e) {
     graphRenderer.fitToNodes();
-  }), document.querySelector(".theme-toggle-input")?.addEventListener("change", e => {
+  });
+  document.querySelector(".theme-toggle-input")?.addEventListener("change", e => {
     setTimeout(() => graphRenderer.resampleColors(), 0);
   });
 }
