@@ -477,7 +477,7 @@ reset-icon {
   padding: 2px 5px;
   border-radius: 3px;
   font-size: 12px;
-  transform: translate(-50%, -50%); /* Center the tooltip horizontally and move it lower */
+  transform: translate(-50%, 0); /* Center the tooltip horizontally and move it lower */
   white-space: nowrap;
   display: none;
   bottom: 3px; /* Move the tooltip lower */

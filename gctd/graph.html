@@ -281,16 +281,20 @@
       const options = {
         nodes: {
           shape: 'dot',
-          size: parseFloat(document.getElementById('node-size').value),
+          size: parseFloat(document.getElementById('node-size').value) * 5, // Scale node size
           font: {
             size: 14,
             color: '#ffffff' // White text color
           },
-          borderWidth: 2
+          borderWidth: 2,
+          color: {
+            background: '#aaaab3', // Default node color
+            border: '#aaaab3'
+          }
         },
         edges: {
-          width: parseFloat(document.getElementById('link-thickness').value),
-          color: { inherit: 'from' },
+          width: parseFloat(document.getElementById('link-thickness').value) * 0.1, // Scale link thickness
+          color: '#3f3f3f', // Color of the lines connecting nodes
           smooth: {
             type: 'continuous'
           }
@@ -321,7 +325,7 @@
       .then(data => {
         const colorGroups = [{"query":"tag:#Enemy  ","color":{"a":1,"rgb":14701138}},{"query":"tag:#Rarity","color":{"a":1,"rgb":14725458}},{"query":"tag:#Unit","color":{"a":1,"rgb":11657298}},{"query":"tag:#Tower","color":{"a":1,"rgb":5431378}},{"query":"tag:#Evo  ","color":{"a":1,"rgb":5431473}}];
         const nodes = new vis.DataSet(data.nodes.map(node => {
-          let color = '#d3d3d3'; // Default color
+          let color = '#aaaab3'; // Default color
           node.tags.forEach(tag => {
             const group = colorGroups.find(group => group.query.includes(tag));
             if (group) {
@@ -344,7 +348,10 @@
             }
           };
         }));
-        const edges = new vis.DataSet(data.edges);
+        const edges = new vis.DataSet(data.edges.map(edge => ({
+          ...edge,
+          color: '#3f3f3f' // Color of the lines connecting nodes
+        })));
 
         const container = document.getElementById('mynetwork');
         const graphData = {
@@ -354,16 +361,20 @@
         const options = {
           nodes: {
             shape: 'dot',
-            size: 16,
+            size: 5, // Default node size
             font: {
               size: 14,
               color: '#ffffff' // White text color
             },
-            borderWidth: 2
+            borderWidth: 2,
+            color: {
+              background: '#aaaab3', // Default node color
+              border: '#aaaab3'
+            }
           },
           edges: {
-            width: 2,
-            color: { inherit: 'from' },
+            width: 0.1, // Default link thickness
+            color: '#3f3f3f', // Color of the lines connecting nodes
             smooth: {
               type: 'continuous'
             }
