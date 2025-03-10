@@ -16,19 +16,21 @@
     }
     .settings-panel {
       position: fixed;
-      top: 0;
-      right: -300px;
+      top: 1rem;
+      right: 1rem;
       width: 300px;
-      height: 100%;
+      height: auto;
       background-color: #2e2e2e;
-      border-left: 1px solid #BA68C8;
-      transition: right 0.3s ease;
+      border: 1px solid #BA68C8;
+      transition: transform 0.3s ease;
       padding: 1rem;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-      border-radius: 12px 0 0 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      border-radius: 12px;
+      transform: translateY(-100%);
+      z-index: 1000;
     }
     .settings-panel.open {
-      right: 0;
+      transform: translateY(0);
     }
     .settings-panel h3 {
       color: #fff;
@@ -43,16 +45,37 @@
     }
     .settings-panel .section .slider-container {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       margin-bottom: 0.5rem;
     }
     .settings-panel .section .slider-container label {
       color: #fff;
-      margin-right: 1rem;
+      margin-bottom: 0.5rem;
     }
     .settings-panel .section .slider-container input[type="range"] {
-      flex: 1;
+      -webkit-appearance: none;
+      width: 100%;
+      height: 2px;
+      background: #d3d3d3;
+      outline: none;
+      opacity: 0.7;
+      transition: opacity .2s;
+    }
+    .settings-panel .section .slider-container input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    .settings-panel .section .slider-container input[type="range"]::-moz-range-thumb {
+      width: 15px;
+      height: 15px;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 50%;
     }
     .gear-icon {
       position: fixed;
@@ -62,6 +85,20 @@
       height: 32px;
       cursor: pointer;
       z-index: 1000;
+    }
+    .slider-tooltip {
+      position: absolute;
+      background: #000;
+      color: #fff;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+      transform: translate(-50%, -150%);
+      white-space: nowrap;
+      display: none;
+    }
+    .slider-container:hover .slider-tooltip {
+      display: block;
     }
   </style>
 </head>
@@ -98,14 +135,17 @@
       <div class="slider-container">
         <label for="text-fade-threshold">Text fade threshold</label>
         <input type="range" id="text-fade-threshold" min="-3" max="3" step="0.1" value="0">
+        <div class="slider-tooltip" id="text-fade-threshold-tooltip">0</div>
       </div>
       <div class="slider-container">
         <label for="node-size">Node size</label>
         <input type="range" id="node-size" min="0.1" max="5" step="0.1" value="1">
+        <div class="slider-tooltip" id="node-size-tooltip">1</div>
       </div>
       <div class="slider-container">
         <label for="link-thickness">Link thickness</label>
         <input type="range" id="link-thickness" min="0.1" max="5" step="0.1" value="1">
+        <div class="slider-tooltip" id="link-thickness-tooltip">1</div>
       </div>
     </div>
     <div class="section">
@@ -113,18 +153,22 @@
       <div class="slider-container">
         <label for="center-force">Center force</label>
         <input type="range" id="center-force" min="0" max="1" step="0.01" value="0.5">
+        <div class="slider-tooltip" id="center-force-tooltip">0.5</div>
       </div>
       <div class="slider-container">
         <label for="repel-force">Repel force</label>
         <input type="range" id="repel-force" min="0" max="20" step="0.1" value="10">
+        <div class="slider-tooltip" id="repel-force-tooltip">10</div>
       </div>
       <div class="slider-container">
         <label for="link-force">Link force</label>
         <input type="range" id="link-force" min="0" max="1" step="0.01" value="0.04">
+        <div class="slider-tooltip" id="link-force-tooltip">0.04</div>
       </div>
       <div class="slider-container">
         <label for="link-distance">Link distance</label>
         <input type="range" id="link-distance" min="30" max="500" step="1" value="95">
+        <div class="slider-tooltip" id="link-distance-tooltip">95</div>
       </div>
     </div>
   </div>
@@ -132,8 +176,23 @@
   <script type="text/javascript">
     function toggleSettingsPanel() {
       const panel = document.getElementById('settings-panel');
+      const gearIcon = document.querySelector('.gear-icon');
       panel.classList.toggle('open');
+      if (panel.classList.contains('open')) {
+        gearIcon.style.display = 'none';
+      } else {
+        gearIcon.style.display = 'block';
+      }
     }
+
+    function updateTooltip(slider, tooltip) {
+      tooltip.textContent = slider.value;
+    }
+
+    document.querySelectorAll('.slider-container input[type="range"]').forEach(slider => {
+      const tooltip = slider.nextElementSibling;
+      slider.addEventListener('input', () => updateTooltip(slider, tooltip));
+    });
 
     fetch('graph.json')
       .then(response => response.json())
