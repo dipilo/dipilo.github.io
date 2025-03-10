@@ -67,44 +67,36 @@
       position: absolute;
       top: 1rem;
       right: 1rem;
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       cursor: pointer;
       z-index: 1002; /* Ensure icons are above the canvas */
-      fill: currentColor;
     }
-
     .close-icon {
-      width: 24px; /* Make the close icon smaller */
-      height: 24px; /* Make the close icon smaller */
+      width: 32px; /* Make the close icon smaller */
+      height: 32px; /* Make the close icon smaller */
       display: none;
-      top: 1.25rem; /* Shift down */
-      right: 1.25rem; /* Shift to the left */
+      top: 1rem; /* Shift down */
+      right: 1rem; /* Shift to the left */
     }
-
     .reset-icon {
-      width: 24px; /* Make the reset icon smaller */
+      width: 24x; /* Make the reset icon smaller */
       height: 24px; /* Make the reset icon smaller */
       display: none;
-      top: 1.5rem; /* Shift down */
-      right: 3.5rem; /* Shift to the left */
+      top: 1.25rem; /* Shift down */
+      right: 3.25rem; /* Shift to the left */
     }
-
     .settings-panel.open + .close-icon {
       display: block;
     }
-
     .settings-panel.open + .reset-icon {
       display: block;
     }
 
-    .gear-icon {
-      display: block; /* Show by default */
+    .close-icon, .reset-icon, .gear-icon {
+      fill: #9d9d9d; /* Button color */
     }
 
-    .close-icon, .reset-icon {
-      display: none; /* Hide by default */
-    }
     .slider-tooltip {
       position: absolute;
       background: #000;
@@ -154,31 +146,9 @@
         <!-- Network will be rendered here -->
       </div>
       <!-- Initialize icons outside of the #mynetwork div -->
-      <svg class="gear-icon" viewBox="0 0 512 512" onclick="toggleSettingsPanel()" fill="currentColor">
-        <path d="M233 635 c-13 -13 -23 -35 -23 -47 0 -45 -14 -52 -87 -50 -64 2 -71
-1 -93 -25 -30 -34 -35 -119 -7 -134 23 -13 47 -39 47 -50 0 -11 -33 -45 -50
--51 -9 -3 -14 -23 -14 -54 -1 -39 4 -55 24 -77 23 -26 30 -28 86 -25 69 3 94
--10 94 -49 0 -66 105 -99 155 -48 14 13 25 34 25 47 0 45 14 52 87 50 62 -2
-71 0 92 22 18 19 24 38 25 71 1 41 -3 50 -32 73 -18 15 -32 32 -32 39 0 7 15
-26 33 42 42 40 46 105 7 146 -22 23 -30 25 -93 23 -73 -2 -87 5 -87 50 0 13
--11 34 -25 47 -33 34 -100 34 -132 0z m97 -60 c0 -25 15 -59 35 -80 19 -20 77
--35 96 -25 17 10 69 14 69 6 0 -2 3 -11 6 -19 3 -8 -5 -26 -18 -39 -63 -66
--63 -110 0 -175 25 -27 24 -25 16 -47 -7 -18 -46 -21 -73 -6 -19 10 -77 -5
--96 -25 -20 -21 -35 -55 -35 -80 0 -21 -5 -25 -30 -25 -25 0 -30 4 -30 23 0
-42 -24 76 -68 97 -32 15 -47 18 -62 10 -18 -10 -70 -14 -70 -6 0 2 -3 11 -6
-19 -3 8 5 26 18 39 63 66 63 110 1 175 -26 27 -25 25 -17 47 7 18 46 21 74 6
-15 -8 30 -5 62 10 44 21 68 55 68 97 0 19 5 23 30 23 25 0 30 -4 30 -25z"/>
-<path d="M256 443 c-10 -3 -31 -17 -45 -31 -21 -22 -26 -35 -26 -82 0 -49 4
--60 30 -85 25 -26 36 -30 85 -30 49 0 60 4 85 30 26 25 30 36 30 85 0 48 -4
-60 -27 83 -28 28 -91 42 -132 30z m75 -63 c14 0 28 -45 22 -70 -12 -44 -87
--47 -104 -4 -17 45 17 90 59 78 8 -2 18 -4 23 -4z"/>
-      </svg>
-      <svg class="close-icon" viewBox="0 0 32 32" onclick="toggleSettingsPanel()" fill="currentColor">
-        <path d="M18.8,16l5.5-5.5c0.8-0.8,0.8-2,0-2.8l0,0C24,7.3,23.5,7,23,7c-0.5,0-1,0.2-1.4,0.6L16,13.2l-5.5-5.5 c-0.8-0.8-2.1-0.8-2.8,0C7.3,8,7,8.5,7,9.1s0.2,1,0.6,1.4l5.5,5.5l-5.5,5.5C7.3,21.9,7,22.4,7,23c0,0.5,0.2,1,0.6,1.4 C8,24.8,8.5,25,9,25c0.5,0,1-0.2,1.4-0.6l5.5-5.5l5.5,5.5c0.8,0.8,2.1,0.8,2.8,0c0.8-0.8,0.8-2.1,0-2.8L18.8,16z"/>
-      </svg>
-      <svg class="reset-icon" viewBox="0 0 512 512" onclick="resetSliders()" fill="currentColor">
-        <path d="M456.213,730.502c-34.613,0-68.516-5.831-100.765-17.331c-31.171-11.115-60.159-27.272-86.161-48.024 c-52.042-41.536-89.225-99.817-104.693-164.109c-6.783-28.189-35.133-45.546-63.325-38.761 c-28.19,6.783-45.544,35.135-38.761,63.325c10.557,43.872,28.304,85.42,52.748,123.492c23.995,37.372,53.782,70.384,88.534,98.118 c35.098,28.013,74.258,49.833,116.393,64.858c43.6,15.547,89.367,23.431,136.031,23.431c54.643,0,107.678-10.713,157.633-31.843 c48.225-20.396,91.523-49.587,128.695-86.758s66.361-80.471,86.76-128.696c21.129-49.956,31.842-102.99,31.842-157.633 c0-54.642-10.713-107.678-31.842-157.633c-20.398-48.225-49.588-91.525-86.76-128.696S662.07,77.881,613.846,57.484 c-49.955-21.13-102.99-31.843-157.633-31.843c-79.907,0-157.211,23.258-223.558,67.259c-52.833,35.04-96.38,81.557-127.655,135.996 v-84.329c0-28.995-23.505-52.5-52.5-52.5S0,115.572,0,144.567v198.884c0,28.995,23.505,52.5,52.5,52.5h196.21 c28.994,0,52.5-23.505,52.5-52.5c0-28.995-23.506-52.5-52.5-52.5h-58.027c23.445-44.539,57.708-82.493,100.006-110.546 c49.088-32.555,106.324-49.763,165.522-49.763c80.113,0,155.434,31.198,212.084,87.848c56.648,56.65,87.848,131.967,87.848,212.081 s-31.197,155.434-87.848,212.083S536.326,730.502,456.213,730.502z"/>
-      </svg>
+      <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
+      <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
+      <img src="/images/icons/reload.svg" class="reset-icon" onclick="resetSliders()" alt="Reset">
       <div class="settings-panel" id="settings-panel">
         <h3>Settings</h3>
         <div class="section">
@@ -437,35 +407,6 @@
         container.appendChild(document.getElementById('settings-panel'));
       })
       .catch(error => console.error('Error loading graph data:', error));
-
-    document.addEventListener("DOMContentLoaded", function () {
-      const settingsPanel = document.querySelector(".settings-panel");
-      const gearIcon = document.querySelector(".gear-icon");
-      const closeIcon = document.querySelector(".close-icon");
-      const resetIcon = document.querySelector(".reset-icon");
-
-      gearIcon.addEventListener("click", function () {
-        settingsPanel.classList.toggle("open");
-        
-        // Toggle icon visibility
-        gearIcon.style.display = settingsPanel.classList.contains("open") ? "none" : "block";
-        closeIcon.style.display = settingsPanel.classList.contains("open") ? "block" : "none";
-        resetIcon.style.display = settingsPanel.classList.contains("open") ? "block" : "none";
-      });
-
-      closeIcon.addEventListener("click", function () {
-        settingsPanel.classList.remove("open");
-        
-        // Reset icon visibility
-        gearIcon.style.display = "block";
-        closeIcon.style.display = "none";
-        resetIcon.style.display = "none";
-      });
-
-      resetIcon.addEventListener("click", function () {
-        resetSliders(); // Add your reset functionality here
-      });
-    });
   </script>
 </body>
 </html>
