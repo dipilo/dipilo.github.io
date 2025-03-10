@@ -449,16 +449,16 @@ footer {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   z-index: 1002; /* Ensure icons are above the canvas */
   fill: currentColor;
 }
 
 .close-icon {
-  width: 32px; /* Make the close icon smaller */
-  height: 32px; /* Make the close icon smaller */
+  width: 24px; /* Make the close icon smaller */
+  height: 24px; /* Make the close icon smaller */
   display: none;
   top: 1.25rem; /* Shift down */
   right: 1.25rem; /* Shift to the left */
