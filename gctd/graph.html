@@ -14,6 +14,7 @@
       border: 1px solid lightgray;
       background-color: #2e2e2e; /* Dark background for the graph */
       position: relative;
+      border-radius: 12px; /* Rounded edges for the canvas */
     }
     .settings-panel {
       position: absolute;
@@ -86,7 +87,7 @@
       width: 32px;
       height: 32px;
       cursor: pointer;
-      z-index: 1000;
+      z-index: 1001; /* Ensure gear icon is above the canvas */
     }
     .close-icon {
       position: absolute;
@@ -95,7 +96,7 @@
       width: 32px;
       height: 32px;
       cursor: pointer;
-      z-index: 1000;
+      z-index: 1001; /* Ensure close icon is above the canvas */
       display: none;
     }
     .settings-panel.open + .close-icon {
