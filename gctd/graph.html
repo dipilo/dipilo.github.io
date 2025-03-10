@@ -43,8 +43,8 @@
     }
 
     window.addEventListener("load", () => {
-      waitLoadScripts(["pixi", "graph-data", "graph-render-worker", "graph-wasm"], () => {
-        Module.onRuntimeInitialized = () => initializeGraphView(graphData);
+      waitLoadScripts(["pixi", "graph-render-worker", "graph-wasm"], () => {
+        Module.onRuntimeInitialized = initializeGraphView;
         setTimeout(() => Module.onRuntimeInitialized(), 300);
       });
     });
