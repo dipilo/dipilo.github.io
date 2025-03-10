@@ -144,6 +144,13 @@
       <h2>Interactive Obsidian Graph</h2>
       <div id="mynetwork">
         <!-- Network will be rendered here -->
+        <div class="slider-tooltip" id="text-fade-threshold-tooltip">0</div>
+        <div class="slider-tooltip" id="node-size-tooltip">1</div>
+        <div class="slider-tooltip" id="link-thickness-tooltip">1</div>
+        <div class="slider-tooltip" id="center-force-tooltip">0.5</div>
+        <div class="slider-tooltip" id="repel-force-tooltip">10</div>
+        <div class="slider-tooltip" id="link-force-tooltip">0.04</div>
+        <div class="slider-tooltip" id="link-distance-tooltip">95</div>
       </div>
       <!-- Initialize icons outside of the #mynetwork div -->
       <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
@@ -227,8 +234,9 @@
     function updateTooltip(slider, tooltip) {
       tooltip.textContent = slider.value;
       const rect = slider.getBoundingClientRect();
-      tooltip.style.left = (rect.left + slider.offsetWidth / 2) + 'px';
-      tooltip.style.bottom = (rect.height + 10) + 'px';
+      const networkRect = document.getElementById('mynetwork').getBoundingClientRect();
+      tooltip.style.left = (rect.left + slider.offsetWidth / 2 - networkRect.left) + 'px';
+      tooltip.style.bottom = (networkRect.bottom - rect.top + 10) + 'px';
     }
 
     function resetSliders() {
