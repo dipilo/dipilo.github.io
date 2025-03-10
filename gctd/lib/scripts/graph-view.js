@@ -320,14 +320,14 @@ async function initializeGraphView(graphData) {
     pixiApp = new PIXI.Application({ view: document.querySelector("#graph-canvas") });
     console.log("Module Ready");
     GraphAssembly.init(graphData);
-    graphRenderer = new GraphRenderWorker;
+    graphRenderer = new GraphRenderWorker();
     window.graphRenderer = graphRenderer;
     initializeGraphEvents();
     pixiApp.ticker.maxFPS = targetFPS;
     pixiApp.ticker.add(updateGraph);
     setInterval(() => {
       try {
-        var e = graphRenderer.canvasSidebar.classList.contains("is-collapsed");
+        var e = graphRenderer.canvasSidebar?.classList.contains("is-collapsed");
       } catch (e) {
         return;
       }
