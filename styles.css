@@ -453,12 +453,13 @@ footer {
   height: 32px;
   cursor: pointer;
   z-index: 1002; /* Ensure icons are above the canvas */
+  fill: currentColor;
 }
 
 .close-icon {
   width: 32px; /* Make the close icon smaller */
   height: 32px; /* Make the close icon smaller */
-    display: none;
+  display: none;
   top: 1.25rem; /* Shift down */
   right: 1.25rem; /* Shift to the left */
 }
@@ -479,9 +480,12 @@ footer {
   display: block;
 }
 
-.close-icon, .reset-icon, .gear-icon {
-  color: #9d9d9d; /* Button color */
-  fill: currentColor
+.gear-icon {
+  display: block; /* Show by default */
+}
+
+.close-icon, .reset-icon {
+  display: none; /* Hide by default */
 }
 
 .slider-tooltip {
