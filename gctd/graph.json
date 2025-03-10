@@ -47,8 +47,44 @@
   ],
   "edges": [
     {
+      "from": "Units/Towers/Rarities/Mythic/Mythic",
+      "to": "Units/Towers/Rarities/Mythic/Osa/Osa"
+    },
+    {
       "from": "Units/Towers/Rarities/Mythic/Osa/Osa",
       "to": "Units/Towers/Rarities/Mythic/Osa/Evo/Osa (Charger)"
+    },
+    {
+      "from": "Units/Towers/Rarities/Rarities",
+      "to": "Units/Towers/Rarities/Rare/Rare"
+    },
+    {
+      "from": "Units/Towers/Rarities/Rarities",
+      "to": "Units/Towers/Rarities/Epic/Epic"
+    },
+    {
+      "from": "Units/Towers/Rarities/Rarities",
+      "to": "Units/Towers/Rarities/Legendary/Legendary"
+    },
+    {
+      "from": "Units/Towers/Rarities/Rarities",
+      "to": "Units/Towers/Rarities/Mythic/Mythic"
+    },
+    {
+      "from": "Units/Towers/Rarities/Rarities",
+      "to": "Units/Towers/Rarities/Secret/Secret"
+    },
+    {
+      "from": "Units/Towers/Towers",
+      "to": "Units/Towers/Rarities/Rarities"
+    },
+    {
+      "from": "Units/Units",
+      "to": "Units/Enemies/Enemies"
+    },
+    {
+      "from": "Units/Units",
+      "to": "Units/Towers/Towers"
     }
   ]
 }
