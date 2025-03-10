@@ -121,7 +121,7 @@ class GraphRenderWorker {
       console.log("Error: " + e + "\n\n Using fallback.");
     }
     this.view = this.canvas.transferControlToOffscreen();
-    this.worker = new Worker(new URL("./graph-render-worker.js", import.meta.url));
+    this.worker = new Worker("lib/scripts/graph-render-worker.js"); // Use relative path
     this.#i = { x: 0, y: 0 };
     this.#o = 1;
     this.#n = -1;
