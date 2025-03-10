@@ -252,6 +252,11 @@
     }
 
     function updateGraphOptions() {
+      const centerForce = parseFloat(document.getElementById('center-force').value);
+      const repelForce = parseFloat(document.getElementById('repel-force').value);
+      const linkForce = parseFloat(document.getElementById('link-force').value);
+      const linkDistance = parseFloat(document.getElementById('link-distance').value);
+
       const options = {
         nodes: {
           shape: 'dot',
@@ -286,10 +291,10 @@
         physics: {
           stabilization: false,
           barnesHut: {
-            gravitationalConstant: -3000, // Reduced gravitational constant
-            centralGravity: parseFloat(document.getElementById('center-force').value),
-            springConstant: parseFloat(document.getElementById('repel-force').value) * 0.0035, // Adjusted spring constant
-            springLength: parseFloat(document.getElementById('link-distance').value),
+            gravitationalConstant: -repelForce * 100, // Adjusted gravitational constant based on repel force
+            centralGravity: centerForce, // Central gravity
+            springConstant: linkForce, // Link force
+            springLength: linkDistance, // Link distance
             damping: 0.09 // Adjust damping for gradual stop
           }
         }
