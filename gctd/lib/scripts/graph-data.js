@@ -1,1 +1,21 @@
-let graphData={graphOptions:{attractionForce:1,linkLength:10,repulsionForce:150,centralForce:3,edgePruning:100,minNodeRadius:3,maxNodeRadius:7},isInitialized:!0,paths:["gctd/units/enemies/enemies.html","gctd/units/towers/rarities/epic/epic.html","gctd/units/towers/rarities/legendary/legendary.html","gctd/units/towers/rarities/mythic/osa/evo/osa-(charger).html","gctd/units/towers/rarities/mythic/osa/osa.html","gctd/units/towers/rarities/mythic/mythic.html","gctd/units/towers/rarities/rare/rare.html","gctd/units/towers/rarities/secret/secret.html","gctd/units/towers/rarities/rarities.html","gctd/units/towers/towers.html","gctd/units/units.html"],nodeCount:11,linkSources:[4,5,8,8,8,8,8,9,10,10],linkTargets:[3,4,6,1,2,5,7,8,0,9],labels:["Enemies","Epic","Legendary","Osa (Charger)","Osa","Mythic","Rare","Secret","Rarities","Towers","Units"],radii:[4.493055555555555,4.493055555555555,4.493055555555555,4.493055555555555,5.638888888888889,5.638888888888889,4.493055555555555,4.493055555555555,7,5.638888888888889,5.638888888888889],linkCount:10}
+
+let graphData = {
+  graphOptions: {
+    attractionForce: 1,
+    linkLength: 10,
+    repulsionForce: 150,
+    centralForce: 3,
+    edgePruning: 100,
+    minNodeRadius: 3,
+    maxNodeRadius: 7
+  },
+  isInitialized: true,
+  paths: ["Units/Units.html"],
+  nodeCount: 1,
+  linkSources: [0,0],
+  linkTargets: [-1,-1],
+  labels: ["Units"],
+  radii: [5], // Example radii, adjust as needed
+  linkCount: 2
+};
+  
