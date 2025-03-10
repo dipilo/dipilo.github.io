@@ -202,6 +202,13 @@ function abort(what) {
   throw e;
 }
 
+// Utility constants and functions for UTF-8 conversion
+var dataURIPrefix = "data:application/octet-stream;base64,";
+
+function isDataURI(filename) {
+  return filename.startsWith(dataURIPrefix);
+}
+
 // Locate the wasm binary file
 var wasmBinaryFile = 'graph-wasm.wasm';
 if (!isDataURI(wasmBinaryFile)) {
@@ -530,10 +537,6 @@ function cwrap(ident, returnType, argTypes, opts) {
 
 // --- Begin WebAssembly instantiation support ---
 
-var dataURIPrefix = "data:application/octet-stream;base64,";
-function isDataURI(filename) {
-  return filename.startsWith(dataURIPrefix);
-}
 function isFileURI(filename) {
   return filename.startsWith("file://");
 }
@@ -602,29 +605,62 @@ function instantiateAsync(binary, filename, imports, callback) {
 }
 
 function createWasm() {
-  var imports = { a: wasmImports };
-  function receiveInstance(instance) {
+  var info = {
+    'env': wasmImports,
+    'wasi_snapshot_preview1': wasmImports
+  };
+
+  function receiveInstance(instance, module) {
     var exports = instance.exports;
-    Module.asm = exports;
-    wasmMemory = Module.asm.f;
+    Module['asm'] = exports;
+    wasmMemory = Module['asm']['memory'];
     updateMemoryViews();
-    wasmTable = Module.asm.r;
-    addOnInit(Module.asm.g);
-    removeRunDependency("wasm-instantiate");
+    wasmTable = Module['asm']['__indirect_function_table'];
+    addOnInit(Module['asm']['__wasm_call_ctors']);
+    removeRunDependency('wasm-instantiate');
     return exports;
   }
-  addRunDependency("wasm-instantiate");
-  if (Module.instantiateWasm) {
+
+  addRunDependency('wasm-instantiate');
+
+  if (Module['instantiateWasm']) {
     try {
-      return Module.instantiateWasm(imports, receiveInstance);
+      return Module['instantiateWasm'](info, receiveInstance);
     } catch (e) {
-      err("Module.instantiateWasm callback failed with error: " + e);
+      err('Module.instantiateWasm callback failed with error: ' + e);
       return false;
     }
   }
-  return instantiateAsync(wasmBinary, wasmBinaryFile, imports, function(result) {
-    receiveInstance(result.instance);
-  }), {};
+
+  function receiveInstantiationResult(result) {
+    receiveInstance(result['instance']);
+  }
+
+  function instantiateArrayBuffer(receiver) {
+    return getBinaryPromise(wasmBinaryFile).then(function (binary) {
+      return WebAssembly.instantiate(binary, info);
+    }).then(receiver, function (reason) {
+      err('failed to asynchronously prepare wasm: ' + reason);
+      abort(reason);
+    });
+  }
+
+  function instantiateAsync() {
+    if (!wasmBinary && typeof WebAssembly.instantiateStreaming === 'function' && !isDataURI(wasmBinaryFile) && !isFileURI(wasmBinaryFile) && typeof fetch === 'function') {
+      return fetch(wasmBinaryFile, { credentials: 'same-origin' }).then(function (response) {
+        var result = WebAssembly.instantiateStreaming(response, info);
+        return result.then(receiveInstantiationResult, function (reason) {
+          err('wasm streaming compile failed: ' + reason);
+          err('falling back to ArrayBuffer instantiation');
+          return instantiateArrayBuffer(receiveInstantiationResult);
+        });
+      });
+    } else {
+      return instantiateArrayBuffer(receiveInstantiationResult);
+    }
+  }
+
+  return instantiateAsync();
 }
 
 // --- End WebAssembly instantiation support ---
