@@ -1,4 +1,73 @@
 {
-  "nodes": [],
+  "nodes": [
+    {
+      "id": ".obsidian/plugins/obsidian-advanced-slides/plugin/chalkboard/README",
+      "label": ".obsidian/plugins/obsidian-advanced-slides/plugin/chalkboard/README"
+    },
+    {
+      "id": ".obsidian/plugins/obsidian-advanced-slides/plugin/chart/README",
+      "label": ".obsidian/plugins/obsidian-advanced-slides/plugin/chart/README"
+    },
+    {
+      "id": ".obsidian/plugins/obsidian-advanced-slides/plugin/customcontrols/README",
+      "label": ".obsidian/plugins/obsidian-advanced-slides/plugin/customcontrols/README"
+    },
+    {
+      "id": ".obsidian/plugins/obsidian-advanced-slides/plugin/menu/CONTRIBUTING",
+      "label": ".obsidian/plugins/obsidian-advanced-slides/plugin/menu/CONTRIBUTING"
+    },
+    {
+      "id": ".obsidian/plugins/obsidian-advanced-slides/plugin/menu/README",
+      "label": ".obsidian/plugins/obsidian-advanced-slides/plugin/menu/README"
+    },
+    {
+      "id": "GCTD/Units/Enemies/Enemies",
+      "label": "GCTD/Units/Enemies/Enemies"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Epic/Epic",
+      "label": "GCTD/Units/Towers/Rarities/Epic/Epic"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Legendary/Legendary",
+      "label": "GCTD/Units/Towers/Rarities/Legendary/Legendary"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Mythic/Mythic",
+      "label": "GCTD/Units/Towers/Rarities/Mythic/Mythic"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Mythic/Osa/Evo/",
+      "label": "GCTD/Units/Towers/Rarities/Mythic/Osa/Evo/"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Mythic/Osa/Evo/Osa (Charger)",
+      "label": "GCTD/Units/Towers/Rarities/Mythic/Osa/Evo/Osa (Charger)"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Mythic/Osa/Osa",
+      "label": "GCTD/Units/Towers/Rarities/Mythic/Osa/Osa"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Rare/Rare",
+      "label": "GCTD/Units/Towers/Rarities/Rare/Rare"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Rarities",
+      "label": "GCTD/Units/Towers/Rarities/Rarities"
+    },
+    {
+      "id": "GCTD/Units/Towers/Rarities/Secret/Secret",
+      "label": "GCTD/Units/Towers/Rarities/Secret/Secret"
+    },
+    {
+      "id": "GCTD/Units/Towers/Towers",
+      "label": "GCTD/Units/Towers/Towers"
+    },
+    {
+      "id": "GCTD/Units/Units",
+      "label": "GCTD/Units/Units"
+    }
+  ],
   "edges": []
 }
