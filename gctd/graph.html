@@ -80,6 +80,10 @@
       cursor: pointer;
       border-radius: 50%;
     }
+    .settings-panel .section-divider {
+      border-top: 1px solid #BA68C8;
+      margin: 1rem 0;
+    }
     .gear-icon, .close-icon {
       position: absolute;
       top: 1rem;
@@ -90,6 +94,8 @@
       z-index: 1002; /* Ensure icons are above the canvas */
     }
     .close-icon {
+      width: 24px; /* Make the close icon smaller */
+      height: 24px; /* Make the close icon smaller */
       display: none;
     }
     .settings-panel.open + .close-icon {
@@ -153,6 +159,7 @@
             <div class="slider-tooltip" id="link-thickness-tooltip">1</div>
           </div>
         </div>
+        <div class="section-divider"></div>
         <div class="section">
           <h4>Forces</h4>
           <div class="slider-container">
