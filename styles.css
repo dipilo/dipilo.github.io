@@ -453,8 +453,8 @@ footer {
   width: 32px; /* Make the close icon smaller */
   height: 32px; /* Make the close icon smaller */
     display: none;
-  top: 2rem; /* Shift down */
-  right: 2rem; /* Shift to the left */
+  top: 1.75rem; /* Shift down */
+  right: 1.75rem; /* Shift to the left */
 }
 
 .settings-panel.open + .close-icon {
