@@ -236,7 +236,7 @@
       const rect = slider.getBoundingClientRect();
       const networkRect = document.getElementById('mynetwork').getBoundingClientRect();
       tooltip.style.left = (rect.left + slider.offsetWidth / 2 - networkRect.left) + 'px';
-      tooltip.style.bottom = (networkRect.bottom - rect.top + 10) + 'px';
+      tooltip.style.top = (rect.top - networkRect.top - 30) + 'px'; // Adjust the top position to hover above the slider
     }
 
     function resetSliders() {

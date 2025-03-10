@@ -495,10 +495,9 @@ footer {
   padding: 2px 5px;
   border-radius: 3px;
   font-size: 12px;
-  transform: translate(-50%, -150%); /* Center the tooltip horizontally and move it above the slider */
+  transform: translate(-50%, -100%); /* Center the tooltip horizontally and move it above the slider */
   white-space: nowrap;
   display: none;
-  bottom: 100%; /* Position the tooltip above the slider */
   left: 50%; /* Center the tooltip horizontally */
 }
 
@@ -506,34 +505,6 @@ footer {
   content: '';
   position: absolute;
   top: 100%; /* Position the tail below the tooltip */
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: #000 transparent transparent transparent; /* Create a pointed tail */
-}
-
-.slider-container:hover .slider-tooltip {
-  display: block;
-}
-
-.slider-tooltip {
-  position: absolute;
-  background: #000;
-  color: #fff;
-  padding: 2px 5px;
-  border-radius: 3px;
-  font-size: 12px;
-  transform: translate(-50%, 0); /* Center the tooltip horizontally and move it lower */
-  white-space: nowrap;
-  display: none;
-  bottom: 3px; /* Move the tooltip lower */
-}
-
-.slider-tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: -5px; /* Position the tail below the tooltip */
   left: 50%;
   transform: translateX(-50%);
   border-width: 5px;
