@@ -463,11 +463,13 @@ footer {
   right: 1.25rem; /* Shift to the left */
 }
 
-reset-icon {
+.reset-icon {
   width: 16px; /* Make the reset icon smaller */
   height: 16px; /* Make the reset icon smaller */
-    display: none;
-  }
+  display: none;
+  top: 1.5rem; /* Shift down */
+  right: 3.5rem; /* Shift to the left */
+}
 
 .settings-panel.open + .close-icon {
   display: block;
