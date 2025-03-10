@@ -96,12 +96,12 @@
       width: 32px; /* Make the close icon smaller */
       height: 32px; /* Make the close icon smaller */
       display: none;
-      top: 1.25rem; /* Shift down */
-      right: 1.25rem; /* Shift to the left */
+      top: 1rem; /* Shift down */
+      right: 1rem; /* Shift to the left */
     }
     .reset-icon {
-      width: 16px; /* Make the reset icon smaller */
-      height: 16px; /* Make the reset icon smaller */
+      width: 24x; /* Make the reset icon smaller */
+      height: 24px; /* Make the reset icon smaller */
       display: none;
       top: 1.5rem; /* Shift down */
       right: 3.5rem; /* Shift to the left */
@@ -112,6 +112,12 @@
     .settings-panel.open + .reset-icon {
       display: block;
     }
+
+    .close-icon, .reset-icon, .gear-icon {
+      color: #9d9d9d; /* Button color */
+      fill: currentColor
+    }
+
     .slider-tooltip {
       position: absolute;
       background: #000;
@@ -119,11 +125,13 @@
       padding: 2px 5px;
       border-radius: 3px;
       font-size: 12px;
-      transform: translate(-50%, -50%); /* Center the tooltip horizontally and move it lower */
+      transform: translate(-50%, -150%); /* Center the tooltip horizontally and move it above the slider */
       white-space: nowrap;
       display: none;
-      bottom: 25px; /* Move the tooltip lower */
+      bottom: 100%; /* Position the tooltip above the slider */
+      left: 50%; /* Center the tooltip horizontally */
     }
+      
     .slider-tooltip::after {
       content: '';
       position: absolute;
