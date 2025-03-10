@@ -439,7 +439,7 @@ footer {
   margin: 1rem 0;
 }
 
-.gear-icon, .close-icon {
+.gear-icon, .close-icon, .reset-icon {
   position: absolute;
   top: 1rem;
   right: 1rem;
@@ -450,14 +450,18 @@ footer {
 }
 
 .close-icon {
-  width: 16px; /* Make the close icon smaller */
-  height: 16px; /* Make the close icon smaller */
-  display: none;
-  top: 1.75rem; /* Shift down */
-  right: 1.75rem; /* Shift to the left */
+  width: 32px; /* Make the close icon smaller */
+  height: 32px; /* Make the close icon smaller */
+    display: none;
+  top: 2rem; /* Shift down */
+  right: 2rem; /* Shift to the left */
 }
 
 .settings-panel.open + .close-icon {
+  display: block;
+}
+
+.settings-panel.open + .reset-icon {
   display: block;
 }
 

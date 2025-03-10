@@ -99,7 +99,7 @@
       border-top: 1px solid #BA68C8;
       margin: 1rem 0;
     }
-    .gear-icon, .close-icon {
+    .gear-icon, .close-icon, .reset-icon {
       position: absolute;
       top: 1rem;
       right: 1rem;
@@ -112,8 +112,20 @@
       width: 24px; /* Make the close icon smaller */
       height: 24px; /* Make the close icon smaller */
       display: none;
+      top: 1.5rem; /* Shift down */
+      right: 1.5rem; /* Shift to the left */
+    }
+    .reset-icon {
+      width: 24px; /* Make the reset icon smaller */
+      height: 24px; /* Make the reset icon smaller */
+      display: none;
+      top: 1.5rem; /* Shift down */
+      right: 3.5rem; /* Shift to the left */
     }
     .settings-panel.open + .close-icon {
+      display: block;
+    }
+    .settings-panel.open + .reset-icon {
       display: block;
     }
     .slider-tooltip {
@@ -154,6 +166,7 @@
       <!-- Initialize icons outside of the #mynetwork div -->
       <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
       <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
+      <img src="/images/icons/reload.svg" class="reset-icon" onclick="resetSliders()" alt="Reset">
       <div class="settings-panel" id="settings-panel">
         <h3>Settings</h3>
         <div class="section">
@@ -211,13 +224,16 @@
       const panel = document.getElementById('settings-panel');
       const gearIcon = document.querySelector('.gear-icon');
       const closeIcon = document.querySelector('.close-icon');
+      const resetIcon = document.querySelector('.reset-icon');
       panel.classList.toggle('open');
       if (panel.classList.contains('open')) {
         gearIcon.style.display = 'none';
         closeIcon.style.display = 'block';
+        resetIcon.style.display = 'block';
       } else {
         gearIcon.style.display = 'block';
         closeIcon.style.display = 'none';
+        resetIcon.style.display = 'none';
       }
     }
 
@@ -228,6 +244,24 @@
 
     function updateTooltip(slider, tooltip) {
       tooltip.textContent = slider.value;
+    }
+
+    function resetSliders() {
+      document.getElementById('text-fade-threshold').value = 0;
+      document.getElementById('node-size').value = 1;
+      document.getElementById('link-thickness').value = 1;
+      document.getElementById('center-force').value = 0.5;
+      document.getElementById('repel-force').value = 10;
+      document.getElementById('link-force').value = 1;
+      document.getElementById('link-distance').value = 1;
+
+      updateTooltip(document.getElementById('text-fade-threshold'), document.getElementById('text-fade-threshold-tooltip'));
+      updateTooltip(document.getElementById('node-size'), document.getElementById('node-size-tooltip'));
+      updateTooltip(document.getElementById('link-thickness'), document.getElementById('link-thickness-tooltip'));
+      updateTooltip(document.getElementById('center-force'), document.getElementById('center-force-tooltip'));
+      updateTooltip(document.getElementById('repel-force'), document.getElementById('repel-force-tooltip'));
+      updateTooltip(document.getElementById('link-force'), document.getElementById('link-force-tooltip'));
+      updateTooltip(document.getElementById('link-distance'), document.getElementById('link-distance-tooltip'));
     }
 
     document.querySelectorAll('.slider-container input[type="range"]').forEach(slider => {
@@ -298,11 +332,12 @@
         };
         const network = new vis.Network(container, graphData, options);
 
-        // Append the gear and close icons after the network is initialized
+        // Append the gear, close, and reset icons after the network is initialized
         container.appendChild(document.querySelector('.gear-icon'));
         container.appendChild(document.querySelector('.close-icon'));
+        container.appendChild(document.querySelector('.reset-icon'));
 
-        // Append the settings panel after the gear and close icons
+        // Append the settings panel after the gear, close, and reset icons
         container.appendChild(document.getElementById('settings-panel'));
       })
       .catch(error => console.error('Error loading graph data:', error));
