@@ -313,11 +313,11 @@ class GraphRenderWorker {
   }
 }
 
-async function initializeGraphView() {
+async function initializeGraphView(graphData) {
   if (!running) {
     running = !0;
     graphData.graphOptions.repulsionForce /= batchFraction;
-    pixiApp = new PIXI.Application;
+    pixiApp = new PIXI.Application({ view: document.querySelector("#graph-canvas") });
     console.log("Module Ready");
     GraphAssembly.init(graphData);
     graphRenderer = new GraphRenderWorker;
