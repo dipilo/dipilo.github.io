@@ -464,8 +464,8 @@ footer {
 }
 
 .reset-icon {
-  width: 16px; /* Make the reset icon smaller */
-  height: 16px; /* Make the reset icon smaller */
+  width: 24px; /* Make the reset icon smaller */
+  height: 24px; /* Make the reset icon smaller */
   display: none;
   top: 1.5rem; /* Shift down */
   right: 3.5rem; /* Shift to the left */
