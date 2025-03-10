@@ -2,7 +2,7 @@
 <!-- Edited SVG to match the size of the second icon -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg scale(0.100000,-0.100000)" fill="currentColor" fill-rule="nonzero" width="66pt" height="66pt" version="1.1" id="Capa_1" 
+<svg transform="scale(0.100000,-0.100000)" fill="currentColor" fill-rule="nonzero" width="66pt" height="66pt" version="1.1" id="Capa_1" 
     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 460.775 460.775" preserveAspectRatio="xMidYMid meet" xml:space="preserve">
   <path d="M285.08,230.397L456.218,59.27c6.076-6.077,6.076-15.911,0-21.986L423.511,4.565c-2.913-2.911-6.866-4.55-10.992-4.55
