@@ -21,7 +21,7 @@
   </div>
   <script>
     var running = !1;
-    var graphData = {"nodes":[{"id":"Units/Units.md","label":"Units","group":"Units"}],"links":[{"source":"Units/Units.md","target":"Units/Enemies.md"},{"source":"Units/Units.md","target":"Units/Towers.md"}]};
+    var graphData = {"nodes":[{"id":"Units/Units.md","label":"Units","group":"Units"}],"links":[{"source":"Units/Units.md","target":"Units/Enemies.md"},{"source":"Units/Units.md","target":"Units/Towers.md"}],"graphOptions":{"repulsionForce":1000,"linkLength":100,"edgePruning":false}};
 
     async function initializeGraphView(graphData) {
       if (!running) {
