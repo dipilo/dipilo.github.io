@@ -20,27 +20,152 @@
     <canvas id="graph-canvas" width="800" height="600"></canvas>
   </div>
   <script>
+    var running = !1;
+    let pixiApp, graphRenderer, batchFraction = 1, minBatchFraction = .3, dt = 1, targetFPS = 40, startingCameraRect = { minX: -1, minY: -1, maxX: 1, maxY: 1 }, mouseWorldPos = { x: void 0, y: void 0 }, scrollVelocity = 0, averageFPS = 2 * targetFPS;
+
+    class GraphAssembly {
+      static nodeCount = 0;
+      static linkCount = 0;
+      static hoveredNode = -1;
+      static #e = 0;
+      static #r = 0;
+      static #t = 0;
+      static #a = 0;
+      static #s = 0;
+      static linkSources = new Int32Array(0);
+      static linkTargets = new Int32Array(0);
+      static radii = new Float32Array(0);
+      static maxRadius = 0;
+      static averageRadius = 0;
+      static minRadius = 0;
+
+      static init(e) {
+        GraphAssembly.nodeCount = e.nodeCount;
+        GraphAssembly.linkCount = e.linkCount;
+        let r = new Float32Array(2 * GraphAssembly.nodeCount);
+        GraphAssembly.radii = new Float32Array(e.radii);
+        GraphAssembly.linkSources = new Int32Array(e.linkSources);
+        GraphAssembly.linkTargets = new Int32Array(e.linkTargets);
+        GraphAssembly.#e = Module._malloc(r.byteLength);
+        GraphAssembly.#r = r.byteLength;
+        GraphAssembly.#t = Module._malloc(GraphAssembly.radii.byteLength);
+        GraphAssembly.#a = Module._malloc(GraphAssembly.linkSources.byteLength);
+        GraphAssembly.#s = Module._malloc(GraphAssembly.linkTargets.byteLength);
+        GraphAssembly.maxRadius = GraphAssembly.radii.reduce(((e, r) => Math.max(e, r)));
+        GraphAssembly.averageRadius = GraphAssembly.radii.reduce(((e, r) => e + r)) / GraphAssembly.radii.length;
+        GraphAssembly.minRadius = GraphAssembly.radii.reduce(((e, r) => Math.min(e, r)));
+        r = this.loadState();
+        Module.HEAP32.set(new Int32Array(r.buffer), GraphAssembly.#e / r.BYTES_PER_ELEMENT);
+      }
+
+      static get positions() { /*...*/ }
+      static saveState(e) { /*...*/ }
+      static loadState() { /*...*/ }
+      static update(e, r, t) { /*...*/ }
+      static free() { /*...*/ }
+      static set batchFraction(e) { /*...*/ }
+      static set attractionForce(e) { /*...*/ }
+      static set repulsionForce(e) { /*...*/ }
+      static set centralForce(e) { /*...*/ }
+      static set linkLength(e) { /*...*/ }
+      static set dt(e) { /*...*/ }
+    }
+
+    class GraphRenderWorker { /*...*/ }
+
+    async function initializeGraphView(graphData) {
+      if (!running) {
+        running = !0;
+        graphData.graphOptions.repulsionForce /= batchFraction;
+        pixiApp = new PIXI.Application;
+        console.log("Module Ready");
+        GraphAssembly.init(graphData);
+        graphRenderer = new GraphRenderWorker;
+        window.graphRenderer = graphRenderer;
+        initializeGraphEvents();
+        pixiApp.ticker.maxFPS = targetFPS;
+        pixiApp.ticker.add(updateGraph);
+        setInterval(() => {
+          try {
+            var e = graphRenderer.canvasSidebar.classList.contains("is-collapsed");
+          } catch (e) {
+            return;
+          }
+          running && e ? running = !1 : running || e || (running = !0, graphRenderer.autoResizeCanvas(), graphRenderer.centerCamera());
+        }, 1e3);
+      }
+    }
+
+    let firstUpdate = !0;
+
+    function updateGraph() {
+      if (running && !graphRenderer.canvasSidebar.classList.contains("is-collapsed")) {
+        firstUpdate && (setTimeout(() => graphRenderer?.canvas?.classList.remove("hide"), 500), firstUpdate = !1);
+        GraphAssembly.update(mouseWorldPos, graphRenderer.grabbedNode, graphRenderer.cameraScale);
+        GraphAssembly.hoveredNode != graphRenderer.hoveredNode && (graphRenderer.hoveredNode = GraphAssembly.hoveredNode, graphRenderer.canvas.style.cursor = -1 == GraphAssembly.hoveredNode ? "default" : "pointer");
+        graphRenderer.autoResizeCanvas();
+        graphRenderer.draw(GraphAssembly.positions);
+        averageFPS = .95 * averageFPS + .05 * pixiApp.ticker.FPS;
+        averageFPS < .8 * targetFPS && batchFraction > minBatchFraction && (batchFraction = Math.max(batchFraction - .5 / targetFPS, minBatchFraction), GraphAssembly.batchFraction = batchFraction, GraphAssembly.repulsionForce = graphData.graphOptions.repulsionForce / batchFraction);
+        averageFPS > 1.2 * targetFPS && batchFraction < 1 && (batchFraction = Math.min(batchFraction + .5 / targetFPS, 1), GraphAssembly.batchFraction = batchFraction, GraphAssembly.repulsionForce = graphData.graphOptions.repulsionForce / batchFraction);
+        0 != scrollVelocity && (graphRenderer.getCameraCenterWorldspace(), Math.abs(scrollVelocity) < .001 && (scrollVelocity = 0), zoomGraphViewAroundPoint(mouseWorldPos, scrollVelocity), scrollVelocity *= .65);
+      }
+    }
+
+    function zoomGraphViewAroundPoint(e, r, t = .15, a = 15) {
+      let s = graphRenderer.getCameraCenterWorldspace();
+      if (graphRenderer.cameraScale = Math.max(Math.min(graphRenderer.cameraScale + r * graphRenderer.cameraScale, a), t), graphRenderer.cameraScale != t && graphRenderer.cameraScale != a && scrollVelocity > 0 && null != mouseWorldPos.x && null != mouseWorldPos.y) {
+        let t = { x: e.x - s.x, y: e.y - s.y }, a = { x: s.x + t.x * r, y: s.y + t.y * r };
+        graphRenderer.setCameraCenterWorldspace(a);
+      } else graphRenderer.setCameraCenterWorldspace(s);
+    }
+
+    function scaleGraphViewAroundPoint(e, r, t = .15, a = 15) {
+      let s = graphRenderer.getCameraCenterWorldspace(), i = graphRenderer.cameraScale;
+      graphRenderer.cameraScale = Math.max(Math.min(r * graphRenderer.cameraScale, a), t);
+      let o = (i - graphRenderer.cameraScale) / i;
+      if (graphRenderer.cameraScale != t && graphRenderer.cameraScale != a && 0 != r) {
+        let r = { x: e.x - s.x, y: e.y - s.y }, t = { x: s.x - r.x * o, y: s.y - r.y * o };
+        graphRenderer.setCameraCenterWorldspace(t);
+      } else graphRenderer.setCameraCenterWorldspace(s);
+    }
+
+    function initializeGraphEvents() {
+      const canvas = document.querySelector("#graph-canvas");
+      canvas.addEventListener("wheel", function (e) {
+        let r = .09;
+        e.deltaY > 0 ? (scrollVelocity >= -.09 && (scrollVelocity = -.09), scrollVelocity *= 1.4) : (scrollVelocity <= r && (scrollVelocity = r), scrollVelocity *= 1.4);
+      }, { passive: true });
+
+      canvas.addEventListener("dblclick", function (e) {
+        graphRenderer.fitToNodes();
+      });
+
+      document.querySelector(".theme-toggle-input")?.addEventListener("change", e => {
+        setTimeout(() => graphRenderer.resampleColors(), 0);
+      });
+    }
+
+    function waitLoadScripts(scripts, callback) {
+      let loadedScripts = 0;
+      scripts.forEach(script => {
+        const scriptElement = document.createElement('script');
+        scriptElement.src = 'lib/scripts/' + script + '.js';
+        scriptElement.onload = () => {
+          loadedScripts++;
+          if (loadedScripts === scripts.length) {
+            callback();
+          }
+        };
+        document.head.appendChild(scriptElement);
+      });
+    }
+
     window.addEventListener("load", () => {
-      let graphData = {
-        graphOptions: {
-          attractionForce: 1,
-          linkLength: 10,
-          repulsionForce: 150,
-          centralForce: 3,
-          edgePruning: 100,
-          minNodeRadius: 3,
-          maxNodeRadius: 7
-        },
-        isInitialized: true,
-        paths: ["Units/Units.html"],
-        nodeCount: 1,
-        linkSources: [0,0],
-        linkTargets: [-1,-1],
-        labels: ["Units"],
-        radii: [5], // Example radii, adjust as needed
-        linkCount: 2
-      };
-      initializeGraphView();
+      waitLoadScripts(["pixi", "graph-data", "graph-render-worker", "graph-wasm"], () => {
+        Module.onRuntimeInitialized = () => initializeGraphView(graphData);
+        setTimeout(() => Module.onRuntimeInitialized(), 300);
+      });
     });
   </script>
 </body>
