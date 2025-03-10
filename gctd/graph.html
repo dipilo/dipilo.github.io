@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obsidian Graph</title>
+  <link rel="stylesheet" href="lib/styles/obsidian.css">
+  <link rel="stylesheet" href="lib/styles/global-variable-styles.css">
+  <link rel="stylesheet" href="lib/styles/supported-plugins.css">
+  <link rel="stylesheet" href="lib/styles/main-styles.css">
+  <script src="lib/scripts/pixi.js"></script>
+  <script src="lib/scripts/tinycolor.js"></script>
+  <script src="lib/scripts/graph-wasm.js"></script>
+  <script src="lib/scripts/graph-render-worker.js"></script>
+  <script src="lib/scripts/graph-data.js"></script>
+  <script src="lib/scripts/graph-view.js"></script>
+</head>
+<body>
+  <div class="graph-view-container">
+    <canvas id="graph-canvas" width="800" height="600"></canvas>
+  </div>
+  <script>
+    const graphData = {"nodes":[{"id":"Units/Units.md","label":"Units","group":"Units"}],"links":[{"source":"Units/Units.md","target":"Units/Enemies.md"},{"source":"Units/Units.md","target":"Units/Towers.md"}]};
+    initializeGraphView(graphData);
+  </script>
+</body>
+</html>
+  
