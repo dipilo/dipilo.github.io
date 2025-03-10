@@ -495,7 +495,7 @@ footer {
   padding: 2px 5px;
   border-radius: 3px;
   font-size: 12px;
-  transform: translate(-50%, -100%); /* Center the tooltip horizontally and move it above the slider */
+  transform: translate(-50%, 0); /* Center the tooltip horizontally and move it above the slider */
   white-space: nowrap;
   display: none;
   left: 50%; /* Center the tooltip horizontally */
