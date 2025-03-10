@@ -228,7 +228,7 @@
       tooltip.textContent = slider.value;
       const rect = slider.getBoundingClientRect();
       tooltip.style.left = (rect.left + slider.offsetWidth / 2) + 'px';
-      tooltip.style.bottom = (rect.height + 10) + 'px';
+      tooltip.style.bottom = rect.height + 10 + 'px';
     }
 
     function resetSliders() {
@@ -289,14 +289,18 @@
           smooth: false // Ensure straight, rigid lines
         },
         physics: {
+          enabled: true,
           stabilization: false,
           barnesHut: {
-            gravitationalConstant: -repelForce * 100, // Adjusted gravitational constant based on repel force
+            gravitationalConstant: -repelForce * 200, // Stronger gravitational constant based on repel force
             centralGravity: centerForce, // Central gravity
             springConstant: linkForce, // Link force
             springLength: linkDistance, // Link distance
             damping: 0.09 // Adjust damping for gradual stop
-          }
+          },
+          solver: 'barnesHut',
+          timestep: 0.5, // Ensure continuous simulation
+          adaptiveTimestep: true
         }
       };
       network.setOptions(options);
@@ -386,6 +390,7 @@
             smooth: false // Ensure straight, rigid lines
           },
           physics: {
+            enabled: true,
             stabilization: false,
             barnesHut: {
               gravitationalConstant: -3000, // Reduced gravitational constant
@@ -393,7 +398,10 @@
               springConstant: 0.035, // Adjusted spring constant
               springLength: 130, // Increased spring length
               damping: 0.09 // Adjust damping for gradual stop
-            }
+            },
+            solver: 'barnesHut',
+            timestep: 0.5, // Ensure continuous simulation
+            adaptiveTimestep: true
           }
         };
         network = new vis.Network(container, graphData, options); // Assign network here
