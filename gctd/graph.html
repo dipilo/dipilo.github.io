@@ -261,6 +261,8 @@
       const linkForce = parseFloat(document.getElementById('link-force').value);
       const linkDistance = parseFloat(document.getElementById('link-distance').value);
 
+      const baseRepel = 200;
+
       const options = {
         nodes: {
           shape: 'dot',
@@ -296,7 +298,7 @@
           enabled: true,
           stabilization: false,
           barnesHut: {
-            gravitationalConstant: -repelForce * 200,
+            gravitationalConstant: -((baseRepel) + (repelForce * 200)),
             centralGravity: centerForce,
             springConstant: linkForce,
             springLength: linkDistance,
