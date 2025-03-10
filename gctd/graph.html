@@ -42,22 +42,6 @@
     .settings-panel .section {
       margin-bottom: 2rem;
     }
-    .settings-panel .section h4 {
-      color: #fff;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-    .settings-panel .section h4::before {
-      content: '▼';
-      display: inline-block;
-      margin-right: 0.5rem;
-      transition: transform 0.3s ease;
-    }
-    .settings-panel .section.collapsed h4::before {
-      transform: rotate(-90deg);
-    }
     .settings-panel .section .slider-container {
       display: flex;
       flex-direction: column;
@@ -84,14 +68,14 @@
       appearance: none;
       width: 15px;
       height: 15px;
-      background: #fff;
+      background: #ffffff;
       cursor: pointer;
       border-radius: 50%;
     }
     .settings-panel .section .slider-container input[type="range"]::-moz-range-thumb {
       width: 15px;
       height: 15px;
-      background: #fff;
+      background: #ffffff;
       cursor: pointer;
       border-radius: 50%;
     }
@@ -109,15 +93,15 @@
       z-index: 1002; /* Ensure icons are above the canvas */
     }
     .close-icon {
-      width: 24px; /* Make the close icon smaller */
-      height: 24px; /* Make the close icon smaller */
+      width: 32px; /* Make the close icon smaller */
+      height: 32px; /* Make the close icon smaller */
       display: none;
-      top: 1.5rem; /* Shift down */
-      right: 1.5rem; /* Shift to the left */
+      top: 1.25rem; /* Shift down */
+      right: 1.25rem; /* Shift to the left */
     }
     .reset-icon {
-      width: 24px; /* Make the reset icon smaller */
-      height: 24px; /* Make the reset icon smaller */
+      width: 16px; /* Make the reset icon smaller */
+      height: 16px; /* Make the reset icon smaller */
       display: none;
       top: 1.5rem; /* Shift down */
       right: 3.5rem; /* Shift to the left */
@@ -255,6 +239,9 @@
 
     function updateTooltip(slider, tooltip) {
       tooltip.textContent = slider.value;
+      const rect = slider.getBoundingClientRect();
+      tooltip.style.left = (rect.left + slider.offsetWidth / 2) + 'px';
+      tooltip.style.bottom = (rect.height + 10) + 'px';
     }
 
     function resetSliders() {
@@ -328,6 +315,12 @@
       slider.addEventListener('input', () => {
         updateTooltip(slider, tooltip);
         updateGraphOptions();
+      });
+      slider.addEventListener('mouseover', () => {
+        tooltip.style.display = 'block';
+      });
+      slider.addEventListener('mouseout', () => {
+        tooltip.style.display = 'none';
       });
     });
 

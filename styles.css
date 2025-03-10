@@ -467,7 +467,7 @@ reset-icon {
   width: 16px; /* Make the reset icon smaller */
   height: 16px; /* Make the reset icon smaller */
     display: none;
-}
+  }
 
 .settings-panel.open + .close-icon {
   display: block;
@@ -478,7 +478,8 @@ reset-icon {
 }
 
 .close-icon, .reset-icon, .gear-icon {
-  fill: #9d9d9d; /* Button color */
+  color: #9d9d9d; /* Button color */
+  fill: currentColor
 }
 
 .slider-tooltip {
