@@ -128,9 +128,9 @@
     <section id="graph-section">
       <h2>Interactive Obsidian Graph</h2>
       <div id="mynetwork">
-        <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
-        <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
       </div>
+      <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
+      <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
       <div class="settings-panel" id="settings-panel">
         <h3>Settings</h3>
         <div class="section">
@@ -298,6 +298,10 @@
           options.physics.barnesHut.springLength = parseFloat(this.value);
           network.setOptions(options);
         });
+
+        // Append the gear and close icons after the network is initialized
+        container.appendChild(document.querySelector('.gear-icon'));
+        container.appendChild(document.querySelector('.close-icon'));
       })
       .catch(error => console.error('Error loading graph data:', error));
   </script>
