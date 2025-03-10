@@ -129,9 +129,10 @@
       <h2>Interactive Obsidian Graph</h2>
       <div id="mynetwork">
         <!-- Network will be rendered here -->
-        <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
-        <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
       </div>
+      <!-- Initialize icons outside of the #mynetwork div -->
+      <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
+      <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
       <div class="settings-panel" id="settings-panel">
         <h3>Settings</h3>
         <div class="section">
@@ -270,41 +271,7 @@
         };
         const network = new vis.Network(container, graphData, options);
 
-        // Update options based on slider values
-        document.getElementById('text-fade-threshold').addEventListener('input', function() {
-          options.nodes.font.size = parseFloat(this.value);
-          network.setOptions(options);
-        });
-        document.getElementById('node-size').addEventListener('input', function() {
-          options.nodes.size = parseFloat(this.value);
-          network.setOptions(options);
-        });
-        document.getElementById('link-thickness').addEventListener('input', function() {
-          options.edges.width = parseFloat(this.value);
-          network.setOptions(options);
-        });
-        document.getElementById('center-force').addEventListener('input', function() {
-          options.physics.barnesHut.centralGravity = parseFloat(this.value);
-          network.setOptions(options);
-        });
-        document.getElementById('repel-force').addEventListener('input', function() {
-          options.physics.barnesHut.springConstant = parseFloat(this.value);
-          network.setOptions(options);
-        });
-        document.getElementById('link-force').addEventListener('input', function() {
-          options.physics.barnesHut.springLength = parseFloat(this.value);
-          network.setOptions(options);
-        });
-        document.getElementById('link-distance').addEventListener('input', function() {
-          options.physics.barnesHut.springLength = parseFloat(this.value);
-          network.setOptions(options);
-        });
-
         // Append the gear and close icons after the network is initialized
-        container.appendChild(document.querySelector('.gear-icon'));
-        container.appendChild(document.querySelector('.close-icon'));
-
-        // Move the settings button and close button to the end of the #mynetwork div
         container.appendChild(document.querySelector('.gear-icon'));
         container.appendChild(document.querySelector('.close-icon'));
 
