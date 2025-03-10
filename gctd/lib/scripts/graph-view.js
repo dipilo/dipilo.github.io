@@ -123,8 +123,6 @@ class GraphRenderWorker {
       this.canvasSidebar = document.querySelector(".sidebar:has(#graph-canvas)");
     } catch (e) {
       console.log("Error: " + e + "\n\n Using fallback.");
-      let r = document.querySelector(".sidebar-right"), t = document.querySelector(".sidebar-left");
-      this.canvasSidebar = r.querySelector("#graph-canvas") ? r : t;
     }
     this.view = this.canvas.transferControlToOffscreen();
     this.worker = new Worker(new URL("./graph-render-worker.js", import.meta.url));
@@ -331,7 +329,6 @@ async function initializeGraphView() {
     initializeGraphEvents();
     pixiApp.ticker.maxFPS = targetFPS;
     pixiApp.ticker.add(updateGraph);
-    setActiveDocument(new URL(window.location.href), !1, !1);
     setInterval(() => {
       try {
         var e = graphRenderer.canvasSidebar.classList.contains("is-collapsed");
