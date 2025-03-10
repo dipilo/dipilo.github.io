@@ -295,9 +295,7 @@
         edges: {
           width: parseFloat(document.getElementById('link-thickness').value) * 0.1, // Scale link thickness
           color: '#3f3f3f', // Color of the lines connecting nodes
-          smooth: {
-            type: 'continuous'
-          }
+          smooth: false // Ensure straight, rigid lines
         },
         physics: {
           stabilization: false,
@@ -305,7 +303,8 @@
             gravitationalConstant: -8000,
             centralGravity: parseFloat(document.getElementById('center-force').value),
             springConstant: parseFloat(document.getElementById('repel-force').value),
-            springLength: parseFloat(document.getElementById('link-distance').value)
+            springLength: parseFloat(document.getElementById('link-distance').value),
+            damping: 0.09 // Adjust damping for gradual stop
           }
         }
       };
@@ -375,16 +374,16 @@
           edges: {
             width: 0.1, // Default link thickness
             color: '#3f3f3f', // Color of the lines connecting nodes
-            smooth: {
-              type: 'continuous'
-            }
+            smooth: false // Ensure straight, rigid lines
           },
           physics: {
             stabilization: false,
             barnesHut: {
               gravitationalConstant: -8000,
+              centralGravity: 0.5,
               springConstant: 0.04,
-              springLength: 95
+              springLength: 95,
+              damping: 0.09 // Adjust damping for gradual stop
             }
           }
         };
