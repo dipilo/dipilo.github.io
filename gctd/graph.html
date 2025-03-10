@@ -234,9 +234,9 @@
     function updateTooltip(slider, tooltip) {
       tooltip.textContent = slider.value;
       const rect = slider.getBoundingClientRect();
-      const networkRect = document.getElementById('mynetwork').getBoundingClientRect();
-      tooltip.style.left = (rect.left + slider.offsetWidth / 2 - networkRect.left) + 'px';
-      tooltip.style.top = (rect.top - networkRect.top - 30) + 'px'; // Adjust the top position to hover above the slider
+      const containerRect = slider.parentElement.getBoundingClientRect();
+      tooltip.style.left = (rect.left + slider.offsetWidth / 2 - containerRect.left) + 'px';
+      tooltip.style.top = (rect.top - containerRect.top - 30) + 'px'; // Adjust the top position to hover above the slider
     }
 
     function resetSliders() {
