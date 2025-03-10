@@ -453,13 +453,14 @@ footer {
   width: 32px; /* Make the close icon smaller */
   height: 32px; /* Make the close icon smaller */
     display: none;
-  top: 1.5rem; /* Shift down */
-  right: 1.5rem; /* Shift to the left */
+  top: 1.25rem; /* Shift down */
+  right: 1.25rem; /* Shift to the left */
 }
 
 reset-icon {
   width: 16px; /* Make the reset icon smaller */
   height: 16px; /* Make the reset icon smaller */
+    display: none;
 }
 
 .settings-panel.open + .close-icon {
