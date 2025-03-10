@@ -477,9 +477,21 @@ reset-icon {
   padding: 2px 5px;
   border-radius: 3px;
   font-size: 12px;
-  transform: translate(-50%, -150%);
+  transform: translate(-50%, -50%); /* Center the tooltip horizontally and move it lower */
   white-space: nowrap;
   display: none;
+  bottom: 25px; /* Move the tooltip lower */
+}
+
+.slider-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; /* Position the tail below the tooltip */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #000 transparent transparent transparent; /* Create a pointed tail */
 }
 
 .slider-container:hover .slider-tooltip {
