@@ -28,7 +28,7 @@
       padding: 1rem;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
       border-radius: 12px;
-      transform: translateY(-100%);
+      transform: translateY(0); /* Open downwards */
       z-index: 1001;
       display: none;
     }
@@ -80,23 +80,16 @@
       cursor: pointer;
       border-radius: 50%;
     }
-    .gear-icon {
+    .gear-icon, .close-icon {
       position: absolute;
       top: 1rem;
       right: 1rem;
       width: 32px;
       height: 32px;
       cursor: pointer;
-      z-index: 1002; /* Ensure gear icon is above the canvas */
+      z-index: 1002; /* Ensure icons are above the canvas */
     }
     .close-icon {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      z-index: 1002; /* Ensure close icon is above the canvas */
       display: none;
     }
     .settings-panel.open + .close-icon {
@@ -134,8 +127,10 @@
   <main>
     <section id="graph-section">
       <h2>Interactive Obsidian Graph</h2>
-      <div id="mynetwork"></div>
-      <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
+      <div id="mynetwork">
+        <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
+        <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
+      </div>
       <div class="settings-panel" id="settings-panel">
         <h3>Settings</h3>
         <div class="section">
@@ -180,7 +175,6 @@
           </div>
         </div>
       </div>
-      <img src="/images/icons/exit.svg" class="close-icon" onclick="toggleSettingsPanel()" alt="Close">
     </section>
   </main>
 
