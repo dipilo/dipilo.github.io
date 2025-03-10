@@ -29,9 +29,9 @@ class GraphAssembly {
     GraphAssembly.#t = Module._malloc(GraphAssembly.radii.byteLength);
     GraphAssembly.#a = Module._malloc(GraphAssembly.linkSources.byteLength);
     GraphAssembly.#s = Module._malloc(GraphAssembly.linkTargets.byteLength);
-    GraphAssembly.maxRadius = GraphAssembly.radii.reduce(((e, r) => Math.max(e, r)));
-    GraphAssembly.averageRadius = GraphAssembly.radii.reduce(((e, r) => e + r)) / GraphAssembly.radii.length;
-    GraphAssembly.minRadius = GraphAssembly.radii.reduce(((e, r) => Math.min(e, r)));
+    GraphAssembly.maxRadius = GraphAssembly.radii.reduce(((e, r) => Math.max(e, r)), 0);
+    GraphAssembly.averageRadius = GraphAssembly.radii.reduce(((e, r) => e + r), 0) / (GraphAssembly.radii.length || 1);
+    GraphAssembly.minRadius = GraphAssembly.radii.reduce(((e, r) => Math.min(e, r)), Infinity);
     r = this.loadState();
     Module.HEAP32.set(new Int32Array(r.buffer), GraphAssembly.#e / r.BYTES_PER_ELEMENT);
   }
