@@ -402,8 +402,8 @@ function waitLoadScripts(scripts, callback) {
 }
 
 window.addEventListener("load", () => {
-  waitLoadScripts(["pixi", "graph-data", "graph-render-worker", "graph-wasm"], () => {
-    Module.onRuntimeInitialized = initializeGraphView;
+  waitLoadScripts(["pixi", "graph-render-worker", "graph-wasm"], () => {
+    Module.onRuntimeInitialized = () => initializeGraphView(graphData);
     setTimeout(() => Module.onRuntimeInitialized(), 300);
   });
 });

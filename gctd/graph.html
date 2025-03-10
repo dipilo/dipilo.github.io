@@ -21,6 +21,7 @@
   </div>
   <script>
     var running = !1;
+    var graphData = {"nodes":[{"id":"Units/Units.md","label":"Units","group":"Units"}],"links":[{"source":"Units/Units.md","target":"Units/Enemies.md"},{"source":"Units/Units.md","target":"Units/Towers.md"}]};
 
     async function initializeGraphView(graphData) {
       if (!running) {
@@ -44,7 +45,7 @@
 
     window.addEventListener("load", () => {
       waitLoadScripts(["pixi", "graph-render-worker", "graph-wasm"], () => {
-        Module.onRuntimeInitialized = initializeGraphView;
+        Module.onRuntimeInitialized = () => initializeGraphView(graphData);
         setTimeout(() => Module.onRuntimeInitialized(), 300);
       });
     });
