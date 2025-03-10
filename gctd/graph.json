@@ -2,47 +2,58 @@
   "nodes": [
     {
       "id": "Units/Enemies/Enemies",
-      "label": "Enemies"
+      "label": "Enemies",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Epic/Epic",
-      "label": "Epic"
+      "label": "Epic",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Legendary/Legendary",
-      "label": "Legendary"
+      "label": "Legendary",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Mythic/Mythic",
-      "label": "Mythic"
+      "label": "Mythic",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Mythic/Osa/Evo/Osa (Charger)",
-      "label": "Osa (Charger)"
+      "label": "Osa (Charger)",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Mythic/Osa/Osa",
-      "label": "Osa"
+      "label": "Osa",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Rare/Rare",
-      "label": "Rare"
+      "label": "Rare",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Rarities",
-      "label": "Rarities"
+      "label": "Rarities",
+      "tags": []
     },
     {
       "id": "Units/Towers/Rarities/Secret/Secret",
-      "label": "Secret"
+      "label": "Secret",
+      "tags": []
     },
     {
       "id": "Units/Towers/Towers",
-      "label": "Towers"
+      "label": "Towers",
+      "tags": []
     },
     {
       "id": "Units/Units",
-      "label": "Units"
+      "label": "Units",
+      "tags": []
     }
   ],
   "edges": [

@@ -6,6 +6,7 @@
   <title>Obsidian Graph</title>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <link href="obsidian.css" rel="stylesheet" type="text/css" />
   <style type="text/css">
     #mynetwork {
       width: 100%;
@@ -20,7 +21,31 @@
     fetch('graph.json')
       .then(response => response.json())
       .then(data => {
-        const nodes = new vis.DataSet(data.nodes);
+        const colorGroups = [{"query":"tag:#Enemy  ","color":{"a":1,"rgb":14701138}},{"query":"tag:#Rarity","color":{"a":1,"rgb":14725458}},{"query":"tag:#Unit","color":{"a":1,"rgb":11657298}},{"query":"tag:#Tower","color":{"a":1,"rgb":5431378}},{"query":"tag:#Evo  ","color":{"a":1,"rgb":5431473}}];
+        const nodes = new vis.DataSet(data.nodes.map(node => {
+          let color = '#d3d3d3'; // Default color
+          node.tags.forEach(tag => {
+            const group = colorGroups.find(group => group.query.includes(tag));
+            if (group) {
+              color = '#' + group.color.rgb.toString(16).padStart(6, '0');
+            }
+          });
+          return {
+            id: node.id,
+            label: node.label,
+            color: {
+              background: color,
+              border: color
+            },
+            shape: 'dot',
+            font: {
+              size: 14,
+              color: '#000000',
+              face: 'arial',
+              align: 'bottom'
+            }
+          };
+        }));
         const edges = new vis.DataSet(data.edges);
 
         const container = document.getElementById('mynetwork');
