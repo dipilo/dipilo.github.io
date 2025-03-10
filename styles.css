@@ -1,231 +1,254 @@
 /* General body styling */
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: #EDE7F6; /* Light lilac page background */
-  }
-  
-  /* Header styling */
-  header {
-    background-color: #7B1FA2;  /* Theme header color */
-    color: #fff;
-    padding: 1rem;
-  }
-  
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #EDE7F6; /* Light lilac page background */
+}
+
+/* Header styling */
+header {
+  background-color: #7B1FA2;  /* Theme header color */
+  color: #fff;
+  padding: 1rem;
+}
+
 /* Navigation buttons */
 .nav-buttons {
-    list-style: none;
-    display: flex;
-    gap: 1rem;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .nav-button {
-    background-color: #7B1FA2;
-    color: #fff;
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 20px;
-    transition: background-color 0.2s ease-in-out;
-  }
-  
-  .nav-button:hover {
-    background-color: #6A1B9A;
-  }
-  
-  /* Main content */
-  main {
-    padding: 2rem;
-  }
-  
-  /* Footer styling */
-  footer {
-    background-color: #BA68C8; /* More discernable footer color */
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-  }
-  
-  /* Contact form container (for contact page) */
-  .contact-form-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    background-color: #F3E5F5;
-    padding: 2rem;
-    border-radius: 12px;
-    border: 2px solid #BA68C8;
-  }
-  
-  /* Form actions container */
-  .form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  /* Send and Home button styling (for contact page) */
-  .send-button,
-  .home-button {
-    background-color: #7B1FA2;
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-  }
-  
-  .send-button:hover,
-  .home-button:hover {
-    background-color: #6A1B9A;
-  }
-  
-  /* Form group styling */
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: #4A148C;
-  }
-  
-  .name-row {
-    display: flex;
-    gap: 1rem;
-  }
-  
-  .form-group input,
-  .form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #7B1FA2;
-    border-radius: 20px;
-    outline: none;
-    font-size: 1rem;
-    box-sizing: border-box;
-  }
-  
-  .form-group textarea {
-    min-height: 100px;
-    resize: vertical;
-  }
-  
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-button {
+  background-color: #7B1FA2;
+  color: #fff;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 20px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.nav-button:hover {
+  background-color: #6A1B9A;
+}
+
+/* Main content */
+main {
+  padding: 2rem;
+}
+
+/* Footer styling */
+footer {
+  background-color: #BA68C8; /* More discernable footer color */
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* Graph section styling */
+#graph-section {
+  background-color: #2e2e2e; /* Dark background for the graph section */
+  padding: 2rem;
+  border-radius: 12px;
+  border: 2px solid #BA68C8;
+  margin-bottom: 2rem;
+}
+
+#graph-section h2 {
+  color: #fff;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Graph container styling */
+#mynetwork {
+  width: 100%;
+  height: 80vh;
+  border: 1px solid lightgray;
+  background-color: #2e2e2e; /* Dark background for the graph */
+}
+
+/* Contact form container (for contact page) */
+.contact-form-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  background-color: #F3E5F5;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 2px solid #BA68C8;
+}
+
+/* Form actions container */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Send and Home button styling (for contact page) */
+.send-button,
+.home-button {
+  background-color: #7B1FA2;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.send-button:hover,
+.home-button:hover {
+  background-color: #6A1B9A;
+}
+
+/* Form group styling */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #4A148C;
+}
+
+.name-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #7B1FA2;
+  border-radius: 20px;
+  outline: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
 /* Invite link styling */
 .invite-link {
-    color: #7B1FA2;
-    text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: bold;
-    transition: color 0.2s ease-in-out;
-  }
-  
-  .invite-link:hover {
-    color: #6A1B9A;
-  }
-  
-  /* Social button (if still used elsewhere) remains as defined earlier */
-  .social-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    background-color: #EDE7F6;
-    border: 2px solid #EDE7F6;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0.5rem;
-  }
-  
-  .discord-logo {
-    width: 24px;
-    height: 24px;
-    color: #7B1FA2;       /* Set the element's color so currentColor becomes #7B1FA2 */
-    fill: currentColor;   /* Ensures the path uses the computed color */
-    transition: fill 0.2s ease-in-out;
-  }
-  
-  .social-button:hover .discord-logo {
-    color: #6A1B9A;       /* Change the color on hover */
-    fill: currentColor;
-  }  
-  
-  /* Dropdown Section Styling */
-  .dropdown-section {
-    margin-bottom: 2rem;
-    border: 2px solid #BA68C8;
-    border-radius: 12px;
-    background-color: #F3E5F5;
-  }
-  
-  .dropdown-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-  }
-  
-  .section-link {
-    font-size: 1.25rem;
-    color: #7B1FA2;
-    text-decoration: none;
-    font-weight: bold;
-  }
-  
-  .dropdown-toggle {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #7B1FA2;
-  }
-  
-  .dropdown-content {
-    display: none;
-    padding: 1rem;
-    border-top: 1px solid #BA68C8;
-  }
-  
-  .dropdown-content iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
+  color: #7B1FA2;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: color 0.2s ease-in-out;
+}
 
-  .resizable-container {
-    width: 100%;
-    min-height: 300px;  /* initial minimum height */
-    height: 300px;      /* start at 300px */
-    position: relative;
-    overflow: hidden;
-    border: 1px solid #BA68C8; /* optional visual cue */
-  }
-  
-  /* Make the iframe fill the container */
-  .resizable-container iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-  
-  /* Style the custom drag handle */
+.invite-link:hover {
+  color: #6A1B9A;
+}
+
+/* Social button (if still used elsewhere) remains as defined earlier */
+.social-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background-color: #EDE7F6;
+  border: 2px solid #EDE7F6;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem;
+}
+
+.discord-logo {
+  width: 24px;
+  height: 24px;
+  color: #7B1FA2;       /* Set the element's color so currentColor becomes #7B1FA2 */
+  fill: currentColor;   /* Ensures the path uses the computed color */
+  transition: fill 0.2s ease-in-out;
+}
+
+.social-button:hover .discord-logo {
+  color: #6A1B9A;       /* Change the color on hover */
+  fill: currentColor;
+}  
+
+/* Dropdown Section Styling */
+.dropdown-section {
+  margin-bottom: 2rem;
+  border: 2px solid #BA68C8;
+  border-radius: 12px;
+  background-color: #F3E5F5;
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+.section-link {
+  font-size: 1.25rem;
+  color: #7B1FA2;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.dropdown-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #7B1FA2;
+}
+
+.dropdown-content {
+  display: none;
+  padding: 1rem;
+  border-top: 1px solid #BA68C8;
+}
+
+.dropdown-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.resizable-container {
+  width: 100%;
+  min-height: 300px;  /* initial minimum height */
+  height: 300px;      /* start at 300px */
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #BA68C8; /* optional visual cue */
+}
+
+/* Make the iframe fill the container */
+.resizable-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Style the custom drag handle */
 .drag-handle {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 10px;       /* Adjust as needed */
-    background-color: #7B1FA2;  /* Change to a visible color */
-    cursor: ns-resize;
-    z-index: 10;        /* Ensure it sits on top */
-    border-radius: 8px; /* Round all corners */
-    transition: background-color 0.2s ease;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;       /* Adjust as needed */
+  background-color: #7B1FA2;  /* Change to a visible color */
+  cursor: ns-resize;
+  z-index: 10;        /* Ensure it sits on top */
+  border-radius: 8px; /* Round all corners */
+  transition: background-color 0.2s ease;
 }  
 
 .drag-handle:hover {
@@ -233,48 +256,48 @@ body {
 }
 
 .no-select {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* Custom scrollbar styling */
 ::-webkit-scrollbar {
-    width: 12px; /* Width of the scrollbar */
+  width: 12px; /* Width of the scrollbar */
 }
 
 ::-webkit-scrollbar-track {
-    background: #EDE7F6; /* Background of the scrollbar track */
+  background: #EDE7F6; /* Background of the scrollbar track */
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: #7B1FA2; /* Color of the scrollbar thumb */
-    border-radius: 6px; /* Roundness of the scrollbar thumb */
-    border: 3px solid #EDE7F6; /* Padding around the scrollbar thumb */
+  background-color: #7B1FA2; /* Color of the scrollbar thumb */
+  border-radius: 6px; /* Roundness of the scrollbar thumb */
+  border: 3px solid #EDE7F6; /* Padding around the scrollbar thumb */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: #6A1B9A; /* Color of the scrollbar thumb on hover */
+  background-color: #6A1B9A; /* Color of the scrollbar thumb on hover */
 }
 
 /* Apply the same styling to the iframe's scrollbar */
 .resizable-container iframe::-webkit-scrollbar {
-    width: 12px;
+  width: 12px;
 }
 
 .resizable-container iframe::-webkit-scrollbar-track {
-    background: #EDE7F6;
+  background: #EDE7F6;
 }
 
 .resizable-container iframe::-webkit-scrollbar-thumb {
-    background-color: #7B1FA2;
-    border-radius: 6px;
-    border: 3px solid #EDE7F6;
+  background-color: #7B1FA2;
+  border-radius: 6px;
+  border: 3px solid #EDE7F6;
 }
 
 .resizable-container iframe::-webkit-scrollbar-thumb:hover {
-    background-color: #6A1B9A;
+  background-color: #6A1B9A;
 }
 
 /* Custom alert box styling */
