@@ -34,10 +34,6 @@ class GraphAssembly {
     GraphAssembly.minRadius = GraphAssembly.radii.reduce(((e, r) => Math.min(e, r)));
     r = this.loadState();
     Module.HEAP32.set(new Int32Array(r.buffer), GraphAssembly.#e / r.BYTES_PER_ELEMENT);
-    Module.HEAP32.set(new Int32Array(GraphAssembly.radii.buffer), GraphAssembly.#t / GraphAssembly.radii.BYTES_PER_ELEMENT);
-    Module.HEAP32.set(new Int32Array(GraphAssembly.linkSources.buffer), GraphAssembly.#a / GraphAssembly.linkSources.BYTES_PER_ELEMENT);
-    Module.HEAP32.set(new Int32Array(GraphAssembly.linkTargets.buffer), GraphAssembly.#s / GraphAssembly.linkTargets.BYTES_PER_ELEMENT);
-    Module._Init(GraphAssembly.#e, GraphAssembly.#t, GraphAssembly.#a, GraphAssembly.#s, GraphAssembly.nodeCount, GraphAssembly.linkCount, batchFraction, dt, e.graphOptions.attractionForce, e.graphOptions.linkLength, e.graphOptions.repulsionForce, e.graphOptions.centralForce);
   }
 
   static get positions() {
