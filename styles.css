@@ -480,7 +480,7 @@ reset-icon {
   transform: translate(-50%, -50%); /* Center the tooltip horizontally and move it lower */
   white-space: nowrap;
   display: none;
-  bottom: 25px; /* Move the tooltip lower */
+  bottom: 3px; /* Move the tooltip lower */
 }
 
 .slider-tooltip::after {
