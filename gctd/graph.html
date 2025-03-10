@@ -43,6 +43,7 @@
       margin-bottom: 2rem;
     }
     .settings-panel .section .slider-container {
+      position: relative; /* so that tooltip positioning is relative here */
       display: flex;
       flex-direction: column;
       margin-bottom: 0.5rem;
@@ -73,18 +74,18 @@
       z-index: 1002; /* Ensure icons are above the canvas */
     }
     .close-icon {
-      width: 32px; /* Make the close icon smaller */
-      height: 32px; /* Make the close icon smaller */
+      width: 32px;
+      height: 32px;
       display: none;
-      top: 1rem; /* Shift down */
-      right: 1rem; /* Shift to the left */
+      top: 1rem;
+      right: 1rem;
     }
     .reset-icon {
-      width: 24x; /* Make the reset icon smaller */
-      height: 24px; /* Make the reset icon smaller */
+      width: 24px; /* Note: fix any typo in width units (e.g. "24x" -> "24px") */
+      height: 24px;
       display: none;
-      top: 1.25rem; /* Shift down */
-      right: 3.25rem; /* Shift to the left */
+      top: 1.25rem;
+      right: 3.25rem;
     }
     .settings-panel.open + .close-icon {
       display: block;
@@ -92,11 +93,9 @@
     .settings-panel.open + .reset-icon {
       display: block;
     }
-
     .close-icon, .reset-icon, .gear-icon {
       fill: #9d9d9d; /* Button color */
     }
-
     .slider-tooltip {
       position: absolute;
       background: #000;
@@ -104,22 +103,23 @@
       padding: 2px 5px;
       border-radius: 3px;
       font-size: 12px;
-      transform: translate(-50%, -150%); /* Center the tooltip horizontally and move it above the slider */
+      transform: translate(-50%, -150%); /* Center horizontally and above the slider */
       white-space: nowrap;
       display: none;
-      bottom: 100%; /* Position the tooltip above the slider */
-      left: 50%; /* Center the tooltip horizontally */
+      /* Since the slider container is now the positioning context,
+         left and top are relative to it */
+      left: 50%;
+      top: -30px;
     }
-
     .slider-tooltip::after {
       content: '';
       position: absolute;
-      top: 100%; /* Position the tail below the tooltip */
+      top: 100%;
       left: 50%;
       transform: translateX(-50%);
       border-width: 5px;
       border-style: solid;
-      border-color: #000 transparent transparent transparent; /* Create a pointed tail */
+      border-color: #000 transparent transparent transparent;
     }
     .slider-container:hover .slider-tooltip {
       display: block;
@@ -144,13 +144,6 @@
       <h2>Interactive Obsidian Graph</h2>
       <div id="mynetwork">
         <!-- Network will be rendered here -->
-        <div class="slider-tooltip" id="text-fade-threshold-tooltip">0</div>
-        <div class="slider-tooltip" id="node-size-tooltip">1</div>
-        <div class="slider-tooltip" id="link-thickness-tooltip">1</div>
-        <div class="slider-tooltip" id="center-force-tooltip">0.5</div>
-        <div class="slider-tooltip" id="repel-force-tooltip">10</div>
-        <div class="slider-tooltip" id="link-force-tooltip">0.04</div>
-        <div class="slider-tooltip" id="link-distance-tooltip">95</div>
       </div>
       <!-- Initialize icons outside of the #mynetwork div -->
       <img src="/images/icons/gear.svg" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
@@ -231,12 +224,16 @@
       section.classList.toggle('collapsed');
     }
 
+    // Update tooltip position relative to its slider container (inside settings panel)
     function updateTooltip(slider, tooltip) {
       tooltip.textContent = slider.value;
+      // slider.parentElement is the .slider-container which is positioned relative
       const rect = slider.getBoundingClientRect();
       const containerRect = slider.parentElement.getBoundingClientRect();
+      // Compute left relative to the container
       tooltip.style.left = (rect.left + slider.offsetWidth / 2 - containerRect.left) + 'px';
-      tooltip.style.top = (rect.top - containerRect.top - 30) + 'px'; // Adjust the top position to hover above the slider
+      // Position tooltip 30px above the slider
+      tooltip.style.top = (rect.top - containerRect.top - 30) + 'px';
     }
 
     function resetSliders() {
@@ -268,46 +265,46 @@
       const options = {
         nodes: {
           shape: 'dot',
-          size: parseFloat(document.getElementById('node-size').value) * 5, // Scale node size
+          size: parseFloat(document.getElementById('node-size').value) * 5,
           font: {
             size: 14,
-            color: '#ffffff' // White text color
+            color: '#ffffff'
           },
           borderWidth: 2,
           color: {
-            background: '#aaaab3', // Default node color
+            background: '#aaaab3',
             border: '#aaaab3',
             highlight: {
-              background: '#815cec', // Highlighted node color
-              border: '#a68af9' // Highlighted node border color
+              background: '#815cec',
+              border: '#a68af9'
             },
             hover: {
-              background: '#815cec', // Hovered node color
-              border: '#a68af9' // Hovered node border color
+              background: '#815cec',
+              border: '#a68af9'
             }
           }
         },
         edges: {
-          width: parseFloat(document.getElementById('link-thickness').value) * 0.1, // Scale link thickness
+          width: parseFloat(document.getElementById('link-thickness').value) * 0.1,
           color: {
-            color: '#3f3f3f', // Default edge color
-            highlight: '#8153ec', // Highlighted edge color
-            hover: '#8153ec' // Hovered edge color
+            color: '#3f3f3f',
+            highlight: '#8153ec',
+            hover: '#8153ec'
           },
-          smooth: false // Ensure straight, rigid lines
+          smooth: false
         },
         physics: {
           enabled: true,
           stabilization: false,
           barnesHut: {
-            gravitationalConstant: -repelForce * 200, // Stronger gravitational constant based on repel force
-            centralGravity: centerForce, // Central gravity
-            springConstant: linkForce, // Link force
-            springLength: linkDistance, // Link distance
-            damping: 0.09 // Adjust damping for gradual stop
+            gravitationalConstant: -repelForce * 200,
+            centralGravity: centerForce,
+            springConstant: linkForce,
+            springLength: linkDistance,
+            damping: 0.09
           },
           solver: 'barnesHut',
-          timestep: 0.5, // Ensure continuous simulation
+          timestep: 0.5,
           adaptiveTimestep: true
         }
       };
@@ -333,7 +330,7 @@
       .then(data => {
         const colorGroups = [{"query":"tag:#Enemy  ","color":{"a":1,"rgb":14701138}},{"query":"tag:#Rarity","color":{"a":1,"rgb":14725458}},{"query":"tag:#Unit","color":{"a":1,"rgb":11657298}},{"query":"tag:#Tower","color":{"a":1,"rgb":5431378}},{"query":"tag:#Evo  ","color":{"a":1,"rgb":5431473}}];
         const nodes = new vis.DataSet(data.nodes.map(node => {
-          let color = '#aaaab3'; // Default color
+          let color = '#aaaab3';
           node.tags.forEach(tag => {
             const group = colorGroups.find(group => group.query.includes(tag));
             if (group) {
@@ -350,7 +347,7 @@
             shape: 'dot',
             font: {
               size: 14,
-              color: '#ffffff', // White text color
+              color: '#ffffff',
               face: 'arial',
               align: 'bottom'
             }
@@ -358,68 +355,63 @@
         }));
         const edges = new vis.DataSet(data.edges.map(edge => ({
           ...edge,
-          color: '#3f3f3f' // Color of the lines connecting nodes
+          color: '#3f3f3f'
         })));
 
         const container = document.getElementById('mynetwork');
-        const graphData = {
-          nodes: nodes,
-          edges: edges
-        };
+        const graphData = { nodes, edges };
         const options = {
           nodes: {
             shape: 'dot',
-            size: 5, // Default node size
+            size: 5,
             font: {
               size: 14,
-              color: '#ffffff' // White text color
+              color: '#ffffff'
             },
             borderWidth: 2,
             color: {
-              background: '#aaaab3', // Default node color
+              background: '#aaaab3',
               border: '#aaaab3',
               highlight: {
-                background: '#815cec', // Highlighted node color
-                border: '#a68af9' // Highlighted node border color
+                background: '#815cec',
+                border: '#a68af9'
               },
               hover: {
-                background: '#815cec', // Hovered node color
-                border: '#a68af9' // Hovered node border color
+                background: '#815cec',
+                border: '#a68af9'
               }
             }
           },
           edges: {
-            width: 0.1, // Default link thickness
+            width: 0.1,
             color: {
-              color: '#3f3f3f', // Default edge color
-              highlight: '#8153ec', // Highlighted edge color
-              hover: '#8153ec' // Hovered edge color
+              color: '#3f3f3f',
+              highlight: '#8153ec',
+              hover: '#8153ec'
             },
-            smooth: false // Ensure straight, rigid lines
+            smooth: false
           },
           physics: {
             enabled: true,
             stabilization: false,
             barnesHut: {
-              gravitationalConstant: -3000, // Reduced gravitational constant
-              centralGravity: 0.1, // Increased central gravity
-              springConstant: 0.035, // Adjusted spring constant
-              springLength: 130, // Increased spring length
-              damping: 0.09 // Adjust damping for gradual stop
+              gravitationalConstant: -3000,
+              centralGravity: 0.1,
+              springConstant: 0.035,
+              springLength: 130,
+              damping: 0.09
             },
             solver: 'barnesHut',
-            timestep: 0.5, // Ensure continuous simulation
+            timestep: 0.5,
             adaptiveTimestep: true
           }
         };
-        network = new vis.Network(container, graphData, options); // Assign network here
+        network = new vis.Network(container, graphData, options);
 
-        // Append the gear, close, and reset icons after the network is initialized
+        // Append the icons and settings panel after the network is initialized
         container.appendChild(document.querySelector('.gear-icon'));
         container.appendChild(document.querySelector('.close-icon'));
         container.appendChild(document.querySelector('.reset-icon'));
-
-        // Append the settings panel after the gear, close, and reset icons
         container.appendChild(document.getElementById('settings-panel'));
       })
       .catch(error => console.error('Error loading graph data:', error));
