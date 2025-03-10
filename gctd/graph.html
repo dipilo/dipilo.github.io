@@ -45,11 +45,26 @@
     .settings-panel .section h4 {
       color: #fff;
       margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .settings-panel .section h4::before {
+      content: '▼';
+      display: inline-block;
+      margin-right: 0.5rem;
+      transition: transform 0.3s ease;
+    }
+    .settings-panel .section.collapsed h4::before {
+      transform: rotate(-90deg);
     }
     .settings-panel .section .slider-container {
       display: flex;
       flex-direction: column;
       margin-bottom: 0.5rem;
+    }
+    .settings-panel .section.collapsed .slider-container {
+      display: none;
     }
     .settings-panel .section .slider-container label {
       color: #fff;
@@ -142,7 +157,7 @@
       <div class="settings-panel" id="settings-panel">
         <h3>Settings</h3>
         <div class="section">
-          <h4>Display</h4>
+          <h4 onclick="toggleSection(this)">Display</h4>
           <div class="slider-container">
             <label for="text-fade-threshold">Text fade threshold</label>
             <input type="range" id="text-fade-threshold" min="-3" max="3" step="0.1" value="0">
@@ -161,7 +176,7 @@
         </div>
         <div class="section-divider"></div>
         <div class="section">
-          <h4>Forces</h4>
+          <h4 onclick="toggleSection(this)">Forces</h4>
           <div class="slider-container">
             <label for="center-force">Center force</label>
             <input type="range" id="center-force" min="0" max="1" step="0.01" value="0.5">
@@ -204,6 +219,11 @@
         gearIcon.style.display = 'block';
         closeIcon.style.display = 'none';
       }
+    }
+
+    function toggleSection(header) {
+      const section = header.parentElement;
+      section.classList.toggle('collapsed');
     }
 
     function updateTooltip(slider, tooltip) {

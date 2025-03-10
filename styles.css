@@ -369,6 +369,30 @@ footer {
 .settings-panel .section h4 {
   color: #fff;
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.settings-panel .section h4::before {
+  content: '▼';
+  display: inline-block;
+  margin-right: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.settings-panel .section.collapsed h4::before {
+  transform: rotate(-90deg);
+}
+
+.settings-panel .section .slider-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+
+.settings-panel .section.collapsed .slider-container {
+  display: none;
 }
 
 .settings-panel .section .slider-container {
@@ -429,6 +453,8 @@ footer {
   width: 24px; /* Make the close icon smaller */
   height: 24px; /* Make the close icon smaller */
   display: none;
+  top: 1.5rem; /* Shift down */
+  right: 1.5rem; /* Shift to the left */
 }
 
 .settings-panel.open + .close-icon {
