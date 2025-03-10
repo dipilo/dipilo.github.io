@@ -300,13 +300,18 @@
             centralGravity: centerForce,
             springConstant: linkForce,
             springLength: linkDistance,
-            damping: 0.01
+            damping: 0.09
           },
           solver: 'barnesHut',
           timestep: 0.5,
-          adaptiveTimestep: true
+          adaptiveTimestep: false
         }
       };
+
+      setInterval(() => {
+        network.startSimulation();
+      }, 1000);
+      
       network.setOptions(options);
     }
 
@@ -398,11 +403,11 @@
               centralGravity: 0.1,
               springConstant: 0.035,
               springLength: 130,
-              damping: 0.01
+              damping: 0.09
             },
             solver: 'barnesHut',
             timestep: 0.5,
-            adaptiveTimestep: true
+            adaptiveTimestep: false
           }
         };
         network = new vis.Network(container, graphData, options);
