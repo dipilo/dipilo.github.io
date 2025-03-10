@@ -14,6 +14,55 @@
       border: 1px solid lightgray;
       background-color: #2e2e2e; /* Dark background for the graph */
     }
+    .settings-panel {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background-color: #2e2e2e;
+      border-left: 1px solid #BA68C8;
+      transition: right 0.3s ease;
+      padding: 1rem;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+      border-radius: 12px 0 0 12px;
+    }
+    .settings-panel.open {
+      right: 0;
+    }
+    .settings-panel h3 {
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .settings-panel .section {
+      margin-bottom: 2rem;
+    }
+    .settings-panel .section h4 {
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .settings-panel .section .slider-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .settings-panel .section .slider-container label {
+      color: #fff;
+      margin-right: 1rem;
+    }
+    .settings-panel .section .slider-container input[type="range"] {
+      flex: 1;
+    }
+    .gear-icon {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -21,10 +70,10 @@
     <h1>Dipilodopilasaurus Nest</h1>
     <nav>
       <ul class="nav-buttons">
-        <li><a class="nav-button" href="index.html">Home</a></li>
+        <li><a class="nav-button" href="/index.html">Home</a></li>
         <li><a class="nav-button" href="/privacy/dipilodopilasaurus-nest.html">Privacy Policy</a></li>
         <li><a class="nav-button" href="/terms/dipilodopilasaurus-nest.html">Terms of Service</a></li>
-        <li><a class="nav-button" href="contact.html">Contact</a></li>
+        <li><a class="nav-button" href="/contact.html">Contact</a></li>
       </ul>
     </nav>
   </header>
@@ -40,7 +89,52 @@
     <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
   </footer>
 
+  <img src="gear-icon.png" class="gear-icon" onclick="toggleSettingsPanel()" alt="Settings">
+
+  <div class="settings-panel" id="settings-panel">
+    <h3>Settings</h3>
+    <div class="section">
+      <h4>Display</h4>
+      <div class="slider-container">
+        <label for="text-fade-threshold">Text fade threshold</label>
+        <input type="range" id="text-fade-threshold" min="-3" max="3" step="0.1" value="0">
+      </div>
+      <div class="slider-container">
+        <label for="node-size">Node size</label>
+        <input type="range" id="node-size" min="0.1" max="5" step="0.1" value="1">
+      </div>
+      <div class="slider-container">
+        <label for="link-thickness">Link thickness</label>
+        <input type="range" id="link-thickness" min="0.1" max="5" step="0.1" value="1">
+      </div>
+    </div>
+    <div class="section">
+      <h4>Forces</h4>
+      <div class="slider-container">
+        <label for="center-force">Center force</label>
+        <input type="range" id="center-force" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="slider-container">
+        <label for="repel-force">Repel force</label>
+        <input type="range" id="repel-force" min="0" max="20" step="0.1" value="10">
+      </div>
+      <div class="slider-container">
+        <label for="link-force">Link force</label>
+        <input type="range" id="link-force" min="0" max="1" step="0.01" value="0.04">
+      </div>
+      <div class="slider-container">
+        <label for="link-distance">Link distance</label>
+        <input type="range" id="link-distance" min="30" max="500" step="1" value="95">
+      </div>
+    </div>
+  </div>
+
   <script type="text/javascript">
+    function toggleSettingsPanel() {
+      const panel = document.getElementById('settings-panel');
+      panel.classList.toggle('open');
+    }
+
     fetch('graph.json')
       .then(response => response.json())
       .then(data => {
@@ -103,6 +197,36 @@
           }
         };
         const network = new vis.Network(container, graphData, options);
+
+        // Update options based on slider values
+        document.getElementById('text-fade-threshold').addEventListener('input', function() {
+          options.nodes.font.size = parseFloat(this.value);
+          network.setOptions(options);
+        });
+        document.getElementById('node-size').addEventListener('input', function() {
+          options.nodes.size = parseFloat(this.value);
+          network.setOptions(options);
+        });
+        document.getElementById('link-thickness').addEventListener('input', function() {
+          options.edges.width = parseFloat(this.value);
+          network.setOptions(options);
+        });
+        document.getElementById('center-force').addEventListener('input', function() {
+          options.physics.barnesHut.centralGravity = parseFloat(this.value);
+          network.setOptions(options);
+        });
+        document.getElementById('repel-force').addEventListener('input', function() {
+          options.physics.barnesHut.springConstant = parseFloat(this.value);
+          network.setOptions(options);
+        });
+        document.getElementById('link-force').addEventListener('input', function() {
+          options.physics.barnesHut.springLength = parseFloat(this.value);
+          network.setOptions(options);
+        });
+        document.getElementById('link-distance').addEventListener('input', function() {
+          options.physics.barnesHut.springLength = parseFloat(this.value);
+          network.setOptions(options);
+        });
       })
       .catch(error => console.error('Error loading graph data:', error));
   </script>
