@@ -335,3 +335,42 @@ footer {
 .close-alert-button:hover {
   background-color: #6A1B9A;
 }
+
+.settings-panel {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 300px;
+  height: auto;
+  background-color: #2e2e2e;
+  border: 1px solid #BA68C8;
+  transition: transform 0.3s ease;
+  padding: 1rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  border-radius: 12px;
+  transform: translateY(0); /* Open downwards */
+  z-index: 1001;
+  display: none;
+}
+
+.settings-panel.open {
+  display: block;
+}
+
+.gear-icon, .close-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  z-index: 1002; /* Ensure icons are above the canvas */
+}
+
+.close-icon {
+  display: none;
+}
+
+.settings-panel.open + .close-icon {
+  display: block;
+}
