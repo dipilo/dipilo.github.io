@@ -105,11 +105,15 @@
   <script src="dropdown.js"></script>
   <script>
     function toggleDropdown(id) {
-      const element = document.getElementById(id);
-      if (element.style.display === 'none' || element.style.display === '') {
-        element.style.display = 'block';
+      var content = document.getElementById(id);
+      // Find the corresponding toggle button by navigating to the parent and querying for the button
+      var button = content.parentElement.querySelector('.dropdown-toggle');
+      if (content.style.display === "block") {
+        content.style.display = "none";
+        button.classList.remove("rotated");
       } else {
-        element.style.display = 'none';
+        content.style.display = "block";
+        button.classList.add("rotated");
       }
     }
   </script>
