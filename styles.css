@@ -207,11 +207,12 @@ footer {
   font-size: 1.5rem;
   cursor: pointer;
   color: #7B1FA2;
+  transform: rotate(90deg);
   transition: transform 0.3s ease;
 }
 
 .dropdown-toggle.rotated {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 
 .dropdown-content {
