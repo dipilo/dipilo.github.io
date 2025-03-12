@@ -150,8 +150,8 @@
       const linkDistance = parseFloat(document.getElementById('link-distance').value);
 
       const baseRepel = 200;
-      const effectiveSpringConstant = linkForce * 0.05;
-      const effectiveSpringLength = linkDistance * (1 +(1 - linkForce) * 2);
+      const effectiveSpringConstant = linkForce * 0.005;
+      const effectiveSpringLength = linkDistance;
 
       const options = {
         nodes: {
