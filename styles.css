@@ -212,7 +212,7 @@ footer {
 }
 
 .dropdown-toggle.rotated {
-  transform: rotate(90deg);
+  transform: rotate(-90deg);
 }
 
 .dropdown-content {
