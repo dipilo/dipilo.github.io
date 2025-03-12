@@ -1,6 +1,55 @@
 {
   "nodes": [
     {
+      "id": "GCTD",
+      "label": "GCTD",
+      "tags": [
+        "#GCTD"
+      ]
+    },
+    {
+      "id": "Maps/Green Forest/Green Forest",
+      "label": "Green Forest",
+      "tags": [
+        "#Map"
+      ]
+    },
+    {
+      "id": "Maps/Maps",
+      "label": "Maps",
+      "tags": [
+        "#Map"
+      ]
+    },
+    {
+      "id": "Units/Enemies/Bosses/Bosses",
+      "label": "Bosses",
+      "tags": [
+        "#Boss"
+      ]
+    },
+    {
+      "id": "Units/Enemies/Bosses/Giant Zombie/Giant Zombie",
+      "label": "Giant Zombie",
+      "tags": [
+        "#Boss"
+      ]
+    },
+    {
+      "id": "Units/Enemies/Bosses/Shielded Zombie/Shielded Zombie",
+      "label": "Shielded Zombie",
+      "tags": [
+        "#Boss"
+      ]
+    },
+    {
+      "id": "Units/Enemies/Enemies/Zombie/Zombie",
+      "label": "Zombie",
+      "tags": [
+        "#Enemy"
+      ]
+    },
+    {
       "id": "Units/Enemies/Enemies",
       "label": "Enemies",
       "tags": [
@@ -59,7 +108,9 @@
     {
       "id": "Units/Towers/Rarities/Secret/Secret",
       "label": "Secret",
-      "tags": []
+      "tags": [
+        "#Rarity"
+      ]
     },
     {
       "id": "Units/Towers/Towers",
@@ -77,6 +128,46 @@
     }
   ],
   "edges": [
+    {
+      "from": "GCTD",
+      "to": "Maps/Maps"
+    },
+    {
+      "from": "GCTD",
+      "to": "Units/Units"
+    },
+    {
+      "from": "Maps/Green Forest/Green Forest",
+      "to": "Units/Enemies/Enemies/Zombie/Zombie"
+    },
+    {
+      "from": "Maps/Green Forest/Green Forest",
+      "to": "Units/Enemies/Bosses/Giant Zombie/Giant Zombie"
+    },
+    {
+      "from": "Maps/Green Forest/Green Forest",
+      "to": "Units/Enemies/Bosses/Shielded Zombie/Shielded Zombie"
+    },
+    {
+      "from": "Maps/Maps",
+      "to": "Maps/Green Forest/Green Forest"
+    },
+    {
+      "from": "Units/Enemies/Bosses/Bosses",
+      "to": "Units/Enemies/Bosses/Giant Zombie/Giant Zombie"
+    },
+    {
+      "from": "Units/Enemies/Bosses/Bosses",
+      "to": "Units/Enemies/Bosses/Shielded Zombie/Shielded Zombie"
+    },
+    {
+      "from": "Units/Enemies/Enemies",
+      "to": "Units/Enemies/Bosses/Bosses"
+    },
+    {
+      "from": "Units/Enemies/Enemies",
+      "to": "Units/Enemies/Enemies/Zombie/Zombie"
+    },
     {
       "from": "Units/Towers/Rarities/Mythic/Mythic",
       "to": "Units/Towers/Rarities/Mythic/Osa/Osa"

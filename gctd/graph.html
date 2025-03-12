@@ -8,7 +8,6 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
   <link href="/styles.css" rel="stylesheet" type="text/css" />
   <style type="text/css">
-    /* Styles for the graph and settings panel */
     #mynetwork {
       width: 100%;
       height: 100vh;
@@ -17,7 +16,6 @@
       position: relative;
       border-radius: 12px;
     }
-    /* Additional styles omitted for brevity */
   </style>
 </head>
 <body>
@@ -109,12 +107,10 @@
         resetIcon.style.display = 'none';
       }
     }
-
     function toggleSection(header) {
       const section = header.parentElement;
       section.classList.toggle('collapsed');
     }
-
     function updateTooltip(slider, tooltip) {
       tooltip.textContent = slider.value;
       const rect = slider.getBoundingClientRect();
@@ -122,7 +118,6 @@
       tooltip.style.left = (rect.left + slider.offsetWidth / 2 - containerRect.left) + 'px';
       tooltip.style.top = (rect.top - containerRect.top - 30) + 'px';
     }
-
     function resetSliders() {
       document.getElementById('text-fade-threshold').value = 0;
       document.getElementById('node-size').value = 1;
@@ -131,7 +126,6 @@
       document.getElementById('repel-force').value = 10;
       document.getElementById('link-force').value = 1;
       document.getElementById('link-distance').value = 250;
-
       updateTooltip(document.getElementById('text-fade-threshold'), document.getElementById('text-fade-threshold-tooltip'));
       updateTooltip(document.getElementById('node-size'), document.getElementById('node-size-tooltip'));
       updateTooltip(document.getElementById('link-thickness'), document.getElementById('link-thickness-tooltip'));
@@ -139,49 +133,32 @@
       updateTooltip(document.getElementById('repel-force'), document.getElementById('repel-force-tooltip'));
       updateTooltip(document.getElementById('link-force'), document.getElementById('link-force-tooltip'));
       updateTooltip(document.getElementById('link-distance'), document.getElementById('link-distance-tooltip'));
-
       updateGraphOptions();
     }
-
     function updateGraphOptions() {
       const centerForce = parseFloat(document.getElementById('center-force').value);
       const repelForce = parseFloat(document.getElementById('repel-force').value);
       const linkForce = parseFloat(document.getElementById('link-force').value);
       const linkDistance = parseFloat(document.getElementById('link-distance').value);
-
       const baseRepel = 200;
       const effectiveSpringConstant = linkForce * 0.01;
       const effectiveSpringLength = linkDistance;
-
       const options = {
         nodes: {
           shape: 'dot',
           size: parseFloat(document.getElementById('node-size').value) * 5,
-          font: {
-            size: 14,
-            color: '#ffffff'
-          },
+          font: { size: 14, color: '#ffffff' },
           borderWidth: 2,
           color: {
             background: '#aaaab3',
             border: '#aaaab3',
-            highlight: {
-              background: '#815cec',
-              border: '#a68af9'
-            },
-            hover: {
-              background: '#815cec',
-              border: '#a68af9'
-            }
+            highlight: { background: '#815cec', border: '#a68af9' },
+            hover: { background: '#815cec', border: '#a68af9' }
           }
         },
         edges: {
           width: parseFloat(document.getElementById('link-thickness').value) * 0.1,
-          color: {
-            color: '#3f3f3f',
-            highlight: '#8153ec',
-            hover: '#8153ec'
-          },
+          color: { color: '#3f3f3f', highlight: '#8153ec', hover: '#8153ec' },
           smooth: false
         },
         physics: {
@@ -199,112 +176,40 @@
           adaptiveTimestep: false
         }
       };
-
-      setInterval(() => {
-        network.startSimulation();
-      }, 1000);
-      
+      setInterval(() => { network.startSimulation(); }, 1000);
       network.setOptions(options);
     }
-
     document.querySelectorAll('.slider-container input[type="range"]').forEach(slider => {
       const tooltip = slider.nextElementSibling;
-      slider.addEventListener('input', () => {
-        updateTooltip(slider, tooltip);
-        updateGraphOptions();
-      });
-      slider.addEventListener('mouseover', () => {
-        tooltip.style.display = 'block';
-      });
-      slider.addEventListener('mouseout', () => {
-        tooltip.style.display = 'none';
-      });
+      slider.addEventListener('input', () => { updateTooltip(slider, tooltip); updateGraphOptions(); });
+      slider.addEventListener('mouseover', () => { tooltip.style.display = 'block'; });
+      slider.addEventListener('mouseout', () => { tooltip.style.display = 'none'; });
     });
-
     fetch('graph.json')
       .then(response => response.json())
       .then(data => {
-        const colorGroups = [{"query":"tag:#Enemy  ","color":{"a":1,"rgb":14701138}},{"query":"tag:#Rarity","color":{"a":1,"rgb":14725458}},{"query":"tag:#Unit","color":{"a":1,"rgb":11657298}},{"query":"tag:#Tower","color":{"a":1,"rgb":5431378}},{"query":"tag:#Evo  ","color":{"a":1,"rgb":5431473}}];
+        const colorGroups = [{"query":"tag:#Enemy  ","color":{"a":1,"rgb":14701138}},{"query":"tag:#Rarity","color":{"a":1,"rgb":14725458}},{"query":"tag:#Unit","color":{"a":1,"rgb":11657298}},{"query":"tag:#Tower","color":{"a":1,"rgb":5431378}},{"query":"tag:#Evo  ","color":{"a":1,"rgb":5431473}},{"query":"tag:#Map  ","color":{"a":1,"rgb":5419488}},{"query":"tag:#GCTD  ","color":{"a":1,"rgb":5395168}},{"query":"tag:#Boss  ","color":{"a":1,"rgb":11621088}}];
         const nodes = new vis.DataSet(data.nodes.map(node => {
           let color = '#aaaab3';
-          // For each tag, find a matching color group.
           node.tags.forEach(tag => {
             const group = colorGroups.find(group => group.query.trim() === ('tag:' + tag));
-            if (group) {
-              color = '#' + group.color.rgb.toString(16).padStart(6, '0');
-            }
+            if (group) { color = '#' + group.color.rgb.toString(16).padStart(6, '0'); }
           });
           return {
             id: node.id,
             label: node.label,
-            color: {
-              background: color,
-              border: color
-            },
+            color: { background: color, border: color },
             shape: 'dot',
-            font: {
-              size: 14,
-              color: '#ffffff',
-              face: 'arial',
-              align: 'bottom'
-            }
+            font: { size: 14, color: '#ffffff', face: 'arial', align: 'bottom' }
           };
         }));
-        const edges = new vis.DataSet(data.edges.map(edge => ({
-          ...edge,
-          color: '#3f3f3f'
-        })));
-
+        const edges = new vis.DataSet(data.edges.map(edge => ({ ...edge, color: '#3f3f3f' })));
         const container = document.getElementById('mynetwork');
-        const graphData = { nodes, edges };
-        const options = {
-          nodes: {
-            shape: 'dot',
-            size: 5,
-            font: {
-              size: 14,
-              color: '#ffffff'
-            },
-            borderWidth: 2,
-            color: {
-              background: '#aaaab3',
-              border: '#aaaab3',
-              highlight: {
-                background: '#815cec',
-                border: '#a68af9'
-              },
-              hover: {
-                background: '#815cec',
-                border: '#a68af9'
-              }
-            }
-          },
-          edges: {
-            width: 0.1,
-            color: {
-              color: '#3f3f3f',
-              highlight: '#8153ec',
-              hover: '#8153ec'
-            },
-            smooth: false
-          },
-          physics: {
-            enabled: true,
-            stabilization: false,
-            barnesHut: {
-              gravitationalConstant: -3000,
-              centralGravity: 0.1,
-              springConstant: 0.035,
-              springLength: 130,
-              damping: 0.09
-            },
-            solver: 'barnesHut',
-            timestep: 0.5,
-            adaptiveTimestep: false
-          }
-        };
-        network = new vis.Network(container, graphData, options);
-
+        network = new vis.Network(container, { nodes, edges }, {
+          nodes: { shape: 'dot', size: 5, font: { size: 14, color: '#ffffff' }, borderWidth: 2, color: { background: '#aaaab3', border: '#aaaab3', highlight: { background: '#815cec', border: '#a68af9' }, hover: { background: '#815cec', border: '#a68af9' } } },
+          edges: { width: 0.1, color: { color: '#3f3f3f', highlight: '#8153ec', hover: '#8153ec' }, smooth: false },
+          physics: { enabled: true, stabilization: false, barnesHut: { gravitationalConstant: -3000, centralGravity: 0.1, springConstant: 0.035, springLength: 130, damping: 0.09 }, solver: 'barnesHut', timestep: 0.5, adaptiveTimestep: false }
+        });
         container.appendChild(document.querySelector('.gear-icon'));
         container.appendChild(document.querySelector('.close-icon'));
         container.appendChild(document.querySelector('.reset-icon'));
