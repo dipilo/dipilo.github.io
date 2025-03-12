@@ -150,6 +150,8 @@
       const linkDistance = parseFloat(document.getElementById('link-distance').value);
 
       const baseRepel = 200;
+      const effectiveSpringConstant = linkForcve * 0.05;
+      const effectiveSpringLength = linkDistance * (1 +(1 - linkForce) * 2);
 
       const options = {
         nodes: {
@@ -188,8 +190,8 @@
           barnesHut: {
             gravitationalConstant: -((baseRepel) + (repelForce * 400)),
             centralGravity: centerForce * 2,
-            springConstant: linkForce * 0.2,
-            springLength: linkDistance,
+            springConstant: effectiveSpringConstant,
+            springLength: effectiveSpringLength,
             damping: 0.09
           },
           solver: 'barnesHut',
