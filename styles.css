@@ -466,7 +466,7 @@ footer {
   width: 24px; /* Make the close icon smaller */
   height: 24px; /* Make the close icon smaller */
   display: none;
-  top: 1.25rem; /* Shift down */
+  top: 1.5rem; /* Shift down */
   right: 1.25rem; /* Shift to the left */
 }
 
