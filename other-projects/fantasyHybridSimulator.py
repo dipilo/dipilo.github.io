@@ -40,7 +40,7 @@ STAT_UNITS = {
     "IQ": "IQ points",
     "EQ": "EQ points",
     "Dexterity": "dex",
-    "Strength": "kg",
+    "Strength": "units",
     "Land Speed": "km/h",
     "Swim Speed": "km/h",
     "Jump Height": "m",
@@ -64,29 +64,29 @@ STAT_UNITS = {
 }
 
 ######################################
-# NEW: GESTATION AND LITTER STATS (Base values; mainly dictated by bottom allele)
+# NEW: GESTATION AND LITTER STATS
 ######################################
 GESTATION_STATS = {
-    "Hu": 280,  # days, human
-    "Ho": 340,  # days, horse
-    "Fi": 1,    # days, fish (hatch quickly)
-    "Go": 150,  # days, goat
-    "Sn": 60,   # days, snake
-    "Bu": 300,  # days, bull/cattle approx.
-    "Bi": 30,   # days, bird incubation
-    "Li": 110,  # days, lion
-    "Dr": 400   # days, dragon (mythical estimate)
+    "Hu": 280,  # days, human gestation ~280 days
+    "Ho": 340,  # days, horse gestation ~340 days
+    "Fi": 1,    # days, fish hatch quickly
+    "Go": 150,  # days, goat gestation ~150 days
+    "Sn": 60,   # days, approximate snake gestation
+    "Bu": 300,  # days, cattle approximate gestation
+    "Bi": 30,   # days, bird incubation period
+    "Li": 110,  # days, lion gestation ~110 days
+    "Dr": 400   # days, mythical dragon gestation estimate
 }
 
 LITTER_STATS = {
-    "Hu": 1,    # usually 1
-    "Ho": 1,    # usually 1
-    "Fi": 1000, # many eggs
-    "Go": 2,    # average 2
-    "Sn": 20,   # average litter size for snake (varies)
+    "Hu": 1,    # typically 1
+    "Ho": 1,    # typically 1
+    "Fi": 1000, # many eggs for fish
+    "Go": 2,    # average 2 kids for goats
+    "Sn": 20,   # average litter size for snakes (approx)
     "Bu": 1,    # typically 1
-    "Bi": 3,    # average 3 eggs
-    "Li": 3,    # average 3 cubs
+    "Bi": 3,    # average 3 eggs for birds
+    "Li": 3,    # average 3 cubs for lions
     "Dr": 5     # mythical, assume 5
 }
 
@@ -459,23 +459,38 @@ GESTATION_STATS = {
     "Ho": 340,  # days, horse gestation ~340 days
     "Fi": 1,    # days, fish hatch quickly
     "Go": 150,  # days, goat gestation ~150 days
-    "Sn": 60,   # days, snake gestation (approx)
-    "Bu": 300,  # days, cattle approx.
+    "Sn": 60,   # days, approximate snake gestation
+    "Bu": 300,  # days, cattle approximate gestation
     "Bi": 30,   # days, bird incubation period
     "Li": 110,  # days, lion gestation ~110 days
-    "Dr": 400   # days, dragon (mythical estimate)
+    "Dr": 400   # days, mythical dragon gestation estimate
 }
 
 LITTER_STATS = {
     "Hu": 1,    # typically 1
     "Ho": 1,    # typically 1
-    "Fi": 1000, # fish produce many eggs
-    "Go": 2,    # average 2 kids
-    "Sn": 20,   # variable; assume average 20
+    "Fi": 1000, # many eggs for fish
+    "Go": 2,    # average 2 kids for goats
+    "Sn": 20,   # average litter size for snakes (approx)
     "Bu": 1,    # typically 1
-    "Bi": 3,    # average 3 eggs
-    "Li": 3,    # average 3 cubs
+    "Bi": 3,    # average 3 eggs for birds
+    "Li": 3,    # average 3 cubs for lions
     "Dr": 5     # mythical, assume 5
+}
+
+######################################
+# ADD DIET MAPPING FOR EACH ALLELE
+######################################
+DIET = {
+    "Hu": "omnivore",
+    "Ho": "herbivore",
+    "Fi": "omnivore",
+    "Go": "herbivore",
+    "Sn": "carnivore",
+    "Bu": "herbivore",
+    "Bi": "omnivore",
+    "Li": "carnivore",
+    "Dr": "carnivore"
 }
 
 ######################################
@@ -710,7 +725,7 @@ def get_stat_base(stat, section, allele):
         return 1 if allele in ["Sn", "Dr"] else 0
     elif stat == "Fire Breathing":
         return 1 if allele == "Dr" else 0
-    # For Gestation Period and Litter Size, we do custom weighting later.
+    # Gestation Period and Litter Size are handled separately.
     else:
         return 0
 
