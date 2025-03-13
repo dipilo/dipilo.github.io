@@ -527,7 +527,7 @@ footer {
   width: 100%;
   min-height: 300px;
   height: 300px;
-  overflow: scroll;
+  overflow: auto;
   border: 1px solid #BA68C8;
   border-radius: 8px;
 }
