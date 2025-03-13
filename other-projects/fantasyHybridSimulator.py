@@ -50,6 +50,8 @@ STAT_UNITS = {
     "Size": "cm",
     "Venom": "",
     "Fire Breathing": "",
+    "Gestation Period": "days",
+    "Litter Size": "offspring",
     "Lion Head IQ": "IQ points",
     "Goat Head IQ": "IQ points",
     "Snake Head IQ": "IQ points",
@@ -59,7 +61,33 @@ STAT_UNITS = {
     "Lion Head Diet": "",
     "Goat Head Diet": "",
     "Snake Head Diet": ""
-    # For overall 'diet', no unit is appended.
+}
+
+######################################
+# NEW: GESTATION AND LITTER STATS (Base values; mainly dictated by bottom allele)
+######################################
+GESTATION_STATS = {
+    "Hu": 280,  # days, human
+    "Ho": 340,  # days, horse
+    "Fi": 1,    # days, fish (hatch quickly)
+    "Go": 150,  # days, goat
+    "Sn": 60,   # days, snake
+    "Bu": 300,  # days, bull/cattle approx.
+    "Bi": 30,   # days, bird incubation
+    "Li": 110,  # days, lion
+    "Dr": 400   # days, dragon (mythical estimate)
+}
+
+LITTER_STATS = {
+    "Hu": 1,    # usually 1
+    "Ho": 1,    # usually 1
+    "Fi": 1000, # many eggs
+    "Go": 2,    # average 2
+    "Sn": 20,   # average litter size for snake (varies)
+    "Bu": 1,    # typically 1
+    "Bi": 3,    # average 3 eggs
+    "Li": 3,    # average 3 cubs
+    "Dr": 5     # mythical, assume 5
 }
 
 ######################################
@@ -68,7 +96,7 @@ STAT_UNITS = {
 SPECIES_NAME_DICT = {
     "human": {
         "adjectives": ["Noble", "Valiant", "Wise", "Just", "Stalwart", "Gallant", "Resolute", "Dignified", "Honorable"],
-        "nouns": ["Sovereign", "Knight", "Baron", "Emperor", "Scholar", "Champion", "Guardian", "Regent"]
+        "nouns": ["Sovereign", "Knight", "Baron", "Emperor", "Scholar", "Champion", "Guardian", "Regent", "Patriarch"]
     },
     "centaur": {
         "adjectives": ["Wild", "Gallant", "Mighty", "Fierce"],
@@ -423,17 +451,31 @@ SIZE_STATS = {
     "Dr": 300
 }
 
-# Add a diet mapping for each allele.
-DIET = {
-    "Hu": "omnivore",
-    "Ho": "herbivore",
-    "Fi": "omnivore",
-    "Go": "herbivore",
-    "Sn": "carnivore",
-    "Bu": "herbivore",
-    "Bi": "omnivore",
-    "Li": "carnivore",
-    "Dr": "carnivore"
+######################################
+# NEW: GESTATION AND LITTER STATS
+######################################
+GESTATION_STATS = {
+    "Hu": 280,  # days, human gestation ~280 days
+    "Ho": 340,  # days, horse gestation ~340 days
+    "Fi": 1,    # days, fish hatch quickly
+    "Go": 150,  # days, goat gestation ~150 days
+    "Sn": 60,   # days, snake gestation (approx)
+    "Bu": 300,  # days, cattle approx.
+    "Bi": 30,   # days, bird incubation period
+    "Li": 110,  # days, lion gestation ~110 days
+    "Dr": 400   # days, dragon (mythical estimate)
+}
+
+LITTER_STATS = {
+    "Hu": 1,    # typically 1
+    "Ho": 1,    # typically 1
+    "Fi": 1000, # fish produce many eggs
+    "Go": 2,    # average 2 kids
+    "Sn": 20,   # variable; assume average 20
+    "Bu": 1,    # typically 1
+    "Bi": 3,    # average 3 eggs
+    "Li": 3,    # average 3 cubs
+    "Dr": 5     # mythical, assume 5
 }
 
 ######################################
@@ -451,7 +493,9 @@ DEFAULT_STAT_SOURCES = {
     "Climbing": ["bottom"],
     "Bite": ["top"],
     "Venom": ["top"],
-    "Fire Breathing": ["top"]
+    "Fire Breathing": ["top"],
+    "Gestation Period": ["bottom"],
+    "Litter Size": ["bottom"]
 }
 
 SPECIES_STAT_SOURCES = {
@@ -474,7 +518,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["bottom"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "minotaur": DEFAULT_STAT_SOURCES,
     "harpy": {
@@ -489,7 +535,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["top"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "griffin": {
         "IQ": ["top"],
@@ -503,7 +551,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["top"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "chimera": {
         "IQ": ["top", "mid", "bottom"],
@@ -517,7 +567,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["bottom"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "cockatrice/basilisk": {
         "IQ": ["top"],
@@ -531,7 +583,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["bottom"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "hippogriff": {
         "IQ": ["top"],
@@ -545,7 +599,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["top"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "manticore": {
         "IQ": ["top"],
@@ -559,7 +615,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["bottom"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "pegasus": {
         "IQ": ["top"],
@@ -573,7 +631,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["top"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "goat": DEFAULT_STAT_SOURCES,
     "snake": DEFAULT_STAT_SOURCES,
@@ -590,7 +650,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["top"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "lion": DEFAULT_STAT_SOURCES,
     "ipotane": {
@@ -605,7 +667,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["top"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     },
     "dragon": DEFAULT_STAT_SOURCES,
     "tengu": {
@@ -620,7 +684,9 @@ SPECIES_STAT_SOURCES = {
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["top"],
-        "Fire Breathing": ["top"]
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     }
 }
 
@@ -644,6 +710,7 @@ def get_stat_base(stat, section, allele):
         return 1 if allele in ["Sn", "Dr"] else 0
     elif stat == "Fire Breathing":
         return 1 if allele == "Dr" else 0
+    # For Gestation Period and Litter Size, we do custom weighting later.
     else:
         return 0
 
@@ -743,6 +810,15 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats["Strength"] = round(stats["Strength"] * 1.5, 3)
             stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
             stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
+    # Custom processing for Gestation Period and Litter Size:
+    for new_stat, stat_dict in [("Gestation Period", GESTATION_STATS), ("Litter Size", LITTER_STATS)]:
+        # Weighted average: 15% top, 15% mid, 70% bottom
+        base = 0.15 * stat_dict.get(top_expr, 0) + 0.15 * stat_dict.get(mid_expr, 0) + 0.7 * stat_dict.get(bottom_expr, 0)
+        value = apply_random_variation(base)
+        final_value, msg = maybe_mutate_stat(value, new_stat)
+        stats[new_stat] = final_value
+        if msg:
+            mutations[new_stat] = msg
     size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
     size_val = apply_random_variation(size_val)
     size_val, size_mut = maybe_mutate_stat(size_val, "Size")
