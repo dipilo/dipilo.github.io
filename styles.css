@@ -537,7 +537,7 @@ footer {
   color: #fff;
   padding: 1rem 1rem 2rem 1rem; /* extra bottom padding added */
   height: 100%;
-  overflow-y: auto;
+  overflow-y: scroll;
   border-radius: 8px;
   font-family: Consolas, monospace;
   white-space: pre-wrap;
