@@ -40,7 +40,7 @@ STAT_UNITS = {
     "IQ": "IQ points",
     "EQ": "EQ points",
     "Dexterity": "dex",
-    "Strength": "units",
+    "Strength": "kg",
     "Land Speed": "km/h",
     "Swim Speed": "km/h",
     "Jump Height": "m",
