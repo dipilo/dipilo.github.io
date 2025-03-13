@@ -540,7 +540,6 @@ footer {
   border-radius: 8px;
   font-family: Consolas, monospace;
   white-space: pre-wrap;
-  box-sizing: border-box;
 }
 
 .resizable-console .drag-handle {
