@@ -533,13 +533,14 @@ footer {
 }
 
 #console {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-family: Consolas, monospace;
   background: #1e1e1e;
   color: #fff;
-  height: 100%;
-  overflow-y: scroll;
-  border-radius: 8px;
-  font-family: Consolas, monospace;
-  white-space: pre-wrap;
+  padding: 1rem;
 }
 
 .resizable-console .drag-handle {
