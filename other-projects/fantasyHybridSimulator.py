@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-"""
-fantasyHybridSimulator.py
-
-This is an adapted version of your original simulator that preserves all original logic,
-including the Chimera-specific code and all other sections, while converting the interactive
-command-line interface into a non-blocking, command-driven interface.
-All output is returned as a string by process_command(), and the function run_command(line)
-can be called from an external (e.g., PyScript) environment.
-"""
-
 import itertools
 import random
 import json
@@ -20,6 +9,7 @@ from collections import defaultdict
 ######################################
 # GLOBAL SETTINGS AND SAVED HYBRIDS STORAGE
 ######################################
+
 SAVE_MODE = False  # Toggle for save mode
 SAVED_FILE = "hybrids.json"
 saved_hybrids = {}
@@ -32,7 +22,7 @@ def load_saved_hybrids():
                 loaded = json.load(f)
                 saved_hybrids = {k.lower(): v for k, v in loaded.items()}
         except Exception as e:
-            # In a non-blocking interface, errors could be logged instead of printed.
+            print("Error loading saved hybrids:", e)
             saved_hybrids = {}
     else:
         saved_hybrids = {}
@@ -42,12 +32,40 @@ def save_saved_hybrids():
         with open(SAVED_FILE, "w") as f:
             json.dump(saved_hybrids, f, indent=4)
     except Exception as e:
-        # Log error if needed.
-        pass
+        print("Error saving hybrids:", e)
 
 ######################################
-# SPECIES-SPECIFIC NAMING DICTIONARIES
+# STAT UNITS DICTIONARY
 ######################################
+STAT_UNITS = {
+    "IQ": "IQ points",
+    "EQ": "EQ points",
+    "Dexterity": "dex",
+    "Strength": "units",
+    "Land Speed": "km/h",
+    "Swim Speed": "km/h",
+    "Jump Height": "m",
+    "Flight Speed": "km/h",
+    "Climbing": "m",
+    "Bite": "psi",
+    "Size": "cm",
+    "Venom": "",
+    "Fire Breathing": "",
+    "Lion Head IQ": "IQ points",
+    "Goat Head IQ": "IQ points",
+    "Snake Head IQ": "IQ points",
+    "Lion Head EQ": "EQ points",
+    "Goat Head EQ": "EQ points",
+    "Snake Head EQ": "EQ points",
+    "Lion Head Diet": "",
+    "Goat Head Diet": "",
+    "Snake Head Diet": ""
+}
+
+######################################
+# Species-specific naming dictionaries based on fantasy tropes.
+######################################
+
 SPECIES_NAME_DICT = {
     "human": {"adjectives": ["Noble", "Valiant", "Wise", "Just", "Stalwart", "Gallant", "Resolute"],
               "nouns": ["Sovereign", "Knight", "Baron", "Emperor", "Scholar", "Champion", "Guardian"]},
@@ -116,7 +134,9 @@ def generate_unique_name(species=None):
 ######################################
 # 1. ALLELES, MUTATION RATES, AND BASE STATS
 ######################################
-ALLELES = ["Hu", "Ho", "Fi", "Go", "Sn", "Bu", "Bi", "Li", "Dr"]
+
+ALLELES = ["Hu", "Ho", "Fi", "Go", "Sn", "Bu", "Bi", "Li", "Dr"]  # "Dr" represents the dragon allele
+
 mutation_rates = {
     "Hu": 1e-6,
     "Ho": 1e-6,
@@ -147,6 +167,7 @@ def random_inherited_allele(gene_tuple):
 ######################################
 # 2. SPECIES DEFINITIONS & DOMINANCE
 ######################################
+
 known_species = {
     ("Hu", "Hu", "Hu"): "human",
     ("Hu", "Hu", "Ho"): "centaur",
@@ -194,6 +215,7 @@ bottom_dominance_order = dominance_order(bottom_counts)
 ######################################
 # 3. GENE EXPRESSION FUNCTIONS
 ######################################
+
 def express_gene(genotype, dom_order):
     for allele in dom_order:
         if allele in genotype:
@@ -218,6 +240,7 @@ def overall_phenotype(top_geno, mid_geno, bottom_geno):
 ######################################
 # 4. FULL GENOTYPE ENUMERATION
 ######################################
+
 def all_gene_genotypes():
     return [tuple(g) for g in itertools.combinations_with_replacement(ALLELES, 2)]
 
@@ -239,6 +262,7 @@ for top_geno in all_gene_genotypes():
 ######################################
 # 5. CROSS-BREEDING FUNCTIONS
 ######################################
+
 def cross_gene(g1, g2):
     outcomes = defaultdict(float)
     for allele1 in g1:
@@ -291,6 +315,7 @@ def cross_breed_from_genotype(geno1, geno2):
 ######################################
 # 6. BASE STAT DICTIONARIES (Realistic Averages)
 ######################################
+
 TOP_STATS = {
     "Hu": {"IQ": 100, "EQ": 90, "Dexterity": 85, "Strength": 60},
     "Ho": {"IQ": 50,  "EQ": 40, "Dexterity": 50, "Strength": 200},
@@ -300,24 +325,24 @@ TOP_STATS = {
     "Bu": {"IQ": 30,  "EQ": 25, "Dexterity": 40, "Strength": 250},
     "Bi": {"IQ": 40,  "EQ": 35, "Dexterity": 80, "Strength": 15},
     "Li": {"IQ": 70,  "EQ": 60, "Dexterity": 70, "Strength": 220},
-    "Dr": {"IQ": 120, "EQ": 115,"Dexterity": 85, "Strength": 300}
+    "Dr": {"IQ": 90,  "EQ": 80, "Dexterity": 60, "Strength": 300}
 }
 
 BOTTOM_STATS = {
     "Hu": {"Land Speed": 8.0,  "Swim Speed": 3.0, "Jump Height": 0.6},
     "Ho": {"Land Speed": 45.0, "Swim Speed": 8.0, "Jump Height": 1.2},
-    "Fi": {"Land Speed": 0.5,  "Swim Speed": 20.0, "Jump Height": 0.3},
+    "Fi": {"Land Speed": 0.5,  "Swim Speed": 40.0, "Jump Height": 0.3},
     "Go": {"Land Speed": 20.0, "Swim Speed": 3.0, "Jump Height": 1.0},
     "Sn": {"Land Speed": 1.0,  "Swim Speed": 2.0, "Jump Height": 0.1},
     "Bu": {"Land Speed": 25.0, "Swim Speed": 4.0, "Jump Height": 0.8},
     "Bi": {"Land Speed": 10.0, "Swim Speed": 8.0, "Jump Height": 0.5},
     "Li": {"Land Speed": 60.0, "Swim Speed": 12.0, "Jump Height": 2.0},
-    "Dr": {"Land Speed": 50.0, "Swim Speed": 15.0, "Jump Height": 3.0}
+    "Dr": {"Land Speed": 80.0, "Swim Speed": 6.0, "Jump Height": 3.0}
 }
 
 FLIGHT_STATS = {
-    "Bi": 60.0,
-    "Dr": 50.0
+    "Bi": 80.0,
+    "Dr": 120.0
 }
 
 CLIMBING_STATS = {
@@ -344,6 +369,7 @@ BITE_STATS = {
     "Dr": {"Bite": 900}
 }
 
+# New SIZE_STATS dictionary (in centimeters)
 SIZE_STATS = {
     "Hu": 170,
     "Ho": 160,
@@ -356,6 +382,7 @@ SIZE_STATS = {
     "Dr": 300
 }
 
+# Add a diet mapping for each allele.
 DIET = {
     "Hu": "omnivore",
     "Ho": "herbivore",
@@ -371,6 +398,7 @@ DIET = {
 ######################################
 # 7. SPECIES STAT SOURCE RULES
 ######################################
+
 DEFAULT_STAT_SOURCES = {
     "IQ": ["top"],
     "EQ": ["top"],
@@ -559,6 +587,7 @@ SPECIES_STAT_SOURCES = {
 ######################################
 # 8. STAT CALCULATION FUNCTIONS (Including Stat Mutation and Size)
 ######################################
+
 STAT_MUTATION_RATE = 0.0001  # 0.01% chance per stat
 
 def get_stat_base(stat, section, allele):
@@ -686,6 +715,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
 ######################################
 # 9. OFFSPRING BREEDING FROM SAVED HYBRIDS
 ######################################
+
 def cross_breed_from_genotype(geno1, geno2):
     top_allele1 = random.choice(geno1["top"])
     top_allele2 = random.choice(geno2["top"])
@@ -764,6 +794,7 @@ def breed_from_saved(parent1_name, parent2_name):
 ######################################
 # NEW: RANDOM SIMULATION COMMAND
 ######################################
+
 def simulate_random(n):
     frequency = defaultdict(int)
     for _ in range(n):
@@ -776,6 +807,7 @@ def simulate_random(n):
 ######################################
 # 10. INTERACTIVE COMMAND-LINE INTERFACE
 ######################################
+
 def list_species():
     print("Available species (from known definitions):")
     for sp in sorted(phenotype_genotypes.keys()):
@@ -807,24 +839,13 @@ def breed_species(cmd_args):
         print("  Bottom:", offspring["genotype"]["bottom"])
         print("Inherited stats:")
         for stat, value in offspring["stats"].items():
-            print(f"  {stat:15s}: {value}", end="")
+            unit = STAT_UNITS.get(stat, "")
+            print(f"  {stat:15s}: {value} {unit}".rstrip())
             if stat in mutations:
-                print(f"  <-- {mutations[stat]}")
-            else:
-                print("")
+                print(f"                <-- {mutations[stat]}")
     else:
         try:
-            MAX_ATTEMPTS = 10
-            attempt = 0
-            result = None
-            while attempt < MAX_ATTEMPTS:
-                result = cross_breed_random(arg1, arg2)
-                if result["phenotype"] is not None:
-                    break
-                attempt += 1
-            if result is None or result["phenotype"] is None:
-                print("Miscarriage: Offspring species could not be determined after several attempts.")
-                return
+            result = cross_breed_random(arg1, arg2)
         except ValueError as e:
             print("Error:", e)
             return
@@ -860,7 +881,8 @@ def breed_species(cmd_args):
                 print(f"\nAssigned unique name: {new_name}")
             print("\nOffspring stats (sources per stat are defined by species):")
             for stat, value in stats.items():
-                print(f"  {stat:15s}: {value}", end="")
+                unit = STAT_UNITS.get(stat, "")
+                print(f"  {stat:15s}: {value} {unit}".rstrip(), end="")
                 if stat in mutations:
                     print(f"  <-- {mutations[stat]}")
                 else:
@@ -899,7 +921,8 @@ def generate_random_species():
         print("Assigned unique name:", new_name)
     print("\nStats:")
     for stat, value in stats.items():
-        print(f"  {stat:15s}: {value}", end="")
+        unit = STAT_UNITS.get(stat, "")
+        print(f"  {stat:15s}: {value} {unit}".rstrip(), end="")
         if stat in mutations:
             print(f"  <-- {mutations[stat]}")
         else:
