@@ -9,7 +9,6 @@ from collections import defaultdict
 ######################################
 # GLOBAL SETTINGS AND SAVED HYBRIDS STORAGE
 ######################################
-
 SAVE_MODE = False  # Toggle for save mode
 SAVED_FILE = "hybrids.json"
 saved_hybrids = {}
@@ -60,60 +59,109 @@ STAT_UNITS = {
     "Lion Head Diet": "",
     "Goat Head Diet": "",
     "Snake Head Diet": ""
+    # For overall 'diet', no unit is appended.
 }
 
 ######################################
 # SPECIES-SPECIFIC NAMING DICTIONARIES
 ######################################
 SPECIES_NAME_DICT = {
-    "human": {"adjectives": ["Noble", "Valiant", "Wise", "Just", "Stalwart", "Gallant", "Resolute", "Gallant", "Resolute"],
-              "nouns": ["Sovereign", "Knight", "Baron", "Emperor", "Scholar", "Champion", "Guardian", "Regent", "Patriarch"]},
-    "centaur": {"adjectives": ["Wild", "Gallant", "Mighty", "Fierce"],
-                "nouns": ["Stallion", "Archer", "Warrior", "Hunter"]},
-    "mermaid": {"adjectives": ["Mystic", "Siren", "Oceanic", "Luminous"],
-                "nouns": ["Maiden", "Siren", "Daughter", "Enchantress"]},
-    "horse": {"adjectives": ["Swift", "Stalwart", "Majestic", "Noble"],
-              "nouns": ["Steed", "Charger", "Mustang", "Galloper"]},
-    "hippocampus": {"adjectives": ["Deep", "Blue", "Mystic", "Tidal"],
-                    "nouns": ["Seahorse", "Triton", "Neptune", "Mariner"]},
-    "fish": {"adjectives": ["Glimmering", "Silver", "Abyssal", "Sleek"],
-             "nouns": ["Mariner", "Fin", "Scale", "Swimmer"]},
-    "satyr/faun": {"adjectives": ["Wild", "Revelrous", "Mischievous", "Impish"],
-                   "nouns": ["Satyr", "Faun", "Pan", "Bacchus"]},
-    "naga": {"adjectives": ["Serpentine", "Venomous", "Sly", "Coiled"],
-             "nouns": ["Cobra", "Viper", "Asp", "Python"]},
-    "minotaur": {"adjectives": ["Fierce", "Rampaging", "Mighty", "Colossal"],
-                 "nouns": ["Bull", "Behemoth", "Taurus", "Goliath"]},
-    "harpy": {"adjectives": ["Screeching", "Winged", "Wild", "Tempestuous"],
-              "nouns": ["Harpy", "Raptor", "Screamer", "Stormcaller"]},
-    "griffin": {"adjectives": ["Majestic", "Golden", "Regal", "Imperial"],
-                "nouns": ["Griffin", "Sky King", "Lion-Eagle", "Celestial"]},
-    "chimera": {"adjectives": ["Hybrid", "Fused", "Nightmare", "Mutant"],
-                "nouns": ["Abomination", "Mutant", "Beast", "Chimera"]},
-    "cockatrice/basilisk": {"adjectives": ["Petrifying", "Cursed", "Venomous", "Sinister"],
-                            "nouns": ["Cockatrice", "Basilisk", "Gorgon", "Medusa"]},
-    "hippogriff": {"adjectives": ["Noble", "Skyborne", "Valiant", "Aerial"],
-                   "nouns": ["Hippogriff", "Windrider", "Sky Knight", "Cloudstrider"]},
-    "manticore": {"adjectives": ["Savage", "Dread", "Nightstalker", "Terrifying"],
-                  "nouns": ["Manticore", "Scourge", "Beast", "Fury"]},
-    "pegasus": {"adjectives": ["Celestial", "Winged", "Ethereal", "Radiant"],
-                "nouns": ["Pegasus", "Cloudrider", "Skyborne", "Zephyr"]},
-    "goat": {"adjectives": ["Stubborn", "Wild", "Rocky", "Spirited"],
-             "nouns": ["Billy", "Capricorn", "Horned", "Mountain Goat"]},
-    "snake": {"adjectives": ["Sinuous", "Venomous", "Slithering", "Creeping"],
-              "nouns": ["Adder", "Viper", "Serpent", "Cobra"]},
-    "bull": {"adjectives": ["Massive", "Raging", "Sturdy", "Titanic"],
-             "nouns": ["Taurus", "Rampager", "Bovidae", "Goliath"]},
-    "bird": {"adjectives": ["Feathered", "Swift", "Soaring", "Glorious"],
-             "nouns": ["Avian", "Winged", "Skycaller", "Celestial"]},
-    "lion": {"adjectives": ["Regal", "Mighty", "Savage", "Imperial"],
-             "nouns": ["King", "Pride", "Roarer", "Majesty"]},
-    "ipotane": {"adjectives": ["Hybrid", "Mystic", "Noble", "Enigmatic"],
-                "nouns": ["Centaur", "Maned Steed", "Chimera", "Unity"]},
-    "dragon": {"adjectives": ["Fiery", "Ancient", "Mighty", "Infernal", "Scaly", "Blazing"],
-               "nouns": ["Wyrm", "Drake", "Serpent", "Flame", "Sovereign", "Ember", "Scourge"]},
-    "tengu": {"adjectives": ["Mischievous", "Cunning", "Aerial", "Sleek", "Mystic", "Ethereal"],
-              "nouns": ["Tengu", "Crow", "Harbinger", "Trickster", "Raven", "Shade"]}
+    "human": {
+        "adjectives": ["Noble", "Valiant", "Wise", "Just", "Stalwart", "Gallant", "Resolute", "Dignified", "Honorable"],
+        "nouns": ["Sovereign", "Knight", "Baron", "Emperor", "Scholar", "Champion", "Guardian", "Regent"]
+    },
+    "centaur": {
+        "adjectives": ["Wild", "Gallant", "Mighty", "Fierce"],
+        "nouns": ["Stallion", "Archer", "Warrior", "Hunter"]
+    },
+    "mermaid": {
+        "adjectives": ["Mystic", "Siren", "Oceanic", "Luminous"],
+        "nouns": ["Maiden", "Siren", "Daughter", "Enchantress"]
+    },
+    "horse": {
+        "adjectives": ["Swift", "Stalwart", "Majestic", "Noble"],
+        "nouns": ["Steed", "Charger", "Mustang", "Galloper"]
+    },
+    "hippocampus": {
+        "adjectives": ["Deep", "Blue", "Mystic", "Tidal"],
+        "nouns": ["Seahorse", "Triton", "Neptune", "Mariner"]
+    },
+    "fish": {
+        "adjectives": ["Glimmering", "Silver", "Abyssal", "Sleek"],
+        "nouns": ["Mariner", "Fin", "Scale", "Swimmer"]
+    },
+    "satyr/faun": {
+        "adjectives": ["Wild", "Revelrous", "Mischievous", "Impish"],
+        "nouns": ["Satyr", "Faun", "Pan", "Bacchus"]
+    },
+    "naga": {
+        "adjectives": ["Serpentine", "Venomous", "Sly", "Coiled"],
+        "nouns": ["Cobra", "Viper", "Asp", "Python"]
+    },
+    "minotaur": {
+        "adjectives": ["Fierce", "Rampaging", "Mighty", "Colossal"],
+        "nouns": ["Bull", "Behemoth", "Taurus", "Goliath"]
+    },
+    "harpy": {
+        "adjectives": ["Screeching", "Winged", "Wild", "Tempestuous"],
+        "nouns": ["Harpy", "Raptor", "Screamer", "Stormcaller"]
+    },
+    "griffin": {
+        "adjectives": ["Majestic", "Golden", "Regal", "Imperial"],
+        "nouns": ["Griffin", "Sky King", "Lion-Eagle", "Celestial"]
+    },
+    "chimera": {
+        "adjectives": ["Hybrid", "Fused", "Nightmare", "Mutant"],
+        "nouns": ["Abomination", "Mutant", "Beast", "Chimera"]
+    },
+    "cockatrice/basilisk": {
+        "adjectives": ["Petrifying", "Cursed", "Venomous", "Sinister"],
+        "nouns": ["Cockatrice", "Basilisk", "Gorgon", "Medusa"]
+    },
+    "hippogriff": {
+        "adjectives": ["Noble", "Skyborne", "Valiant", "Aerial"],
+        "nouns": ["Hippogriff", "Windrider", "Sky Knight", "Cloudstrider"]
+    },
+    "manticore": {
+        "adjectives": ["Savage", "Dread", "Nightstalker", "Terrifying"],
+        "nouns": ["Manticore", "Scourge", "Beast", "Fury"]
+    },
+    "pegasus": {
+        "adjectives": ["Celestial", "Winged", "Ethereal", "Radiant"],
+        "nouns": ["Pegasus", "Cloudrider", "Skyborne", "Zephyr"]
+    },
+    "goat": {
+        "adjectives": ["Stubborn", "Wild", "Rocky", "Spirited"],
+        "nouns": ["Billy", "Capricorn", "Horned", "Mountain Goat"]
+    },
+    "snake": {
+        "adjectives": ["Sinuous", "Venomous", "Slithering", "Creeping"],
+        "nouns": ["Adder", "Viper", "Serpent", "Cobra"]
+    },
+    "bull": {
+        "adjectives": ["Massive", "Raging", "Sturdy", "Titanic"],
+        "nouns": ["Taurus", "Rampager", "Bovidae", "Goliath"]
+    },
+    "bird": {
+        "adjectives": ["Feathered", "Swift", "Soaring", "Glorious"],
+        "nouns": ["Avian", "Winged", "Skycaller", "Celestial"]
+    },
+    "lion": {
+        "adjectives": ["Regal", "Mighty", "Savage", "Imperial"],
+        "nouns": ["King", "Pride", "Roarer", "Majesty"]
+    },
+    "ipotane": {
+        "adjectives": ["Hybrid", "Mystic", "Noble", "Enigmatic"],
+        "nouns": ["Centaur", "Maned Steed", "Chimera", "Unity"]
+    },
+    "dragon": {
+        "adjectives": ["Fiery", "Ancient", "Mighty", "Infernal", "Scaly", "Blazing"],
+        "nouns": ["Wyrm", "Drake", "Serpent", "Flame", "Sovereign", "Ember", "Scourge"]
+    },
+    "tengu": {
+        "adjectives": ["Mischievous", "Cunning", "Aerial", "Sleek", "Mystic", "Ethereal"],
+        "nouns": ["Tengu", "Crow", "Harbinger", "Trickster", "Raven", "Shade"]
+    }
 }
 
 def generate_unique_name(species=None):
@@ -133,7 +181,6 @@ def generate_unique_name(species=None):
 ######################################
 # 1. ALLELES, MUTATION RATES, AND BASE STATS
 ######################################
-
 ALLELES = ["Hu", "Ho", "Fi", "Go", "Sn", "Bu", "Bi", "Li", "Dr"]  # "Dr" represents the dragon allele
 
 mutation_rates = {
@@ -166,7 +213,6 @@ def random_inherited_allele(gene_tuple):
 ######################################
 # 2. SPECIES DEFINITIONS & DOMINANCE
 ######################################
-
 known_species = {
     ("Hu", "Hu", "Hu"): "human",
     ("Hu", "Hu", "Ho"): "centaur",
@@ -214,7 +260,6 @@ bottom_dominance_order = dominance_order(bottom_counts)
 ######################################
 # 3. GENE EXPRESSION FUNCTIONS
 ######################################
-
 def express_gene(genotype, dom_order):
     for allele in dom_order:
         if allele in genotype:
@@ -239,7 +284,6 @@ def overall_phenotype(top_geno, mid_geno, bottom_geno):
 ######################################
 # 4. FULL GENOTYPE ENUMERATION
 ######################################
-
 def all_gene_genotypes():
     return [tuple(g) for g in itertools.combinations_with_replacement(ALLELES, 2)]
 
@@ -261,7 +305,6 @@ for top_geno in all_gene_genotypes():
 ######################################
 # 5. CROSS-BREEDING FUNCTIONS
 ######################################
-
 def cross_gene(g1, g2):
     outcomes = defaultdict(float)
     for allele1 in g1:
@@ -314,7 +357,6 @@ def cross_breed_from_genotype(geno1, geno2):
 ######################################
 # 6. BASE STAT DICTIONARIES (Realistic Averages)
 ######################################
-
 TOP_STATS = {
     "Hu": {"IQ": 100, "EQ": 90, "Dexterity": 85, "Strength": 60},
     "Ho": {"IQ": 50,  "EQ": 40, "Dexterity": 50, "Strength": 200},
@@ -397,7 +439,6 @@ DIET = {
 ######################################
 # 7. SPECIES STAT SOURCE RULES
 ######################################
-
 DEFAULT_STAT_SOURCES = {
     "IQ": ["top"],
     "EQ": ["top"],
@@ -586,7 +627,6 @@ SPECIES_STAT_SOURCES = {
 ######################################
 # 8. STAT CALCULATION FUNCTIONS (Including Stat Mutation and Size)
 ######################################
-
 STAT_MUTATION_RATE = 0.0001  # 0.01% chance per stat
 
 def get_stat_base(stat, section, allele):
@@ -714,7 +754,6 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
 ######################################
 # 9. OFFSPRING BREEDING FROM SAVED HYBRIDS
 ######################################
-
 def cross_breed_from_genotype(geno1, geno2):
     top_allele1 = random.choice(geno1["top"])
     top_allele2 = random.choice(geno2["top"])
@@ -793,7 +832,6 @@ def breed_from_saved(parent1_name, parent2_name):
 ######################################
 # NEW: RANDOM SIMULATION COMMAND
 ######################################
-
 def simulate_random(n):
     frequency = defaultdict(int)
     for _ in range(n):
@@ -993,7 +1031,7 @@ class HybridCLI:
             output += f"Unknown command: {cmd}\n"
         return output
 
-# Global CLI instance
+# Create a global CLI instance
 cli = HybridCLI()
 
 def run_command(command_line: str) -> str:
