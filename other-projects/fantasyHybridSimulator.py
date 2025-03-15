@@ -67,78 +67,64 @@ STAT_UNITS = {
 }
 
 ######################################
-# DIET MAPPING FOR EACH ALLELE
+# NEW: SPECIES-LEVEL STAT DICTIONARIES
 ######################################
-DIET = {
-    "Hu": "omnivore",
-    "Ho": "herbivore",
-    "Fi": "omnivore",
-    "Go": "herbivore",
-    "Sn": "carnivore",
-    "Bu": "herbivore",
-    "Bi": "omnivore",
-    "Li": "carnivore",
-    "Dr": "carnivore"
+# These dictionaries define the species’ maturation age and lifespan values.
+MATURATION_AGE_SPECIES = {
+    "human": 18,
+    "centaur": 15,
+    "mermaid": 20,
+    "horse": 4,
+    "hippocampus": 2,
+    "fish": 1,
+    "satyr/faun": 12,
+    "naga": 20,
+    "minotaur": 12,
+    "harpy": 10,
+    "griffin": 8,
+    "chimera": 5,
+    "cockatrice/basilisk": 4,
+    "hippogriff": 6,
+    "manticore": 8,
+    "pegasus": 4,
+    "goat": 2,
+    "snake": 2,
+    "bull": 3,
+    "bird": 1,
+    "lion": 3,
+    "ipotane": 16,
+    "dragon": 100,
+    "tengu": 15
 }
 
-######################################
-# NEW: GESTATION, LITTER, MATURATION, LIFESPAN, AND GROWTH RATE STATS (Allele-based for averaging)
-######################################
-GESTATION_STATS = {
-    "Hu": 280,
-    "Ho": 340,
-    "Fi": 1,
-    "Go": 150,
-    "Sn": 60,
-    "Bu": 300,
-    "Bi": 30,
-    "Li": 110,
-    "Dr": 400
+LIFESPAN_SPECIES = {
+    "human": 80,
+    "centaur": 100,
+    "mermaid": 200,
+    "horse": 25,
+    "hippocampus": 30,
+    "fish": 5,
+    "satyr/faun": 100,
+    "naga": 200,
+    "minotaur": 50,
+    "harpy": 40,
+    "griffin": 80,
+    "chimera": 20,
+    "cockatrice/basilisk": 30,
+    "hippogriff": 60,
+    "manticore": 40,
+    "pegasus": 30,
+    "goat": 15,
+    "snake": 20,
+    "bull": 20,
+    "bird": 5,
+    "lion": 15,
+    "ipotane": 80,
+    "dragon": 1000,
+    "tengu": 200
 }
 
-LITTER_STATS = {
-    "Hu": 1,
-    "Ho": 1,
-    "Fi": 1000,
-    "Go": 2,
-    "Sn": 20,
-    "Bu": 1,
-    "Bi": 3,
-    "Li": 3,
-    "Dr": 5
-}
-
-######################################
-# SPECIES TIMING OVERRIDES (Maturation Age and Lifespan per species)
-######################################
-SPECIES_TIMING = {
-    "human": {"maturation_age": 18, "lifespan": 80},
-    "centaur": {"maturation_age": 20, "lifespan": 150},
-    "mermaid": {"maturation_age": 16, "lifespan": 200},
-    "horse": {"maturation_age": 4, "lifespan": 25},
-    "hippocampus": {"maturation_age": 4, "lifespan": 30},
-    "fish": {"maturation_age": 1, "lifespan": 5},
-    "satyr/faun": {"maturation_age": 12, "lifespan": 120},
-    "naga": {"maturation_age": 15, "lifespan": 150},
-    "minotaur": {"maturation_age": 18, "lifespan": 80},
-    "harpy": {"maturation_age": 8, "lifespan": 40},
-    "griffin": {"maturation_age": 10, "lifespan": 50},
-    "chimera": {"maturation_age": 10, "lifespan": 60},
-    "cockatrice/basilisk": {"maturation_age": 10, "lifespan": 50},
-    "hippogriff": {"maturation_age": 12, "lifespan": 80},
-    "manticore": {"maturation_age": 15, "lifespan": 100},
-    "pegasus": {"maturation_age": 10, "lifespan": 70},
-    "goat": {"maturation_age": 2, "lifespan": 15},
-    "snake": {"maturation_age": 2, "lifespan": 20},
-    "bull": {"maturation_age": 3, "lifespan": 20},
-    "bird": {"maturation_age": 1, "lifespan": 10},
-    "lion": {"maturation_age": 3, "lifespan": 15},
-    "ipotane": {"maturation_age": 18, "lifespan": 80},
-    "dragon": {"maturation_age": 100, "lifespan": 1000},
-    "tengu": {"maturation_age": 30, "lifespan": 300}
-}
-
-# Note: Growth Rate is computed so that Growth Rate * Maturation Age = Size
+# Growth Rate will be computed as: Growth Rate = Size / Maturation Age
 
 ######################################
 # SPECIES-SPECIFIC NAMING DICTIONARIES
@@ -259,7 +245,7 @@ def generate_unique_name(species=None):
 ######################################
 # 1. ALLELES, MUTATION RATES, AND BASE STATS
 ######################################
-ALLELES = ["Hu", "Ho", "Fi", "Go", "Sn", "Bu", "Bi", "Li", "Dr"]
+ALLELES = ["Hu", "Ho", "Fi", "Go", "Sn", "Bu", "Bi", "Li", "Dr"]  # "Dr" represents the dragon allele
 
 mutation_rates = {
     "Hu": 1e-6,
@@ -528,8 +514,78 @@ LITTER_STATS = {
     "Dr": 5
 }
 
-# For Maturation Age and Lifespan, we override with species-specific definitions.
-# Growth Rate is computed as: Growth Rate = Size / Maturation Age
+# Instead of calculating these stats from alleles, we now define them per species.
+MATURATION_AGE_SPECIES = {
+    "human": 18,
+    "centaur": 15,
+    "mermaid": 20,
+    "horse": 4,
+    "hippocampus": 2,
+    "fish": 1,
+    "satyr/faun": 12,
+    "naga": 20,
+    "minotaur": 12,
+    "harpy": 10,
+    "griffin": 8,
+    "chimera": 5,
+    "cockatrice/basilisk": 4,
+    "hippogriff": 6,
+    "manticore": 8,
+    "pegasus": 4,
+    "goat": 2,
+    "snake": 2,
+    "bull": 3,
+    "bird": 1,
+    "lion": 3,
+    "ipotane": 16,
+    "dragon": 100,
+    "tengu": 15
+}
+
+LIFESPAN_SPECIES = {
+    "human": 80,
+    "centaur": 100,
+    "mermaid": 200,
+    "horse": 25,
+    "hippocampus": 30,
+    "fish": 5,
+    "satyr/faun": 100,
+    "naga": 200,
+    "minotaur": 50,
+    "harpy": 40,
+    "griffin": 80,
+    "chimera": 20,
+    "cockatrice/basilisk": 30,
+    "hippogriff": 60,
+    "manticore": 40,
+    "pegasus": 30,
+    "goat": 15,
+    "snake": 20,
+    "bull": 20,
+    "bird": 5,
+    "lion": 15,
+    "ipotane": 80,
+    "dragon": 1000,
+    "tengu": 200
+}
+
+# Growth Rate is defined by the relation: Growth Rate = Size / Maturation Age.
+# (We will calculate this later based on the simulated "Size" stat and the species’ maturation age.)
+
+######################################
+# ADD DIET MAPPING FOR EACH ALLELE
+######################################
+DIET = {
+    "Hu": "omnivore",
+    "Ho": "herbivore",
+    "Fi": "omnivore",
+    "Go": "herbivore",
+    "Sn": "carnivore",
+    "Bu": "herbivore",
+    "Bi": "omnivore",
+    "Li": "carnivore",
+    "Dr": "carnivore"
+}
 
 ######################################
 # 7. SPECIES STAT SOURCE RULES
@@ -549,9 +605,9 @@ DEFAULT_STAT_SOURCES = {
     "Fire Breathing": ["top"],
     "Gestation Period": ["bottom"],
     "Litter Size": ["bottom"],
-    "Maturation Age": [],  # Overridden by SPECIES_TIMING
-    "Lifespan": [],        # Overridden by SPECIES_TIMING
-    "Growth Rate": []      # Computed as Size / maturation age
+    "Maturation Age": ["bottom"],
+    "Lifespan": ["bottom"],
+    "Growth Rate": ["bottom"]
 }
 
 SPECIES_STAT_SOURCES = {
@@ -577,9 +633,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "minotaur": DEFAULT_STAT_SOURCES,
     "harpy": {
@@ -597,9 +653,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "griffin": {
         "IQ": ["top"],
@@ -616,9 +672,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "chimera": {
         "IQ": ["top", "mid", "bottom"],
@@ -635,9 +691,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "cockatrice/basilisk": {
         "IQ": ["top"],
@@ -654,9 +710,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "hippogriff": {
         "IQ": ["top"],
@@ -673,9 +729,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "manticore": {
         "IQ": ["top"],
@@ -692,9 +748,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "pegasus": {
         "IQ": ["top"],
@@ -711,9 +767,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "goat": DEFAULT_STAT_SOURCES,
     "snake": DEFAULT_STAT_SOURCES,
@@ -733,9 +789,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "lion": DEFAULT_STAT_SOURCES,
     "ipotane": {
@@ -753,9 +809,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "dragon": DEFAULT_STAT_SOURCES,
     "tengu": {
@@ -773,9 +829,9 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"],
-        "Maturation Age": [],
-        "Lifespan": [],
-        "Growth Rate": []
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     }
 }
 
@@ -820,6 +876,7 @@ def maybe_mutate_stat(value, stat):
     return value, None
 
 def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
+    # For non-chimera species, overall diet is taken from the top allele.
     if species != "chimera":
         overall_diet = DIET.get(top_expr, "omnivore")
     stats = {}
@@ -898,33 +955,23 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats["Strength"] = round(stats["Strength"] * 1.5, 3)
             stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
             stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
-    # Process Gestation Period and Litter Size using weighted average (15% top, 15% mid, 70% bottom)
-    for new_stat, stat_dict in [("Gestation Period", GESTATION_STATS), ("Litter Size", LITTER_STATS)]:
-        base = 0.15 * stat_dict.get(top_expr, 0) + 0.15 * stat_dict.get(mid_expr, 0) + 0.7 * stat_dict.get(bottom_expr, 0)
-        value = apply_random_variation(base)
-        final_value, msg = maybe_mutate_stat(value, new_stat)
-        stats[new_stat] = final_value
-        if msg:
-            mutations[new_stat] = msg
-    # Compute Size first, so that Growth Rate can use it.
+    # Now override species-level stats for maturation age and lifespan using the species dictionaries.
+    if species in MATURATION_AGE_SPECIES:
+        stats["Maturation Age"] = MATURATION_AGE_SPECIES[species]
+    if species in LIFESPAN_SPECIES:
+        stats["Lifespan"] = LIFESPAN_SPECIES[species]
+    # Growth Rate is calculated so that Growth Rate * Maturation Age = Size.
+    # Use the simulated "Size" stat from earlier.
+    if "Maturation Age" in stats and stats["Maturation Age"]:
+        stats["Growth Rate"] = round(stats["Size"] / stats["Maturation Age"], 3)
+    else:
+        stats["Growth Rate"] = 0
     size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
     size_val = apply_random_variation(size_val)
     size_val, size_mut = maybe_mutate_stat(size_val, "Size")
     stats["Size"] = size_val
     if size_mut:
         mutations["Size"] = size_mut
-    # For Maturation Age and Lifespan, use species timing overrides.
-    if species in SPECIES_TIMING:
-        maturation_age = SPECIES_TIMING[species]["maturation_age"]
-        lifespan = SPECIES_TIMING[species]["lifespan"]
-    else:
-        maturation_age = 18
-        lifespan = 80
-    stats["Maturation Age"] = maturation_age
-    stats["Lifespan"] = lifespan
-    # Growth Rate is computed as: Growth Rate = Size / Maturation Age
-    growth_rate = round(stats["Size"] / maturation_age, 3) if maturation_age > 0 else 0
-    stats["Growth Rate"] = growth_rate
     return stats, mutations
 
 ######################################
