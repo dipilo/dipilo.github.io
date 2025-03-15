@@ -69,7 +69,7 @@ STAT_UNITS = {
 ######################################
 # NEW: SPECIES-LEVEL STAT DICTIONARIES
 ######################################
-# These dictionaries define base values for each species.
+# Base values for maturation age and lifespan (in years) per species – these values are inspired by fantasy lore.
 MATURATION_AGE_SPECIES = {
     "human": 18,
     "centaur": 15,
@@ -124,7 +124,7 @@ LIFESPAN_SPECIES = {
     "tengu": 200
 }
 
-# Growth Rate will be computed as: Growth Rate = Size / Maturation Age
+# Growth Rate will be computed as: Growth Rate = Size / Maturation Age.
 
 ######################################
 # SPECIES-SPECIFIC NAMING DICTIONARIES
@@ -514,7 +514,7 @@ LITTER_STATS = {
     "Dr": 5
 }
 
-# For maturation age and lifespan, we define base values per species
+# Species-level maturation age and lifespan are defined per species.
 MATURATION_AGE_SPECIES = {
     "human": 18,
     "centaur": 15,
@@ -569,7 +569,7 @@ LIFESPAN_SPECIES = {
     "tengu": 200
 }
 
-# Growth Rate will be computed later as: Growth Rate = Size / Maturation Age
+# Growth Rate will be computed later as: Growth Rate = Size / Maturation Age.
 
 ######################################
 # ADD DIET MAPPING FOR EACH ALLELE
@@ -875,7 +875,6 @@ def maybe_mutate_stat(value, stat):
     return value, None
 
 def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
-    # For non-chimera species, overall diet is taken from the top allele.
     if species != "chimera":
         overall_diet = DIET.get(top_expr, "omnivore")
     stats = {}
@@ -954,7 +953,15 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats["Strength"] = round(stats["Strength"] * 1.5, 3)
             stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
             stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
-    # Override maturation age and lifespan with species-level values, but add variation and allow mutation.
+    # First, calculate Size from alleles.
+    size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
+    size_val = apply_random_variation(size_val)
+    size_val, size_mut = maybe_mutate_stat(size_val, "Size")
+    stats["Size"] = size_val
+    if size_mut:
+        mutations["Size"] = size_mut
+
+    # Override maturation age and lifespan with species-level values (with variation and mutation).
     if species in MATURATION_AGE_SPECIES:
         base_mat_age = MATURATION_AGE_SPECIES[species]
         mat_age_value = apply_random_variation(base_mat_age)
@@ -969,6 +976,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats["Lifespan"] = life_value
         if life_mut:
             mutations["Lifespan"] = life_mut
+
     # Growth Rate is calculated as: Growth Rate = Size / Maturation Age.
     if "Maturation Age" in stats and stats["Maturation Age"]:
         growth_rate = round(stats["Size"] / stats["Maturation Age"], 3)
@@ -976,13 +984,16 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats["Growth Rate"] = growth_rate
         if gr_mut:
             mutations["Growth Rate"] = gr_mut
-    # Recalculate size from alleles as before
-    size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
-    size_val = apply_random_variation(size_val)
-    size_val, size_mut = maybe_mutate_stat(size_val, "Size")
-    stats["Size"] = size_val
-    if size_mut:
-        mutations["Size"] = size_mut
+
+    # Custom processing for Gestation Period and Litter Size (weighted average: 15% top, 15% mid, 70% bottom).
+    for new_stat, stat_dict in [("Gestation Period", GESTATION_STATS), ("Litter Size", LITTER_STATS)]:
+        base = 0.15 * stat_dict.get(top_expr, 0) + 0.15 * stat_dict.get(mid_expr, 0) + 0.7 * stat_dict.get(bottom_expr, 0)
+        value = apply_random_variation(base)
+        final_value, msg = maybe_mutate_stat(value, new_stat)
+        stats[new_stat] = final_value
+        if msg:
+            mutations[new_stat] = msg
+
     return stats, mutations
 
 ######################################
