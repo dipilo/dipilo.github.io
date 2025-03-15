@@ -138,7 +138,7 @@ SPECIES_TIMING = {
     "tengu": {"maturation_age": 30, "lifespan": 300}
 }
 
-# Growth Rate is calculated so that: Growth Rate * Maturation Age = Size
+# Note: Growth Rate is computed so that Growth Rate * Maturation Age = Size
 
 ######################################
 # SPECIES-SPECIFIC NAMING DICTIONARIES
@@ -504,7 +504,6 @@ SIZE_STATS = {
 ######################################
 # NEW: GESTATION, LITTER, MATURATION, LIFESPAN, AND GROWTH RATE STATS
 ######################################
-# For Gestation and Litter, we use allele-based weighted averages.
 GESTATION_STATS = {
     "Hu": 280,
     "Ho": 340,
@@ -529,8 +528,8 @@ LITTER_STATS = {
     "Dr": 5
 }
 
-# For Maturation Age and Lifespan, use species timing overrides.
-# Growth Rate will be computed as: Growth Rate = Size / Maturation Age
+# For Maturation Age and Lifespan, we override with species-specific definitions.
+# Growth Rate is computed as: Growth Rate = Size / Maturation Age
 
 ######################################
 # 7. SPECIES STAT SOURCE RULES
@@ -907,6 +906,13 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats[new_stat] = final_value
         if msg:
             mutations[new_stat] = msg
+    # Compute Size first, so that Growth Rate can use it.
+    size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
+    size_val = apply_random_variation(size_val)
+    size_val, size_mut = maybe_mutate_stat(size_val, "Size")
+    stats["Size"] = size_val
+    if size_mut:
+        mutations["Size"] = size_mut
     # For Maturation Age and Lifespan, use species timing overrides.
     if species in SPECIES_TIMING:
         maturation_age = SPECIES_TIMING[species]["maturation_age"]
@@ -919,12 +925,6 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
     # Growth Rate is computed as: Growth Rate = Size / Maturation Age
     growth_rate = round(stats["Size"] / maturation_age, 3) if maturation_age > 0 else 0
     stats["Growth Rate"] = growth_rate
-    size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
-    size_val = apply_random_variation(size_val)
-    size_val, size_mut = maybe_mutate_stat(size_val, "Size")
-    stats["Size"] = size_val
-    if size_mut:
-        mutations["Size"] = size_mut
     return stats, mutations
 
 ######################################
