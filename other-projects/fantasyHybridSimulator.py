@@ -69,7 +69,7 @@ STAT_UNITS = {
 ######################################
 # NEW: SPECIES-LEVEL STAT DICTIONARIES
 ######################################
-# Base values for maturation age and lifespan (in years) per species – these values are inspired by fantasy lore.
+# These base values are drawn from a consensus of fantasy role-playing sources.
 MATURATION_AGE_SPECIES = {
     "human": 18,
     "centaur": 15,
@@ -123,8 +123,7 @@ LIFESPAN_SPECIES = {
     "dragon": 1000,
     "tengu": 200
 }
-
-# Growth Rate will be computed as: Growth Rate = Size / Maturation Age.
+# Growth Rate will be computed as: Growth Rate = Size / Maturation Age
 
 ######################################
 # SPECIES-SPECIFIC NAMING DICTIONARIES
@@ -474,7 +473,7 @@ BITE_STATS = {
     "Dr": {"Bite": 900}
 }
 
-# New SIZE_STATS dictionary (in centimeters)
+# New SIZE_STATS dictionary (in centimeters) – base expected sizes.
 SIZE_STATS = {
     "Hu": 170,
     "Ho": 160,
@@ -514,7 +513,6 @@ LITTER_STATS = {
     "Dr": 5
 }
 
-# Species-level maturation age and lifespan are defined per species.
 MATURATION_AGE_SPECIES = {
     "human": 18,
     "centaur": 15,
@@ -568,8 +566,7 @@ LIFESPAN_SPECIES = {
     "dragon": 1000,
     "tengu": 200
 }
-
-# Growth Rate will be computed later as: Growth Rate = Size / Maturation Age.
+# Growth Rate will be computed as: Growth Rate = Size / Maturation Age
 
 ######################################
 # ADD DIET MAPPING FOR EACH ALLELE
@@ -953,9 +950,9 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats["Strength"] = round(stats["Strength"] * 1.5, 3)
             stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
             stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
-    # First, calculate Size from alleles.
-    size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
-    size_val = apply_random_variation(size_val)
+    # First, calculate the simulated Size from alleles.
+    base_size = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
+    size_val = apply_random_variation(base_size)
     size_val, size_mut = maybe_mutate_stat(size_val, "Size")
     stats["Size"] = size_val
     if size_mut:
@@ -987,8 +984,8 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
 
     # Custom processing for Gestation Period and Litter Size (weighted average: 15% top, 15% mid, 70% bottom).
     for new_stat, stat_dict in [("Gestation Period", GESTATION_STATS), ("Litter Size", LITTER_STATS)]:
-        base = 0.15 * stat_dict.get(top_expr, 0) + 0.15 * stat_dict.get(mid_expr, 0) + 0.7 * stat_dict.get(bottom_expr, 0)
-        value = apply_random_variation(base)
+        base_val = 0.15 * stat_dict.get(top_expr, 0) + 0.15 * stat_dict.get(mid_expr, 0) + 0.7 * stat_dict.get(bottom_expr, 0)
+        value = apply_random_variation(base_val)
         final_value, msg = maybe_mutate_stat(value, new_stat)
         stats[new_stat] = final_value
         if msg:
@@ -1040,6 +1037,25 @@ def breed_from_saved(parent1_name, parent2_name):
         mid_expression(offspring_geno["mid"]),
         bottom_expression(offspring_geno["bottom"])
     )
+    # Variant logic:
+    #   - Any species can become Giant if its computed Size is at least 3.0× its base size.
+    #     In that case, we prefix with "Giant " and multiply its Lifespan by 3.0.
+    #   - Only species with a human allele (top allele "Hu") and not manticore can become Dwarven.
+    #     If the computed Size is ≤0.8× base and Strength is ≥1.2× the base top strength, prefix with "Dwarven " and multiply Lifespan by 4.0.
+    off_top = top_expression(offspring_geno["top"])
+    off_mid = mid_expression(offspring_geno["mid"])
+    off_bottom = bottom_expression(offspring_geno["bottom"])
+    base_size = (SIZE_STATS.get(off_top, 170) + SIZE_STATS.get(off_mid, 170) + SIZE_STATS.get(off_bottom, 170)) / 3.0
+    base_strength = TOP_STATS.get(off_top, {}).get("Strength", 60)
+    variant_prefix = ""
+    if sim_stats["Size"] >= 2.5 * base_size:
+        variant_prefix = "Giant "
+        sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 3.0, 3)
+    elif off_top == "Hu" and species != "manticore" and sim_stats["Size"] <= 0.8 * base_size and sim_stats["Strength"] >= 1.2 * base_strength:
+        variant_prefix = "Dwarven "
+        sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 4.0, 3)
+    species_variant = variant_prefix + species
+
     parents_avg = {}
     for stat in ["IQ", "EQ", "Dexterity", "Strength",
                  "Land Speed", "Swim Speed", "Jump Height",
@@ -1063,9 +1079,9 @@ def breed_from_saved(parent1_name, parent2_name):
     if "Venom" in sim_mutations:
         combined_mutations["Venom"] = sim_mutations["Venom"]
     offspring = {
-        "name": generate_unique_name(species),
+        "name": generate_unique_name(species_variant),
         "genotype": offspring_geno,
-        "species": species,
+        "species": species_variant,
         "stats": final_stats,
         "mode": "saved_breed",
         "parents": [parent1_name, parent2_name]
@@ -1188,6 +1204,20 @@ class HybridCLI:
                     except ValueError as e:
                         output += f"Error: {e}\n"
                         return output
+                    off_top = top_expression(result["offspring_top"])
+                    off_mid = mid_expression(result["offspring_mid"])
+                    off_bottom = bottom_expression(result["offspring_bottom"])
+                    stats, mutations = generate_individual_stats(result["phenotype"], off_top, off_mid, off_bottom)
+                    base_size = (SIZE_STATS.get(off_top, 170) + SIZE_STATS.get(off_mid, 170) + SIZE_STATS.get(off_bottom, 170)) / 3.0
+                    base_strength = TOP_STATS.get(off_top, {}).get("Strength", 60)
+                    variant_prefix = ""
+                    if stats["Size"] >= 3.0 * base_size:
+                        variant_prefix = "Giant "
+                        stats["Lifespan"] = round(stats["Lifespan"] * 3.0, 3)
+                    elif off_top == "Hu" and result["phenotype"] != "manticore" and stats["Size"] <= 0.8 * base_size and stats["Strength"] >= 1.2 * base_strength:
+                        variant_prefix = "Dwarven "
+                        stats["Lifespan"] = round(stats["Lifespan"] * 4.0, 3)
+                    result["phenotype"] = variant_prefix + result["phenotype"]
                     output += "\n--- BREEDING RESULT (from known species simulation) ---\n"
                     output += f"Parent 1 ({arg1}) - Genotype: {result['parent1_genotype']}\n"
                     output += f"Parent 2 ({arg2}) - Genotype: {result['parent2_genotype']}\n"
@@ -1196,36 +1226,12 @@ class HybridCLI:
                     output += f"  Mid   : {result['offspring_mid']}\n"
                     output += f"  Bottom: {result['offspring_bottom']}\n"
                     output += f"Offspring species: {result['phenotype']}\n"
-                    if result["phenotype"] is not None:
-                        off_top = top_expression(result["offspring_top"])
-                        off_mid = mid_expression(result["offspring_mid"])
-                        off_bottom = bottom_expression(result["offspring_bottom"])
-                        stats, mutations = generate_individual_stats(result["phenotype"], off_top, off_mid, off_bottom)
-                        if self.SAVE_MODE:
-                            new_name = generate_unique_name(result["phenotype"])
-                            record = {
-                                "name": new_name,
-                                "genotype": {
-                                    "top": list(result["offspring_top"]),
-                                    "mid": list(result["offspring_mid"]),
-                                    "bottom": list(result["offspring_bottom"])
-                                },
-                                "species": result["phenotype"],
-                                "stats": stats,
-                                "mode": "generated",
-                                "parents": []
-                            }
-                            self.saved_hybrids[new_name.lower()] = record
-                            self.save_saved_hybrids()
-                            output += f"\nAssigned unique name: {new_name}\n"
-                        output += "\nOffspring stats (sources per stat are defined by species):\n"
-                        for stat, value in stats.items():
-                            unit = STAT_UNITS.get(stat, "")
-                            output += f"  {stat:15s}: {value} {unit}".rstrip() + "\n"
-                            if stat in mutations:
-                                output += f"                <-- {mutations[stat]}\n"
-                    else:
-                        output += "The offspring species is unknown.\n"
+                    output += "\nOffspring stats (sources per stat are defined by species):\n"
+                    for stat, value in stats.items():
+                        unit = STAT_UNITS.get(stat, "")
+                        output += f"  {stat:15s}: {value} {unit}".rstrip() + "\n"
+                        if stat in mutations:
+                            output += f"                <-- {mutations[stat]}\n"
         elif cmd == "random":
             genotype, sp = random.choice(all_full_genotypes)
             output += "--- RANDOM SPECIES GENERATED ---\n"
@@ -1238,6 +1244,17 @@ class HybridCLI:
             expr_mid = mid_expression(genotype["mid"])
             expr_bottom = bottom_expression(genotype["bottom"])
             stats, mutations = generate_individual_stats(sp, expr_top, expr_mid, expr_bottom)
+            base_size = (SIZE_STATS.get(expr_top, 170) + SIZE_STATS.get(expr_mid, 170) + SIZE_STATS.get(expr_bottom, 170)) / 3.0
+            base_strength = TOP_STATS.get(expr_top, {}).get("Strength", 60)
+            variant_prefix = ""
+            if stats["Size"] >= 3.0 * base_size:
+                variant_prefix = "Giant "
+                stats["Lifespan"] = round(stats["Lifespan"] * 3.0, 3)
+            elif expr_top == "Hu" and sp != "manticore" and stats["Size"] <= 0.8 * base_size and stats["Strength"] >= 1.2 * base_strength:
+                variant_prefix = "Dwarven "
+                stats["Lifespan"] = round(stats["Lifespan"] * 4.0, 3)
+            sp = variant_prefix + sp
+            output += f"Species (with variant): {sp}\n"
             if self.SAVE_MODE:
                 new_name = generate_unique_name(sp)
                 record = {
