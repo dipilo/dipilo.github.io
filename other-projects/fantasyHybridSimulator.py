@@ -40,7 +40,7 @@ STAT_UNITS = {
     "IQ": "IQ points",
     "EQ": "EQ points",
     "Dexterity": "dex",
-    "Strength": "kg",
+    "Strength": "units",
     "Land Speed": "km/h",
     "Swim Speed": "km/h",
     "Jump Height": "m",
@@ -52,6 +52,9 @@ STAT_UNITS = {
     "Fire Breathing": "",
     "Gestation Period": "days",
     "Litter Size": "offspring",
+    "Maturation Age": "years",
+    "Lifespan": "years",
+    "Growth Rate": "cm/year",
     "Lion Head IQ": "IQ points",
     "Goat Head IQ": "IQ points",
     "Snake Head IQ": "IQ points",
@@ -64,7 +67,7 @@ STAT_UNITS = {
 }
 
 ######################################
-# NEW: GESTATION AND LITTER STATS
+# NEW: GESTATION, LITTER, MATURATION, LIFESPAN, AND GROWTH STATS
 ######################################
 GESTATION_STATS = {
     "Hu": 280,  # days, human gestation ~280 days
@@ -88,6 +91,42 @@ LITTER_STATS = {
     "Bi": 3,    # average 3 eggs for birds
     "Li": 3,    # average 3 cubs for lions
     "Dr": 5     # mythical, assume 5
+}
+
+MATURATION_STATS = {
+    "Hu": 18,   # years, human maturation around 18
+    "Ho": 4,    # years, horses mature around 3-4 years
+    "Fi": 1,    # years, fish mature quickly
+    "Go": 2,    # years, goats mature around 2 years
+    "Sn": 2,    # years, snakes mature roughly 2 years
+    "Bu": 3,    # years, cattle mature around 3 years
+    "Bi": 1,    # years, birds mature fast
+    "Li": 3,    # years, lions mature around 3 years
+    "Dr": 50    # years, mythical dragon maturation is slow
+}
+
+LIFESPAN_STATS = {
+    "Hu": 80,    # years, human lifespan around 80
+    "Ho": 25,    # years, horses live around 25 years
+    "Fi": 5,     # years, small fish lifespan
+    "Go": 15,    # years, goats live around 15 years
+    "Sn": 20,    # years, snakes average 20 years
+    "Bu": 20,    # years, cattle live around 20 years
+    "Bi": 10,    # years, average bird lifespan
+    "Li": 15,    # years, lions live around 15 years
+    "Dr": 1000   # years, mythical dragon lifespan
+}
+
+GROWTH_RATE_STATS = {
+    "Hu": 5,     # cm/year, approximate human growth rate
+    "Ho": 30,    # cm/year, horses grow quickly
+    "Fi": 2,     # cm/year, small fish growth rate
+    "Go": 10,    # cm/year, goats
+    "Sn": 5,     # cm/year, snakes
+    "Bu": 15,    # cm/year, moderate for bulls/cattle
+    "Bi": 8,     # cm/year, birds (approx)
+    "Li": 12,    # cm/year, lions
+    "Dr": 50     # cm/year, dragons (mythical, high)
 }
 
 ######################################
@@ -452,30 +491,66 @@ SIZE_STATS = {
 }
 
 ######################################
-# NEW: GESTATION AND LITTER STATS
+# NEW: GESTATION, LITTER, MATURATION, LIFESPAN, AND GROWTH RATE STATS
 ######################################
 GESTATION_STATS = {
-    "Hu": 280,  # days, human gestation ~280 days
-    "Ho": 340,  # days, horse gestation ~340 days
-    "Fi": 1,    # days, fish hatch quickly
-    "Go": 150,  # days, goat gestation ~150 days
-    "Sn": 60,   # days, approximate snake gestation
-    "Bu": 300,  # days, cattle approximate gestation
-    "Bi": 30,   # days, bird incubation period
-    "Li": 110,  # days, lion gestation ~110 days
-    "Dr": 400   # days, mythical dragon gestation estimate
+    "Hu": 280,  # days
+    "Ho": 340,  # days
+    "Fi": 1,    # days
+    "Go": 150,  # days
+    "Sn": 60,   # days
+    "Bu": 300,  # days
+    "Bi": 30,   # days
+    "Li": 110,  # days
+    "Dr": 400   # days
 }
 
 LITTER_STATS = {
-    "Hu": 1,    # typically 1
-    "Ho": 1,    # typically 1
-    "Fi": 1000, # many eggs for fish
-    "Go": 2,    # average 2 kids for goats
-    "Sn": 20,   # average litter size for snakes (approx)
-    "Bu": 1,    # typically 1
-    "Bi": 3,    # average 3 eggs for birds
-    "Li": 3,    # average 3 cubs for lions
-    "Dr": 5     # mythical, assume 5
+    "Hu": 1,
+    "Ho": 1,
+    "Fi": 1000,
+    "Go": 2,
+    "Sn": 20,
+    "Bu": 1,
+    "Bi": 3,
+    "Li": 3,
+    "Dr": 5
+}
+
+MATURATION_STATS = {
+    "Hu": 18,   # years
+    "Ho": 4,    # years
+    "Fi": 1,    # years
+    "Go": 2,    # years
+    "Sn": 2,    # years
+    "Bu": 3,    # years
+    "Bi": 1,    # years
+    "Li": 3,    # years
+    "Dr": 50    # years
+}
+
+LIFESPAN_STATS = {
+    "Hu": 80,    # years
+    "Ho": 25,    # years
+    "Fi": 5,     # years
+    "Go": 15,    # years
+    "Sn": 20,    # years
+    "Bu": 20,    # years
+    "Bi": 10,    # years
+    "Li": 15,    # years
+    "Dr": 1000   # years
+}
+
+GROWTH_RATE_STATS = {
+    "Hu": 5,    # cm/year
+    "Ho": 30,   # cm/year
+    "Fi": 2,    # cm/year
+    "Go": 10,   # cm/year
+    "Sn": 5,    # cm/year
+    "Bu": 15,   # cm/year
+    "Bi": 8,    # cm/year
+    "Li": 12,   # cm/year
+    "Dr": 50    # cm/year
 }
 
 ######################################
@@ -510,7 +585,10 @@ DEFAULT_STAT_SOURCES = {
     "Venom": ["top"],
     "Fire Breathing": ["top"],
     "Gestation Period": ["bottom"],
-    "Litter Size": ["bottom"]
+    "Litter Size": ["bottom"],
+    "Maturation Age": ["bottom"],
+    "Lifespan": ["bottom"],
+    "Growth Rate": ["bottom"]
 }
 
 SPECIES_STAT_SOURCES = {
@@ -535,7 +613,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "minotaur": DEFAULT_STAT_SOURCES,
     "harpy": {
@@ -552,7 +633,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "griffin": {
         "IQ": ["top"],
@@ -568,7 +652,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "chimera": {
         "IQ": ["top", "mid", "bottom"],
@@ -584,7 +671,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "cockatrice/basilisk": {
         "IQ": ["top"],
@@ -600,7 +690,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "hippogriff": {
         "IQ": ["top"],
@@ -616,7 +709,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "manticore": {
         "IQ": ["top"],
@@ -632,7 +728,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "pegasus": {
         "IQ": ["top"],
@@ -648,7 +747,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "goat": DEFAULT_STAT_SOURCES,
     "snake": DEFAULT_STAT_SOURCES,
@@ -667,7 +769,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "lion": DEFAULT_STAT_SOURCES,
     "ipotane": {
@@ -684,7 +789,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     },
     "dragon": DEFAULT_STAT_SOURCES,
     "tengu": {
@@ -701,7 +809,10 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"]
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     }
 }
 
@@ -725,7 +836,7 @@ def get_stat_base(stat, section, allele):
         return 1 if allele in ["Sn", "Dr"] else 0
     elif stat == "Fire Breathing":
         return 1 if allele == "Dr" else 0
-    # Gestation Period and Litter Size are handled separately.
+    # Gestation Period, Litter Size, Maturation Age, Lifespan, and Growth Rate are handled separately.
     else:
         return 0
 
@@ -825,9 +936,15 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats["Strength"] = round(stats["Strength"] * 1.5, 3)
             stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
             stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
-    # Custom processing for Gestation Period and Litter Size:
-    for new_stat, stat_dict in [("Gestation Period", GESTATION_STATS), ("Litter Size", LITTER_STATS)]:
-        # Weighted average: 15% top, 15% mid, 70% bottom
+    # Custom processing for Gestation Period, Litter Size, Maturation Age, Lifespan, and Growth Rate:
+    for new_stat, stat_dict in [
+        ("Gestation Period", GESTATION_STATS), 
+        ("Litter Size", LITTER_STATS),
+        ("Maturation Age", MATURATION_STATS),
+        ("Lifespan", LIFESPAN_STATS),
+        ("Growth Rate", GROWTH_RATE_STATS)
+    ]:
+        # Weighted average: 15% from top allele, 15% from mid allele, 70% from bottom allele.
         base = 0.15 * stat_dict.get(top_expr, 0) + 0.15 * stat_dict.get(mid_expr, 0) + 0.7 * stat_dict.get(bottom_expr, 0)
         value = apply_random_variation(base)
         final_value, msg = maybe_mutate_stat(value, new_stat)
