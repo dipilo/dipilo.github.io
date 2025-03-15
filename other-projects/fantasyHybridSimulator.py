@@ -69,7 +69,7 @@ STAT_UNITS = {
 ######################################
 # NEW: SPECIES-LEVEL STAT DICTIONARIES
 ######################################
-# These dictionaries define the species’ maturation age and lifespan values.
+# These dictionaries define base values for each species.
 MATURATION_AGE_SPECIES = {
     "human": 18,
     "centaur": 15,
@@ -514,7 +514,7 @@ LITTER_STATS = {
     "Dr": 5
 }
 
-# Instead of calculating these stats from alleles, we now define them per species.
+# For maturation age and lifespan, we define base values per species
 MATURATION_AGE_SPECIES = {
     "human": 18,
     "centaur": 15,
@@ -569,8 +569,7 @@ LIFESPAN_SPECIES = {
     "tengu": 200
 }
 
-# Growth Rate is defined by the relation: Growth Rate = Size / Maturation Age.
-# (We will calculate this later based on the simulated "Size" stat and the species’ maturation age.)
+# Growth Rate will be computed later as: Growth Rate = Size / Maturation Age
 
 ######################################
 # ADD DIET MAPPING FOR EACH ALLELE
@@ -955,17 +954,29 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats["Strength"] = round(stats["Strength"] * 1.5, 3)
             stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
             stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
-    # Now override species-level stats for maturation age and lifespan using the species dictionaries.
+    # Override maturation age and lifespan with species-level values, but add variation and allow mutation.
     if species in MATURATION_AGE_SPECIES:
-        stats["Maturation Age"] = MATURATION_AGE_SPECIES[species]
+        base_mat_age = MATURATION_AGE_SPECIES[species]
+        mat_age_value = apply_random_variation(base_mat_age)
+        mat_age_value, mat_mut = maybe_mutate_stat(mat_age_value, "Maturation Age")
+        stats["Maturation Age"] = mat_age_value
+        if mat_mut:
+            mutations["Maturation Age"] = mat_mut
     if species in LIFESPAN_SPECIES:
-        stats["Lifespan"] = LIFESPAN_SPECIES[species]
-    # Growth Rate is calculated so that Growth Rate * Maturation Age = Size.
-    # Use the simulated "Size" stat from earlier.
+        base_life = LIFESPAN_SPECIES[species]
+        life_value = apply_random_variation(base_life)
+        life_value, life_mut = maybe_mutate_stat(life_value, "Lifespan")
+        stats["Lifespan"] = life_value
+        if life_mut:
+            mutations["Lifespan"] = life_mut
+    # Growth Rate is calculated as: Growth Rate = Size / Maturation Age.
     if "Maturation Age" in stats and stats["Maturation Age"]:
-        stats["Growth Rate"] = round(stats["Size"] / stats["Maturation Age"], 3)
-    else:
-        stats["Growth Rate"] = 0
+        growth_rate = round(stats["Size"] / stats["Maturation Age"], 3)
+        growth_rate, gr_mut = maybe_mutate_stat(growth_rate, "Growth Rate")
+        stats["Growth Rate"] = growth_rate
+        if gr_mut:
+            mutations["Growth Rate"] = gr_mut
+    # Recalculate size from alleles as before
     size_val = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
     size_val = apply_random_variation(size_val)
     size_val, size_mut = maybe_mutate_stat(size_val, "Size")
