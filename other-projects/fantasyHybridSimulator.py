@@ -737,7 +737,7 @@ SPECIES_STAT_SOURCES = {
         "Land Speed": ["mid"],
         "Swim Speed": ["mid"],
         "Jump Height": ["mid"],
-        "Flight Speed": [],
+        "Flight Speed": ["mid"],
         "Climbing": ["bottom"],
         "Bite": ["top"],
         "Venom": ["bottom"],
