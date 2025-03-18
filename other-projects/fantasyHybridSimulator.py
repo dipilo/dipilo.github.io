@@ -809,7 +809,25 @@ SPECIES_STAT_SOURCES = {
         "Lifespan": ["bottom"],
         "Growth Rate": ["bottom"]
     },
-    "dragon": DEFAULT_STAT_SOURCES,
+    "dragon": {
+            "IQ": ["top"],
+        "EQ": ["top"],
+        "Dexterity": ["top"],
+        "Strength": ["top"],
+        "Land Speed": ["bottom"],
+        "Swim Speed": ["bottom"],
+        "Jump Height": ["bottom"],
+        "Flight Speed": ["mid"],
+        "Climbing": ["bottom"],
+        "Bite": ["top"],
+        "Venom": ["top"],
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
+    },
     "tengu": {
         "IQ": ["bottom"],
         "EQ": ["bottom"],
