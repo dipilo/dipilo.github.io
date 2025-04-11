@@ -580,15 +580,27 @@ footer {
 
 /* Minecraft Mods page overrides */
 body.minecraft-mods {
-  /* Use the Minecraft end portal as the background */
   background-image: url('/images/backgrounds/end_portal.png');
   background-repeat: repeat;
-  /* Set the default custom cursor (regular elements) */
-  cursor: url('/images/cursors/pixelated_cursor.cur'), auto;
+  /* Animate the background: 
+     - Duration: 0.8s gives 16 frames at ~50ms each (simulate frametime: 1)
+     - steps(16) ensures the animation jumps discreetly between frames */
+  animation: animate-end-portal 0.8s steps(16) infinite;
+  /* Adjust the default cursor – with modified hotspot coordinates to try to reduce its apparent size */
+  cursor: url('/images/cursors/pixelated_cursor.cur') 8 8, auto;
+}
+
+@keyframes animate-end-portal {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 -256px;
+  }
 }
 
 /* For interactive elements, use the pixelated pointer */
 body.minecraft-mods a,
 body.minecraft-mods button {
-  cursor: url('/images/cursors/pixelated_pointer.cur'), pointer;
+  cursor: url('/images/cursors/pixelated_pointer.cur') 8 8, pointer;
 }
