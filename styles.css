@@ -577,3 +577,18 @@ footer {
 .resizable-console .drag-handle:hover {
   background-color: #6A1B9A;   /* Hover color */
 }
+
+/* Minecraft Mods page overrides */
+body.minecraft-mods {
+  /* Use the Minecraft end portal as the background */
+  background-image: url('/images/backgrounds/end_portal.png');
+  background-repeat: repeat;
+  /* Set the default custom cursor (regular elements) */
+  cursor: url('/images/cursors/pixelated_cursor.cur'), auto;
+}
+
+/* For interactive elements, use the pixelated pointer */
+body.minecraft-mods a,
+body.minecraft-mods button {
+  cursor: url('/images/cursors/pixelated_pointer.cur'), pointer;
+}
