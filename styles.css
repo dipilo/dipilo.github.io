@@ -580,31 +580,35 @@ footer {
 
 /* Minecraft Mods page overrides */
 body.minecraft-mods {
-  background-color: #000; /* Fallback color */
+  background-color: #000; /* Fallback background color */
   background-image: url('/images/backgrounds/end_portal.png');
   background-repeat: no-repeat;
-  /* Ensure the background image uses its 16-pixel width without horizontal tiling */
-  background-size: 16px auto;
-  /* Center the narrow background column */
+  /* Stretch the 16px-wide image horizontally to fill the viewport */
+  background-size: 100% auto;
+  /* Start the animation at the top, centered horizontally */
   background-position: center top;
-  /* Animate the background vertically by shifting exactly one frame (16px) at a time */
+  /* Animate by shifting the background vertically in 16 step increments:
+     0.8s duration gives 16 frames at frametime 1 (0.8/16 ≈ 0.05s per frame) */
   animation: animate-end-portal 0.8s steps(16) infinite;
-  /* Set the default custom cursor with adjusted hotspot coordinates */
+  /* Set the default cursor with adjusted hotspot.
+     Note: CSS cannot scale custom cursor images. If the cursors still appear too large,
+     you must supply smaller versions (e.g., create new files like 'small_pixelated_cursor.cur'). */
   cursor: url('/images/cursors/pixelated_cursor.cur') 8 8, auto;
 }
 
-/* Keyframes animation to cycle through the frames of the texture vertically */
 @keyframes animate-end-portal {
   from {
-    background-position: center 0px;
+    /* Start at the top */
+    background-position: center top;
   }
   to {
-    /* Shifts the background upward by 256px (16 frames of 16px each) */
+    /* Shift upward by 256px so the frames cycle through:
+       The horizontal centering remains in place. */
     background-position: center -256px;
   }
 }
 
-/* For interactive elements (links and buttons) on the Minecraft Mods page */
+/* For links and buttons on the Minecraft Mods page */
 body.minecraft-mods a,
 body.minecraft-mods button {
   cursor: url('/images/cursors/pixelated_pointer.cur') 8 8, pointer;
