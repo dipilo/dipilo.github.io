@@ -587,7 +587,7 @@ body.minecraft-mods {
      - steps(16) ensures the animation jumps discreetly between frames */
   animation: animate-end-portal 0.8s steps(16) infinite;
   /* Adjust the default cursor – with modified hotspot coordinates to try to reduce its apparent size */
-  cursor: url('/images/cursors/pixelated_cursor.cur') 8 8, auto;
+  cursor: url('/images/cursors/pixelated_cursor.cur') 1 1, auto;
 }
 
 @keyframes animate-end-portal {
@@ -602,5 +602,5 @@ body.minecraft-mods {
 /* For interactive elements, use the pixelated pointer */
 body.minecraft-mods a,
 body.minecraft-mods button {
-  cursor: url('/images/cursors/pixelated_pointer.cur') 8 8, pointer;
+  cursor: url('/images/cursors/pixelated_pointer.cur') 1 1, pointer;
 }
