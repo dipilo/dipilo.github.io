@@ -580,27 +580,32 @@ footer {
 
 /* Minecraft Mods page overrides */
 body.minecraft-mods {
+  background-color: #000; /* Fallback color */
   background-image: url('/images/backgrounds/end_portal.png');
-  background-repeat: repeat;
-  /* Animate the background: 
-     - Duration: 0.8s gives 16 frames at ~50ms each (simulate frametime: 1)
-     - steps(16) ensures the animation jumps discreetly between frames */
+  background-repeat: no-repeat;
+  /* Ensure the background image uses its 16-pixel width without horizontal tiling */
+  background-size: 16px auto;
+  /* Center the narrow background column */
+  background-position: center top;
+  /* Animate the background vertically by shifting exactly one frame (16px) at a time */
   animation: animate-end-portal 0.8s steps(16) infinite;
-  /* Adjust the default cursor – with modified hotspot coordinates to try to reduce its apparent size */
-  cursor: url('/images/cursors/pixelated_cursor.cur') 1 1, auto;
+  /* Set the default custom cursor with adjusted hotspot coordinates */
+  cursor: url('/images/cursors/pixelated_cursor.cur') 8 8, auto;
 }
 
+/* Keyframes animation to cycle through the frames of the texture vertically */
 @keyframes animate-end-portal {
   from {
-    background-position: 0 0;
+    background-position: center 0px;
   }
   to {
-    background-position: 0 -256px;
+    /* Shifts the background upward by 256px (16 frames of 16px each) */
+    background-position: center -256px;
   }
 }
 
-/* For interactive elements, use the pixelated pointer */
+/* For interactive elements (links and buttons) on the Minecraft Mods page */
 body.minecraft-mods a,
 body.minecraft-mods button {
-  cursor: url('/images/cursors/pixelated_pointer.cur') 1 1, pointer;
+  cursor: url('/images/cursors/pixelated_pointer.cur') 8 8, pointer;
 }
