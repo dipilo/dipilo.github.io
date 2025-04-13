@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Background</title>
+  <title>Video Background Debug</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
-      background-color: black;
+      background-color: black; /* Fallback background color */
     }
     #end-portal-video {
       position: fixed;
@@ -19,19 +19,55 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      z-index: 0; /* Ensure it's in view */
+      z-index: 0;
+    }
+    #debug-output {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 0.5rem;
+      font-family: monospace;
+      max-width: 100%;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
   <video autoplay muted loop playsinline id="end-portal-video">
     <source src="/images/backgrounds/end_portal.webm" type="video/webm">
-    <source src="/images/backgrounds/end_portal.mp4" type="video/mp4">
     <source src="/images/backgrounds/end_portal.mov" type="video/quicktime">
-    <source src="/images/backgrounds/end_portal.mkv" type="video/x-matroska">
-    <source src="/images/backgrounds/end_portal.avi" type="video/x-msvideo">
     <source src="/images/backgrounds/end_portal.gif" type="image/gif">
     Your browser does not support the video tag.
   </video>
+
+  <div id="debug-output"></div>
+
+  <script>
+    const video = document.getElementById("end-portal-video");
+    const debugOutput = document.getElementById("debug-output");
+
+    function logEvent(message) {
+      console.log(message);
+      debugOutput.textContent += message + "\n";
+    }
+
+    video.addEventListener("loadeddata", () => {
+      logEvent("Event: loadeddata - first frame is loaded.");
+    });
+
+    video.addEventListener("canplay", () => {
+      logEvent("Event: canplay - video can start playing.");
+    });
+
+    video.addEventListener("playing", () => {
+      logEvent("Event: playing - video is now playing.");
+    });
+
+    video.addEventListener("error", (event) => {
+      logEvent("Event: error - " + event.message || "An error occurred.");
+    });
+  </script>
 </body>
 </html>
