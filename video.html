@@ -10,6 +10,7 @@
       padding: 0;
       height: 100%;
       overflow: hidden;
+      background-color: black; /* Fallback background color */
     }
     #end-portal-video {
       position: fixed;
@@ -17,14 +18,21 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover; /* Cover the screen without distortion */
-      z-index: -1;      /* Ensure the video stays behind everything else */
+      object-fit: cover;
+      z-index: -1;
     }
   </style>
 </head>
 <body>
-  <video autoplay muted loop id="end-portal-video">
-    <source src="/images/backgrounds/end_portal.mp4" type="video/mp4">
+  <video autoplay muted loop id="end-portal-video" poster="/images/backgrounds/end_portal.jpg">
+    <!-- Preferred format: WebM -->
+    <source src="/images/backgrounds/end_portal.webm" type="video/webm">
+    <!-- Other video formats (note: not all browsers support these) -->
+    <source src="/images/backgrounds/end_portal.mov" type="video/quicktime">
+    <source src="/images/backgrounds/end_portal.mkv" type="video/x-matroska">
+    <source src="/images/backgrounds/end_portal.avi" type="video/x-msvideo">
+    <!-- As a last resort, a GIF may work in some contexts, though not ideal -->
+    <source src="/images/backgrounds/end_portal.gif" type="image/gif">
     Your browser does not support the video tag.
   </video>
 </body>
