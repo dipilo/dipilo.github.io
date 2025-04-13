@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Background Test</title>
+  <title>Video Background</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
+      background-color: black;
     }
     #end-portal-video {
       position: fixed;
@@ -17,14 +18,19 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover; /* Cover the screen without distortion */
-      z-index: -1;      /* Ensure the video stays behind everything else */
+      object-fit: cover;
+      z-index: 0; /* Ensure it's in view */
     }
   </style>
 </head>
 <body>
-  <video autoplay muted loop id="end-portal-video">
+  <video autoplay muted loop playsinline id="end-portal-video">
+    <source src="/images/backgrounds/end_portal.webm" type="video/webm">
     <source src="/images/backgrounds/end_portal.mp4" type="video/mp4">
+    <source src="/images/backgrounds/end_portal.mov" type="video/quicktime">
+    <source src="/images/backgrounds/end_portal.mkv" type="video/x-matroska">
+    <source src="/images/backgrounds/end_portal.avi" type="video/x-msvideo">
+    <source src="/images/backgrounds/end_portal.gif" type="image/gif">
     Your browser does not support the video tag.
   </video>
 </body>

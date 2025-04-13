@@ -1,8 +1,7 @@
 images/backgrounds/end_portal.mp4 filter=lfs diff=lfs merge=lfs -text
-*.mp4 filter=lfs diff=lfs merge=lfs -text
-*.avi filter=lfs diff=lfs merge=lfs -text
-*.ogg filter=lfs diff=lfs merge=lfs -text
-*.webm filter=lfs diff=lfs merge=lfs -text
-*.mov filter=lfs diff=lfs merge=lfs -text
-*.mkv filter=lfs diff=lfs merge=lfs -text
-*.gif filter=lfs diff=lfs merge=lfs -text
+images/backgrounds/end_portal.png filter=lfs diff=lfs merge=lfs -text
+images/backgrounds/end_portal.webm filter=lfs diff=lfs merge=lfs -text
+images/backgrounds/end_portal.avi filter=lfs diff=lfs merge=lfs -text
+images/backgrounds/end_portal.gif filter=lfs diff=lfs merge=lfs -text
+images/backgrounds/end_portal.mkv filter=lfs diff=lfs merge=lfs -text
+images/backgrounds/end_portal.mov filter=lfs diff=lfs merge=lfs -text
