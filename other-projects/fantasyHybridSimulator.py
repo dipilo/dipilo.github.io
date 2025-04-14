@@ -63,7 +63,13 @@ STAT_UNITS = {
     "Snake Head EQ": "",
     "Lion Head Diet": "",
     "Goat Head Diet": "",
-    "Snake Head Diet": ""
+    "Snake Head Diet": "",
+    "Vision": "cycles/degree",
+    "Smell": "ppb",
+    "Hearing": "Hz",
+    "Thaumagen Production Rate": "J/hour",
+    "Thaumacyst Max Capacity": "J",
+    "Thaucyst Current Capacity": "J"
 }
 
 ######################################
@@ -513,6 +519,35 @@ LITTER_STATS = {
     "Dr": 5
 }
 
+# NEW: Per-allele Senses Stats
+# Units: Vision in cycles/degree (e.g. human ~30 cpd); Smell in parts-per-billion (ppb) detection threshold (lower values are more sensitive, so here higher numbers indicate better sensitivity);
+# Hearing in Hz (upper limit of audible range).
+SENSE_STATS_PER_ALLELE = {
+    "Hu": {"Vision": 30,  "Smell": 100, "Hearing": 20000},
+    "Ho": {"Vision": 20,  "Smell": 120, "Hearing": 25000},
+    "Fi": {"Vision": 10,  "Smell": 40,  "Hearing": 5000},
+    "Go": {"Vision": 25,  "Smell": 150, "Hearing": 20000},
+    "Sn": {"Vision": 5,   "Smell": 200, "Hearing": 1000},
+    "Bu": {"Vision": 20,  "Smell": 110, "Hearing": 15000},
+    "Bi": {"Vision": 60,  "Smell": 30,  "Hearing": 30000},
+    "Li": {"Vision": 25,  "Smell": 140, "Hearing": 20000},
+    "Dr": {"Vision": 50,  "Smell": 200, "Hearing": 35000}
+}
+
+# NEW: Per-allele Magical Stats (for Beam energy)
+# Units: Thaumagen Production Rate in Joules/hour; Thaumacyst capacity in Joules.
+MAGIC_STATS_PER_ALLELE = {
+    "Hu": {"Thaumagen": 10, "Thaumacyst": 100},
+    "Ho": {"Thaumagen": 12, "Thaumacyst": 110},
+    "Fi": {"Thaumagen": 2,  "Thaumacyst": 20},
+    "Go": {"Thaumagen": 8,  "Thaumacyst": 90},
+    "Sn": {"Thaumagen": 5,  "Thaumacyst": 60},
+    "Bu": {"Thaumagen": 9,  "Thaumacyst": 105},
+    "Bi": {"Thaumagen": 15, "Thaumacyst": 140},
+    "Li": {"Thaumagen": 12, "Thaumacyst": 130},
+    "Dr": {"Thaumagen": 25, "Thaumacyst": 300}
+}
+
 MATURATION_AGE_SPECIES = {
     "human": 18,
     "centaur": 15,
@@ -810,7 +845,7 @@ SPECIES_STAT_SOURCES = {
         "Growth Rate": ["bottom"]
     },
     "dragon": {
-            "IQ": ["top"],
+        "IQ": ["top"],
         "EQ": ["top"],
         "Dexterity": ["top"],
         "Strength": ["top"],
@@ -890,11 +925,13 @@ def maybe_mutate_stat(value, stat):
     return value, None
 
 def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
+    # (Existing code for computing other stats remains unchanged up to the point just after computing "Size", "Maturation Age" and "Lifespan".)
     if species != "chimera":
         overall_diet = DIET.get(top_expr, "omnivore")
     stats = {}
     mutations = {}
     if species == "chimera":
+        # Existing chimera-specific calculations for IQ and EQ per head.
         iq_top = apply_random_variation(TOP_STATS[top_expr]["IQ"])
         iq_top, mut_iq_top = maybe_mutate_stat(iq_top, "IQ")
         iq_mid = apply_random_variation(TOP_STATS[mid_expr]["IQ"])
@@ -916,6 +953,30 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats["Lion Head Diet"] = DIET.get(top_expr, "omnivore")
         stats["Goat Head Diet"] = DIET.get(mid_expr, "omnivore")
         stats["Snake Head Diet"] = DIET.get(bottom_expr, "omnivore")
+        # For the senses, compute separate stats for each head using the corresponding allele.
+        for sense in ["Vision", "Smell", "Hearing"]:
+            # Get the base value from each allele-specific sense stat.
+            lion_base = SENSE_STATS_PER_ALLELE[top_expr][sense]
+            goat_base = SENSE_STATS_PER_ALLELE[mid_expr][sense]
+            snake_base = SENSE_STATS_PER_ALLELE[bottom_expr][sense]
+            # Apply variation and mutation individually.
+            lion_val = apply_random_variation(lion_base)
+            lion_val, lion_mut = maybe_mutate_stat(lion_val, sense)
+            goat_val = apply_random_variation(goat_base)
+            goat_val, goat_mut = maybe_mutate_stat(goat_val, sense)
+            snake_val = apply_random_variation(snake_base)
+            snake_val, snake_mut = maybe_mutate_stat(snake_val, sense)
+            # Save each stat with a head-specific key.
+            stats[f"Lion Head {sense}"] = lion_val
+            stats[f"Goat Head {sense}"] = goat_val
+            stats[f"Snake Head {sense}"] = snake_val
+            # Record any mutations.
+            if lion_mut:
+                mutations[f"Lion Head {sense}"] = lion_mut
+            if goat_mut:
+                mutations[f"Goat Head {sense}"] = goat_mut
+            if snake_mut:
+                mutations[f"Snake Head {sense}"] = snake_mut
         for stat in ["Dexterity", "Strength", "Land Speed", "Swim Speed", "Jump Height", "Flight Speed", "Climbing", "Bite", "Venom", "Fire Breathing"]:
             sources = SPECIES_STAT_SOURCES.get(species, DEFAULT_STAT_SOURCES).get(stat, [])
             if not sources:
@@ -968,7 +1029,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats["Strength"] = round(stats["Strength"] * 1.5, 3)
             stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
             stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
-    # First, calculate the simulated Size from alleles.
+    # Existing calculations for Size, Maturation Age, Lifespan, and Growth Rate:
     base_size = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
     size_val = apply_random_variation(base_size)
     size_val, size_mut = maybe_mutate_stat(size_val, "Size")
@@ -976,7 +1037,6 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
     if size_mut:
         mutations["Size"] = size_mut
 
-    # Override maturation age and lifespan with species-level values (with variation and mutation).
     if species in MATURATION_AGE_SPECIES:
         base_mat_age = MATURATION_AGE_SPECIES[species]
         mat_age_value = apply_random_variation(base_mat_age)
@@ -992,7 +1052,6 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         if life_mut:
             mutations["Lifespan"] = life_mut
 
-    # Growth Rate is calculated as: Growth Rate = Size / Maturation Age.
     if "Maturation Age" in stats and stats["Maturation Age"]:
         growth_rate = round(stats["Size"] / stats["Maturation Age"], 3)
         growth_rate, gr_mut = maybe_mutate_stat(growth_rate, "Growth Rate")
@@ -1000,7 +1059,6 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         if gr_mut:
             mutations["Growth Rate"] = gr_mut
 
-    # Custom processing for Gestation Period and Litter Size (weighted average: 15% top, 15% mid, 70% bottom).
     for new_stat, stat_dict in [("Gestation Period", GESTATION_STATS), ("Litter Size", LITTER_STATS)]:
         base_val = 0.15 * stat_dict.get(top_expr, 0) + 0.15 * stat_dict.get(mid_expr, 0) + 0.7 * stat_dict.get(bottom_expr, 0)
         value = apply_random_variation(base_val)
@@ -1008,6 +1066,51 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats[new_stat] = final_value
         if msg:
             mutations[new_stat] = msg
+
+    # --- NEW: Calculate Senses Stats from Per-allele Contributions ---
+    senses = {}
+    for sense in ["Vision", "Smell", "Hearing"]:
+        # Average the values from each allele's base sense stat.
+        alleles = [top_expr, mid_expr, bottom_expr]
+        vals = [SENSE_STATS_PER_ALLELE[allele][sense] for allele in alleles]
+        avg_val = sum(vals) / len(vals)
+        avg_val = apply_random_variation(avg_val)
+        avg_val, msg = maybe_mutate_stat(avg_val, sense)
+        senses[sense] = avg_val
+        if msg:
+            mutations[sense] = msg
+    stats.update(senses)
+
+    # --- NEW: Calculate Magic Stats (Thaumagen and Thaumacyst) from Per-allele Contributions ---
+    # Average Thaumagen production rate per allele.
+    magic_vals = {"Thaumagen": [], "Thaumacyst": []}
+    for allele in [top_expr, mid_expr, bottom_expr]:
+        for key in magic_vals:
+            magic_vals[key].append(MAGIC_STATS_PER_ALLELE[allele][key])
+    avg_thaumagen = sum(magic_vals["Thaumagen"]) / 3
+    avg_thaumacyst = sum(magic_vals["Thaumacyst"]) / 3
+    production_rate = apply_random_variation(avg_thaumagen)
+    production_rate, msg = maybe_mutate_stat(production_rate, "Thaumagen Production Rate")
+    stats["Thaumagen Production Rate"] = production_rate
+    if msg:
+        mutations["Thaumagen Production Rate"] = msg
+
+    # Scale Thaumacyst maximum capacity by Size (bigger species get larger storage)
+    scaled_thaumacyst = avg_thaumacyst * (stats["Size"] / 170)
+    scaled_thaumacyst = apply_random_variation(scaled_thaumacyst)
+    scaled_thaumacyst, msg = maybe_mutate_stat(scaled_thaumacyst, "Thaumacyst Max Capacity")
+    stats["Thaumacyst Max Capacity"] = scaled_thaumacyst
+    if msg:
+        mutations["Thaumacyst Max Capacity"] = msg
+
+    # Compute Current Capacity based on a fraction of the Maturation Age.
+    age_fraction = random.uniform(0, 1)
+    current_capacity = age_fraction * scaled_thaumacyst
+    current_capacity = apply_random_variation(current_capacity)
+    current_capacity, msg = maybe_mutate_stat(current_capacity, "Thaumacyst Current Capacity")
+    stats["Thaumacyst Current Capacity"] = current_capacity
+    if msg:
+        mutations["Thaumacyst Current Capacity"] = msg
 
     return stats, mutations
 
