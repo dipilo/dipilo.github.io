@@ -72,9 +72,9 @@ STAT_UNITS = {
     "Hearing Lower": "Hz",
     "Hearing Upper": "Hz",
     "Hearing Distance": "m",
-    "Thaumagen Production Rate": "J/hour",
-    "Thaumacyst Max Capacity": "J",
-    "Thaucyst Current Capacity": "J"
+    "Thaumagen Production Rate": "BCU/hour",
+    "Thaumacyst Max Capacity": "BCU",
+    "Thaucyst Current Capacity": "BCU"
 }
 
 ######################################
