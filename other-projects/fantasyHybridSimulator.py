@@ -1038,7 +1038,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats["diet"] = DIET.get(top_expr, "omnivore")
         # Average the detailed sense stats.
         for sense in ["Visual Field", "Visual Acuity", "Smell Strength", "Smell Acuity", "Smell Distance",
-                      "Hearing Lower", "Hearing Upper", "Hearing Acuity", "Hearing Distance"]:
+                      "Hearing Lower", "Hearing Upper", "Hearing Distance"]:
             alleles = [top_expr, mid_expr, bottom_expr]
             vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele][sense] for allele in alleles]
             avg_val = sum(vals) / len(vals)
