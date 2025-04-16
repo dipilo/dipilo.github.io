@@ -11,19 +11,7 @@ header {
   background-color: #7B1FA2;  /* Theme header color */
   color: #fff;
   padding: 1rem;
-  position: fixed;  /* Fix it to the top */
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 10;  /* Make sure it stays on top of the video background but below modal overlays */
 }
-
-/* Prevent the header from overlapping the content */
-main {
-  margin-top: 70px;  /* Adjust this value based on the actual header height */
-  padding: 2rem;
-}
-
 
 /* Navigation buttons */
 .nav-buttons {
@@ -61,6 +49,11 @@ main {
     width: 90%; /* makes buttons more touch friendly */
     text-align: center;
   }
+}
+
+/* Main content */
+main {
+  padding: 2rem;
 }
 
 /* Footer styling */
