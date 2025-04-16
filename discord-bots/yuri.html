@@ -20,19 +20,17 @@
     </nav>
   </header>
   <main>
-    <h2>
-      <a class="invite-link" href="https://discord.com/oauth2/authorize?client_id=1356047610393264133" target="_blank">
-        Invite Yuri
-      </a>
-    </h2>
-    
-    <!-- Dropdown for Bot Description / Information -->
+    <!-- Dropdown for Invite Link and Bot Information -->
     <div class="dropdown-section">
       <div class="dropdown-header">
-        <a class="section-link" href="#">Bot Information</a>
+        <!-- Invite link as the header -->
+        <a class="invite-link section-link" href="https://discord.com/oauth2/authorize?client_id=1356047610393264133" target="_blank">
+          Invite Yuri
+        </a>
+        <!-- Toggle button to reveal/hide the bot information -->
         <button class="dropdown-toggle" onclick="toggleDropdown('bot-info')">&#9660;</button>
       </div>
-      <div id="bot-info" class="dropdown-content">
+      <div id="bot-info" class="dropdown-content" style="display: none;">
         <p>
           Yuri is a TCG (Trading Card Game) in which you collect different girl-kissing girl characters and ships from different forms of media by being the first to type “Yuri” in chat whenever a card spawns.
           This includes any girl or female, or any ship involving two girls or females, who are canonically and/or fanonically lesbian, bi, pan, queer, or sapphic.
