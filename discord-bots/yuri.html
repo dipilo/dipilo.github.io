@@ -20,11 +20,18 @@
     </nav>
   </header>
   <main>
-    <h2><a class="invite-link" href="https://discord.com/oauth2/authorize?client_id=1356047610393264133" target="_blank">Invite Yuri</a></h2>
-    <!-- Additional Yuri content goes here -->
-    <p>Yuri is a TCG (Trading Card Game) in which you collect different girl-kissing girl characters and ships from different forms of media by being the first to type “Yuri” in chat whenever a card spawns.
+    <h2>
+      <a class="invite-link" href="https://discord.com/oauth2/authorize?client_id=1356047610393264133" target="_blank">
+        Invite Yuri
+      </a>
+    </h2>
+    <p>
+      Yuri is a TCG (Trading Card Game) in which you collect different girl-kissing girl characters and ships from different forms of media by being the first to type “Yuri” in chat whenever a card spawns.
       This includes any girl or female, or any ship involving two girls or females, who are canonically and/or fanonically lesbian, bi, pan, queer, or sapphic.
-      Gambling coming soon.</p>
+      Gambling coming soon.
+    </p>
+    
+    <!-- Discord Server Widget Section -->
     <section id="socials">
       <h2 style="text-align: center;">Support Server</h2>
       <div style="text-align: center;">
@@ -41,11 +48,29 @@
             <div class="drag-handle"></div>
           </div>
         </div>
+      </div>
     </section>
   </main>
   
   <footer>
     <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
   </footer>
+
+  <!-- Optional: Include external scripts if needed -->
+  <script src="/drag-resize.js"></script>
+  <script src="/dropdown.js"></script>
+  
+  <!-- Inline script to handle dropdown toggling -->
+  <script>
+    function toggleDropdown(id) {
+      var content = document.getElementById(id);
+      // If you have a toggle button in the header of the widget, adjust accordingly.
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    }
+  </script>
 </body>
 </html>
