@@ -64,9 +64,14 @@ STAT_UNITS = {
     "Lion Head Diet": "",
     "Goat Head Diet": "",
     "Snake Head Diet": "",
-    "Vision": "cycles/degree",
-    "Smell": "ppb",
-    "Hearing": "Hz",
+    "Visual Field": "cycles/degree",
+    "Visual Acuity": "20/x",
+    "Smell Strength": "ppb",
+    "Smell Acuity": "ouE/m³",
+    "Smell Distance": "m",
+    "Hearing Lower": "Hz",
+    "Hearing Upper": "Hz",
+    "Hearing Distance": "m",
     "Thaumagen Production Rate": "J/hour",
     "Thaumacyst Max Capacity": "J",
     "Thaucyst Current Capacity": "J"
@@ -522,20 +527,31 @@ LITTER_STATS = {
 # NEW: Per-allele Senses Stats
 # Units: Vision in cycles/degree (e.g. human ~30 cpd); Smell in parts-per-billion (ppb) detection threshold (lower values are more sensitive, so here higher numbers indicate better sensitivity);
 # Hearing in Hz (upper limit of audible range).
-SENSE_STATS_PER_ALLELE = {
-    "Hu": {"Vision": 30,  "Smell": 100, "Hearing": 20000},
-    "Ho": {"Vision": 20,  "Smell": 120, "Hearing": 25000},
-    "Fi": {"Vision": 10,  "Smell": 40,  "Hearing": 5000},
-    "Go": {"Vision": 25,  "Smell": 150, "Hearing": 20000},
-    "Sn": {"Vision": 5,   "Smell": 200, "Hearing": 1000},
-    "Bu": {"Vision": 20,  "Smell": 110, "Hearing": 15000},
-    "Bi": {"Vision": 60,  "Smell": 30,  "Hearing": 30000},
-    "Li": {"Vision": 25,  "Smell": 140, "Hearing": 20000},
-    "Dr": {"Vision": 50,  "Smell": 200, "Hearing": 35000}
+SENSE_DETAIL_STATS_PER_ALLELE = {
+    "Hu": {"Visual Field": 120, "Visual Acuity": 1.0, "Smell Strength": 10, "Smell Acuity": 100, "Smell Distance": 5,
+           "Hearing Lower": 20, "Hearing Upper": 20000, "Hearing Distance": 100},
+    "Ho": {"Visual Field": 150, "Visual Acuity": 0.8, "Smell Strength": 8,  "Smell Acuity": 120, "Smell Distance": 10,
+           "Hearing Lower": 14, "Hearing Upper": 25000, "Hearing Distance": 150},
+    "Fi": {"Visual Field": 60,  "Visual Acuity": 0.5, "Smell Strength": 5,  "Smell Acuity": 50,  "Smell Distance": 2,
+           "Hearing Lower": 50, "Hearing Upper": 5000,  "Hearing Distance": 30},
+    "Go": {"Visual Field": 100, "Visual Acuity": 0.9, "Smell Strength": 5,  "Smell Acuity": 150, "Smell Distance": 15,
+           "Hearing Lower": 20, "Hearing Upper": 20000, "Hearing Distance": 80},
+    "Sn": {"Visual Field": 40,  "Visual Acuity": 0.4, "Smell Strength": 3,  "Smell Acuity": 200, "Smell Distance": 20,
+           "Hearing Lower": 10, "Hearing Upper": 10000, "Hearing Distance": 50},
+    "Bu": {"Visual Field": 90,  "Visual Acuity": 0.8, "Smell Strength": 7,  "Smell Acuity": 110, "Smell Distance": 8,
+           "Hearing Lower": 25, "Hearing Upper": 18000, "Hearing Distance": 70},
+    "Bi": {"Visual Field": 300, "Visual Acuity": 2.0, "Smell Strength": 2,  "Smell Acuity": 180, "Smell Distance": 30,
+           "Hearing Lower": 30, "Hearing Upper": 22000, "Hearing Distance": 250},
+    "Li": {"Visual Field": 120, "Visual Acuity": 1.1, "Smell Strength": 6,  "Smell Acuity": 140, "Smell Distance": 10,
+           "Hearing Lower": 20, "Hearing Upper": 20000, "Hearing Distance": 100},
+    "Dr": {"Visual Field": 220, "Visual Acuity": 1.5, "Smell Strength": 3,  "Smell Acuity": 200, "Smell Distance": 50,
+           "Hearing Lower": 15, "Hearing Upper": 30000, "Hearing Distance": 300}
 }
 
-# NEW: Per-allele Magical Stats (for Beam energy)
-# Units: Thaumagen Production Rate in Joules/hour; Thaumacyst capacity in Joules.
+# NEW: Detailed Per-allele Magic Stats for Beam Energy.
+# Units:
+# • Thaumagen Production Rate: Joules/hour;
+# • Thaumacyst Capacity: Joules.
 MAGIC_STATS_PER_ALLELE = {
     "Hu": {"Thaumagen": 10, "Thaumacyst": 100},
     "Ho": {"Thaumagen": 12, "Thaumacyst": 110},
@@ -925,13 +941,12 @@ def maybe_mutate_stat(value, stat):
     return value, None
 
 def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
-    # (Existing code for computing other stats remains unchanged up to the point just after computing "Size", "Maturation Age" and "Lifespan".)
     if species != "chimera":
         overall_diet = DIET.get(top_expr, "omnivore")
     stats = {}
     mutations = {}
     if species == "chimera":
-        # Existing chimera-specific calculations for IQ and EQ per head.
+        # Existing chimera calculations for IQ/EQ per head.
         iq_top = apply_random_variation(TOP_STATS[top_expr]["IQ"])
         iq_top, mut_iq_top = maybe_mutate_stat(iq_top, "IQ")
         iq_mid = apply_random_variation(TOP_STATS[mid_expr]["IQ"])
@@ -953,31 +968,26 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats["Lion Head Diet"] = DIET.get(top_expr, "omnivore")
         stats["Goat Head Diet"] = DIET.get(mid_expr, "omnivore")
         stats["Snake Head Diet"] = DIET.get(bottom_expr, "omnivore")
-        # For the senses, compute separate stats for each head using the corresponding allele.
-        for sense in ["Vision", "Smell", "Hearing"]:
-            # Get the base value from each allele-specific sense stat.
-            lion_base = SENSE_STATS_PER_ALLELE[top_expr][sense]
-            goat_base = SENSE_STATS_PER_ALLELE[mid_expr][sense]
-            snake_base = SENSE_STATS_PER_ALLELE[bottom_expr][sense]
-            # Apply variation and mutation individually.
-            lion_val = apply_random_variation(lion_base)
+        # For chimera, compute sense stats separately per head:
+        for sense in ["Visual Field", "Visual Acuity", "Smell Strength", "Smell Acuity", "Smell Distance",
+                      "Hearing Lower", "Hearing Upper", "Hearing Distance"]:
+            lion_val = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[top_expr][sense])
             lion_val, lion_mut = maybe_mutate_stat(lion_val, sense)
-            goat_val = apply_random_variation(goat_base)
+            goat_val = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[mid_expr][sense])
             goat_val, goat_mut = maybe_mutate_stat(goat_val, sense)
-            snake_val = apply_random_variation(snake_base)
+            snake_val = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[bottom_expr][sense])
             snake_val, snake_mut = maybe_mutate_stat(snake_val, sense)
-            # Save each stat with a head-specific key.
             stats[f"Lion Head {sense}"] = lion_val
             stats[f"Goat Head {sense}"] = goat_val
             stats[f"Snake Head {sense}"] = snake_val
-            # Record any mutations.
             if lion_mut:
                 mutations[f"Lion Head {sense}"] = lion_mut
             if goat_mut:
                 mutations[f"Goat Head {sense}"] = goat_mut
             if snake_mut:
                 mutations[f"Snake Head {sense}"] = snake_mut
-        for stat in ["Dexterity", "Strength", "Land Speed", "Swim Speed", "Jump Height", "Flight Speed", "Climbing", "Bite", "Venom", "Fire Breathing"]:
+        for stat in ["Dexterity", "Strength", "Land Speed", "Swim Speed", "Jump Height",
+                     "Flight Speed", "Climbing", "Bite", "Venom", "Fire Breathing"]:
             sources = SPECIES_STAT_SOURCES.get(species, DEFAULT_STAT_SOURCES).get(stat, [])
             if not sources:
                 base = 0
@@ -1003,6 +1013,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         if mut_eq_mid: mutations["Goat Head EQ"] = mut_eq_mid
         if mut_eq_bottom: mutations["Snake Head EQ"] = mut_eq_bottom
     else:
+        # For non-chimera species, we average the detailed sense stats across the three alleles.
         for stat in ["IQ", "EQ", "Dexterity", "Strength",
                      "Land Speed", "Swim Speed", "Jump Height",
                      "Flight Speed", "Climbing", "Bite", "Venom", "Fire Breathing"]:
@@ -1025,11 +1036,18 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             if msg:
                 mutations[stat] = msg
         stats["diet"] = DIET.get(top_expr, "omnivore")
-        if species == "naga":
-            stats["Strength"] = round(stats["Strength"] * 1.5, 3)
-            stats["Dexterity"] = round(stats["Dexterity"] * 1.5, 3)
-            stats["Climbing"] = round(stats["Climbing"] * 1.5, 3)
-    # Existing calculations for Size, Maturation Age, Lifespan, and Growth Rate:
+        # Average the detailed sense stats.
+        for sense in ["Visual Field", "Visual Acuity", "Smell Strength", "Smell Acuity", "Smell Distance",
+                      "Hearing Lower", "Hearing Upper", "Hearing Acuity", "Hearing Distance"]:
+            alleles = [top_expr, mid_expr, bottom_expr]
+            vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele][sense] for allele in alleles]
+            avg_val = sum(vals) / len(vals)
+            avg_val = apply_random_variation(avg_val)
+            avg_val, msg = maybe_mutate_stat(avg_val, sense)
+            stats[sense] = avg_val
+            if msg:
+                mutations[sense] = msg
+    # Size, Maturation Age, Lifespan, and Growth Rate (existing code)
     base_size = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
     size_val = apply_random_variation(base_size)
     size_val, size_mut = maybe_mutate_stat(size_val, "Size")
@@ -1067,21 +1085,20 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         if msg:
             mutations[new_stat] = msg
 
-    # --- NEW: Calculate Senses Stats from Per-allele Contributions ---
-    senses = {}
-    for sense in ["Vision", "Smell", "Hearing"]:
-        # Average the values from each allele's base sense stat.
+    # --- NEW: Calculate Detailed Sense Stats for Non-chimera Species ---
+    for sense in ["Visual Field", "Visual Acuity", "Smell Strength", "Smell Acuity", "Smell Distance",
+                  "Hearing Lower", "Hearing Upper", "Hearing Distance"]:
+        # Average the values from each allele's detailed sense stat.
         alleles = [top_expr, mid_expr, bottom_expr]
-        vals = [SENSE_STATS_PER_ALLELE[allele][sense] for allele in alleles]
+        vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele][sense] for allele in alleles]
         avg_val = sum(vals) / len(vals)
         avg_val = apply_random_variation(avg_val)
         avg_val, msg = maybe_mutate_stat(avg_val, sense)
-        senses[sense] = avg_val
+        stats[sense] = avg_val
         if msg:
             mutations[sense] = msg
-    stats.update(senses)
 
-    # --- NEW: Calculate Magic Stats (Thaumagen and Thaumacyst) from Per-allele Contributions ---
+    # --- NEW: Calculate Magic Stats (Thaumagen and Thaumacyst as a fraction) ---
     # Average Thaumagen production rate per allele.
     magic_vals = {"Thaumagen": [], "Thaumacyst": []}
     for allele in [top_expr, mid_expr, bottom_expr]:
@@ -1095,22 +1112,20 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
     if msg:
         mutations["Thaumagen Production Rate"] = msg
 
-    # Scale Thaumacyst maximum capacity by Size (bigger species get larger storage)
+    # Scale Thaumacyst maximum capacity by Size.
     scaled_thaumacyst = avg_thaumacyst * (stats["Size"] / 170)
     scaled_thaumacyst = apply_random_variation(scaled_thaumacyst)
     scaled_thaumacyst, msg = maybe_mutate_stat(scaled_thaumacyst, "Thaumacyst Max Capacity")
-    stats["Thaumacyst Max Capacity"] = scaled_thaumacyst
-    if msg:
-        mutations["Thaumacyst Max Capacity"] = msg
-
-    # Compute Current Capacity based on a fraction of the Maturation Age.
+    # Instead of separate current and max, display as a fraction "current/max"
     age_fraction = random.uniform(0, 1)
     current_capacity = age_fraction * scaled_thaumacyst
     current_capacity = apply_random_variation(current_capacity)
-    current_capacity, msg = maybe_mutate_stat(current_capacity, "Thaumacyst Current Capacity")
-    stats["Thaumacyst Current Capacity"] = current_capacity
+    current_capacity, msg2 = maybe_mutate_stat(current_capacity, "Thaumacyst Current Capacity")
+    stats["Thaumacyst Capacity"] = f"{current_capacity:.1f}/{scaled_thaumacyst:.1f}"
     if msg:
-        mutations["Thaumacyst Current Capacity"] = msg
+        mutations["Thaumacyst Capacity"] = msg
+    if msg2:
+        mutations["Thaumacyst Capacity"] = msg2
 
     return stats, mutations
 
