@@ -65,12 +65,12 @@ STAT_UNITS = {
     "Goat Head Diet": "",
     "Snake Head Diet": "",
     "Visual Field": "degrees",
-    "Visual Acuity": "cpd, 20/x",
+    "Visual Acuity": "",
     "Smell Strength": "ppb",
     "Smell Acuity": "ouE/m³",
     "Smell Distance": "m",
-    "Hearing Range": "Hz",
-    "Hearing Distance": "m",
+    "Hearing Range": "",
+    "Hearing Distance": "",
     "Thaumagen Production Rate": "BCU/hour",
     "Thaumacyst Max Capacity": "BCU",
     "Thaucyst Current Capacity": "BCU"
@@ -1182,8 +1182,6 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             if msg:
                 mutations[stat] = msg
         stats["diet"] = DIET.get(top_expr, "omnivore")
-        stats["Visual Acuity"] = f"{round(avg_cpd,1)} cpd, 20/{round(avg_snellen)}"
-
 
     # Compute Size, Maturation Age, Lifespan, and Growth Rate (existing code)
     base_size = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
