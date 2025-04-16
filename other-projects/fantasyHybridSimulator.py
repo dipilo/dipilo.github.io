@@ -64,13 +64,12 @@ STAT_UNITS = {
     "Lion Head Diet": "",
     "Goat Head Diet": "",
     "Snake Head Diet": "",
-    "Visual Field": "cycles/degree",
-    "Visual Acuity": "20/x",
+    "Visual Field": "degrees",
+    "Visual Acuity": "cpd, 20/x",
     "Smell Strength": "ppb",
     "Smell Acuity": "ouE/m³",
     "Smell Distance": "m",
-    "Hearing Lower": "Hz",
-    "Hearing Upper": "Hz",
+    "Hearing Range": "Hz",
     "Hearing Distance": "m",
     "Thaumagen Production Rate": "BCU/hour",
     "Thaumacyst Max Capacity": "BCU",
@@ -528,24 +527,96 @@ LITTER_STATS = {
 # Units: Vision in cycles/degree (e.g. human ~30 cpd); Smell in parts-per-billion (ppb) detection threshold (lower values are more sensitive, so here higher numbers indicate better sensitivity);
 # Hearing in Hz (upper limit of audible range).
 SENSE_DETAIL_STATS_PER_ALLELE = {
-    "Hu": {"Visual Field": 120, "Visual Acuity": 1.0, "Smell Strength": 10, "Smell Acuity": 100, "Smell Distance": 5,
-           "Hearing Lower": 20, "Hearing Upper": 20000, "Hearing Distance": 100},
-    "Ho": {"Visual Field": 150, "Visual Acuity": 0.8, "Smell Strength": 8,  "Smell Acuity": 120, "Smell Distance": 10,
-           "Hearing Lower": 14, "Hearing Upper": 25000, "Hearing Distance": 150},
-    "Fi": {"Visual Field": 60,  "Visual Acuity": 0.5, "Smell Strength": 5,  "Smell Acuity": 50,  "Smell Distance": 2,
-           "Hearing Lower": 50, "Hearing Upper": 5000,  "Hearing Distance": 30},
-    "Go": {"Visual Field": 100, "Visual Acuity": 0.9, "Smell Strength": 5,  "Smell Acuity": 150, "Smell Distance": 15,
-           "Hearing Lower": 20, "Hearing Upper": 20000, "Hearing Distance": 80},
-    "Sn": {"Visual Field": 40,  "Visual Acuity": 0.4, "Smell Strength": 3,  "Smell Acuity": 200, "Smell Distance": 20,
-           "Hearing Lower": 10, "Hearing Upper": 10000, "Hearing Distance": 50},
-    "Bu": {"Visual Field": 90,  "Visual Acuity": 0.8, "Smell Strength": 7,  "Smell Acuity": 110, "Smell Distance": 8,
-           "Hearing Lower": 25, "Hearing Upper": 18000, "Hearing Distance": 70},
-    "Bi": {"Visual Field": 300, "Visual Acuity": 2.0, "Smell Strength": 2,  "Smell Acuity": 180, "Smell Distance": 30,
-           "Hearing Lower": 30, "Hearing Upper": 22000, "Hearing Distance": 250},
-    "Li": {"Visual Field": 120, "Visual Acuity": 1.1, "Smell Strength": 6,  "Smell Acuity": 140, "Smell Distance": 10,
-           "Hearing Lower": 20, "Hearing Upper": 20000, "Hearing Distance": 100},
-    "Dr": {"Visual Field": 220, "Visual Acuity": 1.5, "Smell Strength": 3,  "Smell Acuity": 200, "Smell Distance": 50,
-           "Hearing Lower": 15, "Hearing Upper": 30000, "Hearing Distance": 300}
+    "Hu": {
+        "Visual Field": 180, 
+        "Visual Acuity": {"cpd": 30, "Snellen": 20},  # 30 cpd; 20/20 vision
+        "Smell Strength": 10, 
+        "Smell Acuity": 100,         # in OUₑ/m³
+        "Smell Distance": 5,
+        "Hearing Lower": 20, 
+        "Hearing Upper": 20000, 
+        "Hearing Distance": 100
+    },
+    "Ho": {
+        "Visual Field": 200, 
+        "Visual Acuity": {"cpd": 20, "Snellen": 25},
+        "Smell Strength": 8,  
+        "Smell Acuity": 120,        
+        "Smell Distance": 10,
+        "Hearing Lower": 14, 
+        "Hearing Upper": 25000, 
+        "Hearing Distance": 150
+    },
+    "Fi": {
+        "Visual Field": 90,  
+        "Visual Acuity": {"cpd": 10, "Snellen": 40},
+        "Smell Strength": 5,  
+        "Smell Acuity": 50,  
+        "Smell Distance": 2,
+        "Hearing Lower": 50, 
+        "Hearing Upper": 5000,  
+        "Hearing Distance": 30
+    },
+    "Go": {
+        "Visual Field": 160, 
+        "Visual Acuity": {"cpd": 25, "Snellen": 22},
+        "Smell Strength": 5,  
+        "Smell Acuity": 150, 
+        "Smell Distance": 15,
+        "Hearing Lower": 20, 
+        "Hearing Upper": 20000, 
+        "Hearing Distance": 80
+    },
+    "Sn": {
+        "Visual Field": 120, 
+        "Visual Acuity": {"cpd": 8, "Snellen": 50},
+        "Smell Strength": 3,  
+        "Smell Acuity": 200, 
+        "Smell Distance": 20,
+        "Hearing Lower": 10, 
+        "Hearing Upper": 10000, 
+        "Hearing Distance": 50
+    },
+    "Bu": {
+        "Visual Field": 140, 
+        "Visual Acuity": {"cpd": 12, "Snellen": 45},
+        "Smell Strength": 7,  
+        "Smell Acuity": 110, 
+        "Smell Distance": 8,
+        "Hearing Lower": 25, 
+        "Hearing Upper": 18000, 
+        "Hearing Distance": 70
+    },
+    "Bi": {
+        "Visual Field": 320, 
+        "Visual Acuity": {"cpd": 40, "Snellen": 15},
+        "Smell Strength": 2,  
+        "Smell Acuity": 180, 
+        "Smell Distance": 30,
+        "Hearing Lower": 30, 
+        "Hearing Upper": 22000, 
+        "Hearing Distance": 250
+    },
+    "Li": {
+        "Visual Field": 180, 
+        "Visual Acuity": {"cpd": 28, "Snellen": 20},
+        "Smell Strength": 6,  
+        "Smell Acuity": 140, 
+        "Smell Distance": 10,
+        "Hearing Lower": 20, 
+        "Hearing Upper": 20000, 
+        "Hearing Distance": 100
+    },
+    "Dr": {
+        "Visual Field": 240, 
+        "Visual Acuity": {"cpd": 35, "Snellen": 18},
+        "Smell Strength": 3,  
+        "Smell Acuity": 200, 
+        "Smell Distance": 50,
+        "Hearing Lower": 15, 
+        "Hearing Upper": 30000, 
+        "Hearing Distance": 300
+    }
 }
 
 # NEW: Detailed Per-allele Magic Stats for Beam Energy.
@@ -946,7 +1017,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
     stats = {}
     mutations = {}
     if species == "chimera":
-        # Existing chimera calculations for IQ/EQ per head.
+        # Existing chimera-specific calculations for IQ and EQ
         iq_top = apply_random_variation(TOP_STATS[top_expr]["IQ"])
         iq_top, mut_iq_top = maybe_mutate_stat(iq_top, "IQ")
         iq_mid = apply_random_variation(TOP_STATS[mid_expr]["IQ"])
@@ -968,24 +1039,63 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats["Lion Head Diet"] = DIET.get(top_expr, "omnivore")
         stats["Goat Head Diet"] = DIET.get(mid_expr, "omnivore")
         stats["Snake Head Diet"] = DIET.get(bottom_expr, "omnivore")
-        # For chimera, compute sense stats separately per head:
-        for sense in ["Visual Field", "Visual Acuity", "Smell Strength", "Smell Acuity", "Smell Distance",
-                      "Hearing Lower", "Hearing Upper", "Hearing Distance"]:
-            lion_val = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[top_expr][sense])
-            lion_val, lion_mut = maybe_mutate_stat(lion_val, sense)
-            goat_val = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[mid_expr][sense])
-            goat_val, goat_mut = maybe_mutate_stat(goat_val, sense)
-            snake_val = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[bottom_expr][sense])
-            snake_val, snake_mut = maybe_mutate_stat(snake_val, sense)
-            stats[f"Lion Head {sense}"] = lion_val
-            stats[f"Goat Head {sense}"] = goat_val
-            stats[f"Snake Head {sense}"] = snake_val
-            if lion_mut:
-                mutations[f"Lion Head {sense}"] = lion_mut
-            if goat_mut:
-                mutations[f"Goat Head {sense}"] = goat_mut
-            if snake_mut:
-                mutations[f"Snake Head {sense}"] = snake_mut
+        # Calculate detailed sense stats for each head separately.
+        for head, allele in zip(["Lion Head", "Goat Head", "Snake Head"], [top_expr, mid_expr, bottom_expr]):
+            # Visual Field (in degrees)
+            vf = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Field"])
+            vf, vf_mut = maybe_mutate_stat(vf, "Visual Field")
+            stats[f"{head} Visual Field"] = vf
+            if vf_mut:
+                mutations[f"{head} Visual Field"] = vf_mut
+
+            # Visual Acuity: compute separately from 'cpd' and 'Snellen', then format as "X cpd, 20/Y"
+            va = SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Acuity"]
+            cpd_val = apply_random_variation(va["cpd"])
+            cpd_val, cpd_mut = maybe_mutate_stat(cpd_val, "Visual Acuity")
+            snellen_val = va["Snellen"]  # assumed relatively fixed per allele
+            stats[f"{head} Visual Acuity"] = f"{round(cpd_val,1)} cpd, 20/{round(snellen_val)}"
+            if cpd_mut:
+                mutations[f"{head} Visual Acuity"] = cpd_mut
+
+            # Smell Strength
+            ss = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Strength"])
+            ss, ss_mut = maybe_mutate_stat(ss, "Smell Strength")
+            stats[f"{head} Smell Strength"] = ss
+            if ss_mut:
+                mutations[f"{head} Smell Strength"] = ss_mut
+
+            # Smell Acuity (in OUₑ/m³)
+            sa = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Acuity"])
+            sa, sa_mut = maybe_mutate_stat(sa, "Smell Acuity")
+            stats[f"{head} Smell Acuity"] = sa
+            if sa_mut:
+                mutations[f"{head} Smell Acuity"] = sa_mut
+
+            # Smell Distance (in meters)
+            sd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Distance"])
+            sd, sd_mut = maybe_mutate_stat(sd, "Smell Distance")
+            stats[f"{head} Smell Distance"] = sd
+            if sd_mut:
+                mutations[f"{head} Smell Distance"] = sd_mut
+
+            # Hearing: Calculate lower and upper limits, then combine into a Hearing Range.
+            hl = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Lower"])
+            hl, hl_mut = maybe_mutate_stat(hl, "Hearing Lower")
+            hu = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Upper"])
+            hu, hu_mut = maybe_mutate_stat(hu, "Hearing Upper")
+            stats[f"{head} Hearing Range"] = f"{round(hl,1)}-{round(hu,1)} Hz"
+            if hl_mut:
+                mutations[f"{head} Hearing Lower"] = hl_mut
+            if hu_mut:
+                mutations[f"{head} Hearing Upper"] = hu_mut
+
+            # Hearing Distance (in meters)
+            hd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Distance"])
+            hd, hd_mut = maybe_mutate_stat(hd, "Hearing Distance")
+            stats[f"{head} Hearing Distance"] = f"{round(hd,1)} m"
+            if hd_mut:
+                mutations[f"{head} Hearing Distance"] = hd_mut
+
         for stat in ["Dexterity", "Strength", "Land Speed", "Swim Speed", "Jump Height",
                      "Flight Speed", "Climbing", "Bite", "Venom", "Fire Breathing"]:
             sources = SPECIES_STAT_SOURCES.get(species, DEFAULT_STAT_SOURCES).get(stat, [])
@@ -1013,7 +1123,43 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         if mut_eq_mid: mutations["Goat Head EQ"] = mut_eq_mid
         if mut_eq_bottom: mutations["Snake Head EQ"] = mut_eq_bottom
     else:
-        # For non-chimera species, we average the detailed sense stats across the three alleles.
+        # For non-chimera species, average the detailed sense stats from the three alleles.
+        # For hearing, compute average lower and upper then combine into a range.
+        for sense in ["Visual Field", "Smell Strength", "Smell Acuity", "Smell Distance"]:
+            alleles = [top_expr, mid_expr, bottom_expr]
+            vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele][sense] for allele in alleles]
+            avg_val = sum(vals) / 3
+            avg_val = apply_random_variation(avg_val)
+            avg_val, msg = maybe_mutate_stat(avg_val, sense)
+            stats[sense] = avg_val
+            if msg:
+                mutations[sense] = msg
+
+        # For Visual Acuity, average the 'cpd' and 'Snellen' separately:
+        va_vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Acuity"] for allele in [top_expr, mid_expr, bottom_expr]]
+        avg_cpd = sum([v["cpd"] for v in va_vals]) / 3
+        avg_snellen = sum([v["Snellen"] for v in va_vals]) / 3
+        avg_cpd = apply_random_variation(avg_cpd)
+        avg_cpd, msg = maybe_mutate_stat(avg_cpd, "Visual Acuity")
+        if msg:
+            mutations["Visual Acuity"] = msg
+        stats["Visual Acuity"] = f"{round(avg_cpd,1)} cpd, 20/{round(avg_snellen)}"
+
+        # For Hearing Range, average the lower and upper limits, then display as a range.
+        lower_vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Lower"] for allele in [top_expr, mid_expr, bottom_expr]]
+        upper_vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Upper"] for allele in [top_expr, mid_expr, bottom_expr]]
+        avg_lower = apply_random_variation(sum(lower_vals) / 3)
+        avg_upper = apply_random_variation(sum(upper_vals) / 3)
+        stats["Hearing Range"] = f"{round(avg_lower,1)}-{round(avg_upper,1)} Hz"
+
+        # Also average Hearing Distance:
+        hearing_distance_vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Distance"] for allele in [top_expr, mid_expr, bottom_expr]]
+        avg_hearing_distance = apply_random_variation(sum(hearing_distance_vals) / 3)
+        avg_hearing_distance, msg = maybe_mutate_stat(avg_hearing_distance, "Hearing Distance")
+        stats["Hearing Distance"] = f"{round(avg_hearing_distance,1)} m"
+        if msg:
+            mutations["Hearing Distance"] = msg
+        # Continue with other physical stats:
         for stat in ["IQ", "EQ", "Dexterity", "Strength",
                      "Land Speed", "Swim Speed", "Jump Height",
                      "Flight Speed", "Climbing", "Bite", "Venom", "Fire Breathing"]:
@@ -1036,18 +1182,15 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             if msg:
                 mutations[stat] = msg
         stats["diet"] = DIET.get(top_expr, "omnivore")
-        # Average the detailed sense stats.
-        for sense in ["Visual Field", "Visual Acuity", "Smell Strength", "Smell Acuity", "Smell Distance",
-                      "Hearing Lower", "Hearing Upper", "Hearing Distance"]:
-            alleles = [top_expr, mid_expr, bottom_expr]
-            vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele][sense] for allele in alleles]
-            avg_val = sum(vals) / len(vals)
-            avg_val = apply_random_variation(avg_val)
-            avg_val, msg = maybe_mutate_stat(avg_val, sense)
-            stats[sense] = avg_val
-            if msg:
-                mutations[sense] = msg
-    # Size, Maturation Age, Lifespan, and Growth Rate (existing code)
+        # For Visual Acuity, convert the numeric value to a Snellen-style string "20/x"
+        va = stats.get("Visual Acuity", 1.0)
+        # Avoid division by zero.
+        if va and va > 0:
+            stats["Visual Acuity"] = f"20/{round(20/va)}"
+        else:
+            stats["Visual Acuity"] = "N/A"
+
+    # Compute Size, Maturation Age, Lifespan, and Growth Rate (existing code)
     base_size = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
     size_val = apply_random_variation(base_size)
     size_val, size_mut = maybe_mutate_stat(size_val, "Size")
@@ -1085,21 +1228,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         if msg:
             mutations[new_stat] = msg
 
-    # --- NEW: Calculate Detailed Sense Stats for Non-chimera Species ---
-    for sense in ["Visual Field", "Visual Acuity", "Smell Strength", "Smell Acuity", "Smell Distance",
-                  "Hearing Lower", "Hearing Upper", "Hearing Distance"]:
-        # Average the values from each allele's detailed sense stat.
-        alleles = [top_expr, mid_expr, bottom_expr]
-        vals = [SENSE_DETAIL_STATS_PER_ALLELE[allele][sense] for allele in alleles]
-        avg_val = sum(vals) / len(vals)
-        avg_val = apply_random_variation(avg_val)
-        avg_val, msg = maybe_mutate_stat(avg_val, sense)
-        stats[sense] = avg_val
-        if msg:
-            mutations[sense] = msg
-
-    # --- NEW: Calculate Magic Stats (Thaumagen and Thaumacyst as a fraction) ---
-    # Average Thaumagen production rate per allele.
+    # --- NEW: Calculate Magic Stats (Thaumagen and Thaumacyst displayed as a fraction) ---
     magic_vals = {"Thaumagen": [], "Thaumacyst": []}
     for allele in [top_expr, mid_expr, bottom_expr]:
         for key in magic_vals:
@@ -1112,11 +1241,10 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
     if msg:
         mutations["Thaumagen Production Rate"] = msg
 
-    # Scale Thaumacyst maximum capacity by Size.
     scaled_thaumacyst = avg_thaumacyst * (stats["Size"] / 170)
     scaled_thaumacyst = apply_random_variation(scaled_thaumacyst)
     scaled_thaumacyst, msg = maybe_mutate_stat(scaled_thaumacyst, "Thaumacyst Max Capacity")
-    # Instead of separate current and max, display as a fraction "current/max"
+    # Display as a fraction "current/max"
     age_fraction = random.uniform(0, 1)
     current_capacity = age_fraction * scaled_thaumacyst
     current_capacity = apply_random_variation(current_capacity)
