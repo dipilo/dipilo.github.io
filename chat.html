@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord-Like Chat Simulator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="chat-container">
+    <aside id="channel-sidebar">
+      <h2>Channels</h2>
+      <ul>
+        <li># general</li>
+        <li># bot-testing</li>
+        <!-- Add additional channels if desired -->
+      </ul>
+    </aside>
+    <main id="chat-main">
+      <div id="message-container">
+        <!-- Messages will be appended here -->
+      </div>
+      <div id="chat-input">
+        <input type="text" id="user-message" placeholder="Type a message..." autocomplete="off">
+        <button id="send-message">Send</button>
+      </div>
+    </main>
+  </div>
+  
+  <script src="chat.js"></script>
+</body>
+</html>
