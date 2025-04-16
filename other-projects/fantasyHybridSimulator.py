@@ -1182,13 +1182,6 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             if msg:
                 mutations[stat] = msg
         stats["diet"] = DIET.get(top_expr, "omnivore")
-        # For Visual Acuity, convert the numeric value to a Snellen-style string "20/x"
-        va = stats.get("Visual Acuity", 1.0)
-        # Avoid division by zero.
-        if va and va > 0:
-            stats["Visual Acuity"] = f"20/{round(20/va)}"
-        else:
-            stats["Visual Acuity"] = "N/A"
 
     # Compute Size, Maturation Age, Lifespan, and Growth Rate (existing code)
     base_size = (SIZE_STATS.get(top_expr, 170) + SIZE_STATS.get(mid_expr, 170) + SIZE_STATS.get(bottom_expr, 170)) / 3.0
