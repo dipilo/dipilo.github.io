@@ -1272,11 +1272,13 @@ def breed_from_saved(parent1_name, parent2_name):
         return None
     parent1 = saved_hybrids[parent1_name]
     parent2 = saved_hybrids[parent2_name]
-    geno1 = parent1.get("genotype", None)
-    geno2 = parent2.get("genotype", None)
+    geno1 = parent1.get("genotype")
+    geno2 = parent2.get("genotype")
     if geno1 is None or geno2 is None:
         print("Saved parents do not have genotype info. Cannot breed using genotype simulation.")
         return None
+
+    # 1. Generate offspring genotype + species
     MAX_ATTEMPTS = 10
     attempt = 0
     offspring_geno, species = None, None
@@ -1288,53 +1290,104 @@ def breed_from_saved(parent1_name, parent2_name):
     if species is None:
         print("Miscarriage: Offspring species could not be determined after several attempts.")
         return None
-    sim_stats, sim_mutations = generate_individual_stats(
-        species,
-        top_expression(offspring_geno["top"]),
-        mid_expression(offspring_geno["mid"]),
-        bottom_expression(offspring_geno["bottom"])
+
+    # 2. Simulate stats for that species
+    top_expr = top_expression(offspring_geno["top"])
+    mid_expr = mid_expression(offspring_geno["mid"])
+    bottom_expr = bottom_expression(offspring_geno["bottom"])
+    sim_stats, sim_mutations = generate_individual_stats(species, top_expr, mid_expr, bottom_expr)
+
+    # 3. Compute base size/strength for variant thresholds
+    base_size = (
+        SIZE_STATS.get(top_expr, 170) +
+        SIZE_STATS.get(mid_expr, 170) +
+        SIZE_STATS.get(bottom_expr, 170)
+    ) / 3.0
+    base_strength = TOP_STATS.get(top_expr, {}).get("Strength", 60)
+
+    # 4. Compute average raw magic across the three alleles
+    avg_thaumagen = (
+        MAGIC_STATS_PER_ALLELE[top_expr]["Thaumagen"] +
+        MAGIC_STATS_PER_ALLELE[mid_expr]["Thaumagen"] +
+        MAGIC_STATS_PER_ALLELE[bottom_expr]["Thaumagen"]
+    ) / 3
+    avg_thaumacyst = (
+        MAGIC_STATS_PER_ALLELE[top_expr]["Thaumacyst"] +
+        MAGIC_STATS_PER_ALLELE[mid_expr]["Thaumacyst"] +
+        MAGIC_STATS_PER_ALLELE[bottom_expr]["Thaumacyst"]
+    ) / 3
+
+    # 5. Determine if this sim_stats are "high magic"
+    #    sim_stats["Thaumagen Production Rate"] is numeric,
+    #    sim_stats["Thaumacyst Capacity"] is "current/max"
+    cur_max = sim_stats["Thaumacyst Capacity"].split("/")
+    current, maximum = float(cur_max[0]), float(cur_max[1])
+    has_high_magic = (
+        sim_stats["Thaumagen Production Rate"] > avg_thaumagen or
+        maximum > avg_thaumacyst
     )
-    # Variant logic:
-    #   - Any species can become Giant if its computed Size is at least 3.0× its base size.
-    #     In that case, we prefix with "Giant " and multiply its Lifespan by 3.0.
-    #   - Only species with a human allele (top allele "Hu") and not manticore can become Dwarven.
-    #     If the computed Size is ≤0.8× base and Strength is ≥1.2× the base top strength, prefix with "Dwarven " and multiply Lifespan by 4.0.
-    off_top = top_expression(offspring_geno["top"])
-    off_mid = mid_expression(offspring_geno["mid"])
-    off_bottom = bottom_expression(offspring_geno["bottom"])
-    base_size = (SIZE_STATS.get(off_top, 170) + SIZE_STATS.get(off_mid, 170) + SIZE_STATS.get(off_bottom, 170)) / 3.0
-    base_strength = TOP_STATS.get(off_top, {}).get("Strength", 60)
+
+    # 6. Helpers for variant checks
+    is_human_allele = (top_expr == "Hu")
+    is_not_manticore = (species != "manticore")
+    is_giant = (sim_stats["Size"] >= 2.5 * base_size)
+    is_small = (sim_stats["Size"] <= 0.5 * base_size)
+
+    # 7. Apply variants in priority order
     variant_prefix = ""
-    if sim_stats["Size"] >= 2.5 * base_size:
+
+    if is_giant:
         variant_prefix = "Giant "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 3.0, 3)
-    elif off_top == "Hu" and species != "manticore" and sim_stats["Size"] <= 0.8 * base_size and sim_stats["Strength"] >= 1.2 * base_strength:
+
+    elif is_giant and has_high_magic:
+        variant_prefix = "Cyclopse "
+        sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 3.0, 3)
+
+    elif is_human_allele and is_not_manticore and is_small and has_high_magic:
+        variant_prefix = "Fairy "
+        sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 4.5, 3)
+
+    elif is_human_allele and is_not_manticore and has_high_magic \
+         and sim_stats["Size"] >= 1.2 * base_size:
+        variant_prefix = "Elven "
+        sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 7.5, 3)
+
+    elif is_human_allele and is_not_manticore \
+         and sim_stats["Size"] <= 0.8 * base_size \
+         and sim_stats["Strength"] >= 1.2 * base_strength:
         variant_prefix = "Dwarven "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 4.0, 3)
+
     species_variant = variant_prefix + species
 
+    # 8. Blend with parents’ stats as before
     parents_avg = {}
-    for stat in ["IQ", "EQ", "Dexterity", "Strength",
-                 "Land Speed", "Swim Speed", "Jump Height",
-                 "Flight Speed", "Climbing", "Bite"]:
-        parents_avg[stat] = round((parent1["stats"][stat] + parent2["stats"][stat]) / 2, 3)
-    venom_avg = ((1 if parent1["stats"]["Venom"] else 0) + (1 if parent2["stats"]["Venom"] else 0)) / 2
-    weight_genotype = 0.7
-    weight_parents = 0.3
+    for stat in ["IQ","EQ","Dexterity","Strength",
+                 "Land Speed","Swim Speed","Jump Height",
+                 "Flight Speed","Climbing","Bite"]:
+        parents_avg[stat] = round(
+            (parent1["stats"][stat] + parent2["stats"][stat]) / 2, 3
+        )
+    venom_avg = ((1 if parent1["stats"]["Venom"] else 0) +
+                 (1 if parent2["stats"]["Venom"] else 0)) / 2
+    weight_geno, weight_par = 0.7, 0.3
+
     final_stats = {}
     combined_mutations = {}
-    for stat in ["IQ", "EQ", "Dexterity", "Strength",
-                 "Land Speed", "Swim Speed", "Jump Height",
-                 "Flight Speed", "Climbing", "Bite"]:
-        final_val = round(weight_genotype * sim_stats[stat] + weight_parents * parents_avg[stat], 3)
-        final_stats[stat] = final_val
+    for stat in parents_avg:
+        val = round(weight_geno * sim_stats[stat] + weight_par * parents_avg[stat], 3)
+        final_stats[stat] = val
         if stat in sim_mutations:
             combined_mutations[stat] = sim_mutations[stat]
-    sim_venom = 1 if sim_stats["Venom"] else 0
-    final_venom_num = weight_genotype * sim_venom + weight_parents * venom_avg
-    final_stats["Venom"] = True if final_venom_num >= 0.5 else False
+    sim_ven = 1 if sim_stats["Venom"] else 0
+    final_stats["Venom"] = (
+        True if (weight_geno * sim_ven + weight_par * venom_avg) >= 0.5 else False
+    )
     if "Venom" in sim_mutations:
         combined_mutations["Venom"] = sim_mutations["Venom"]
+
+    # 9. Build & save the offspring record
     offspring = {
         "name": generate_unique_name(species_variant),
         "genotype": offspring_geno,
@@ -1345,6 +1398,7 @@ def breed_from_saved(parent1_name, parent2_name):
     }
     saved_hybrids[offspring["name"].lower()] = offspring
     save_saved_hybrids()
+
     return offspring, combined_mutations
 
 ######################################
