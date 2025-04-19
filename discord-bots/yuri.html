@@ -31,11 +31,9 @@
         <button class="dropdown-toggle" onclick="toggleDropdown('bot-info')">&#9660;</button>
       </div>
       <div id="bot-info" class="dropdown-content" style="display: none;">
-        <p>
-          Yuri is a TCG (Trading Card Game) in which you collect different girl-kissing girl characters and ships from different forms of media by being the first to type “Yuri” in chat whenever a card spawns.
-          This includes any girl or female, or any ship involving two girls or females, who are canonically and/or fanonically lesbian, bi, pan, queer, or sapphic.
-          Gambling coming soon.
-        </p>
+        <div class="dashboard" id="dashboard-content">
+          Loading dashboard...
+        </div>
       </div>
     </div>
     
@@ -78,6 +76,28 @@
         content.style.display = "block";
       }
     }
+  </script>
+  <script>
+    async function loadDashboard() {
+      try {
+        const res = await fetch('http://localhost:5000/api/status'); // Change to your server's address if needed
+        const data = await res.json();
+        document.getElementById('dashboard-content').innerHTML = `
+          <h2>Yuri Bot Dashboard</h2>
+          <ul>
+            <li><strong>Status:</strong> ${data.status}</li>
+            <li><strong>Total Cards:</strong> ${data.total_cards}</li>
+            <li><strong>Total Users:</strong> ${data.total_users}</li>
+            <li><strong>Servers:</strong> ${data.guild_count}</li>
+          </ul>
+        `;
+      } catch (e) {
+        document.getElementById('dashboard-content').innerText = 'Failed to load dashboard.';
+      }
+    }
+
+    // Optionally, load when dropdown is opened:
+    document.querySelector('.dropdown-toggle').addEventListener('click', loadDashboard);
   </script>
 </body>
 </html>
