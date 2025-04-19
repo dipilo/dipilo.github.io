@@ -617,6 +617,8 @@ body.minecraft-mods button {
 }
 
 body.minecraft-mods .dropdown-section {
+  margin: 0 0 2rem 0;
+  padding: 0;
   background: none !important;
   border-radius: 0;
   border: none !important; /* Remove purple border */
@@ -689,6 +691,14 @@ body.minecraft-mods .dropdown-header a,
 body.minecraft-mods .dropdown-content {
   color: #fff !important; /* Use white text for readability */
   text-shadow: 1px 1px 2px #000; /* Optional: add shadow for contrast */
+}
+
+body.minecraft-mods .dropdown-header,
+body.minecraft-mods .dropdown-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 /* Font face for Minecraft Mods */
