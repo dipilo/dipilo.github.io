@@ -613,6 +613,10 @@ body.minecraft-mods .drag-handle {
   border-radius: 0; /* Remove rounded handle */
 }
 
+body.minecraft-mods main {
+  background: transparent;
+}
+
 /* Custom arrow for minecraft-mods.html only */
 body.minecraft-mods .custom-arrow {
   background: url("images/icons/arrow.png") no-repeat center;
@@ -620,7 +624,7 @@ body.minecraft-mods .custom-arrow {
   width: 32px;
   height: 32px;
   border: none;
-  cursor: pointer;
+  cursor: url('/images/cursors/pixelated_pointer.cur') 8 8, pointer;
   transform: rotate(-135deg); /* initial rotation */
   transition: transform 0.3s ease;
 }
@@ -630,9 +634,21 @@ body.minecraft-mods .custom-arrow.rotated {
   transform: rotate(-225deg); /* -135 - 90 = -225 */
 }
 
+body.minecraft-mods .dropdown-header {
+  background: url('/images/backgrounds/grass_block_side.png') repeat-x;
+  background-size: auto 100%; /* Fit height, repeat horizontally */
+  image-rendering: pixelated; /* Hard-edge scaling */
+}
+
+body.minecraft-mods .dropdown-content {
+  background: url('/images/backgrounds/dirt.png') repeat;
+  background-size: auto 100%; /* Match grass block's vertical scaling */
+  image-rendering: pixelated;
+}
+
 /* Font face for Minecraft Mods */
 @font-face {
   font-family: 'Mojangles';
-  src: url('fonts/mojangles.ttf') format('truetype');
+  src: url('/fonts/mojangles.ttf') format('truetype');
   font-display: swap;
 }
