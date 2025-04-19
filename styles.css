@@ -585,6 +585,9 @@ body.minecraft-mods {
   font-family: 'Mojangles', Arial, sans-serif;
   /* Use your custom (appropriately scaled) cursor files here */
   cursor: url('/images/cursors/pixelated_cursor.cur') 8 8, auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 body.minecraft-mods a,
@@ -606,15 +609,41 @@ body.minecraft-mods button {
 }
 
 body.minecraft-mods .dropdown-section {
-  border-radius: 0; /* Remove rounded corners */
+  background: none !important; /* Remove lilac background */
+  border-radius: 0;
+  border: 2px solid #BA68C8;
 }
 
-body.minecraft-mods .drag-handle {
-  border-radius: 0; /* Remove rounded handle */
+body.minecraft-mods .dropdown-header {
+  background: url('/images/backgrounds/grass_block_side.png') repeat-x;
+  background-size: auto 100%;
+  image-rendering: pixelated;
+  border-radius: 0;
+  padding: 1rem;
+}
+
+body.minecraft-mods .dropdown-content {
+  background: url('/images/backgrounds/dirt.png') repeat;
+  background-size: auto 100%;
+  image-rendering: pixelated;
+  border-radius: 0;
+  padding: 1rem;
 }
 
 body.minecraft-mods main {
   background: transparent;
+  flex: 1 0 auto;
+}
+
+body.minecraft-mods footer {
+  background: url('/images/backgrounds/bedrock.png') repeat;
+  background-size: auto 100%;
+  image-rendering: pixelated;
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+  border-top: 2px solid #222;
+  flex-shrink: 0;
 }
 
 /* Custom arrow for minecraft-mods.html only */
