@@ -51,6 +51,15 @@ header {
   }
 }
 
+@media (max-width: 768px) {
+  #end-portal-video {
+    display: none;
+  }
+  body.minecraft-mods {
+    background: url('/images/backgrounds/end_portal_fallback.png') center center / cover no-repeat;
+  }
+}
+
 /* Main content */
 main {
   padding: 2rem;
@@ -615,17 +624,17 @@ body.minecraft-mods .dropdown-section {
 }
 
 body.minecraft-mods .dropdown-header {
-  background: url('/images/backgrounds/grass_block_side.png') repeat-x;
-  background-size: auto 100%;
-  image-rendering: pixelated;
+  background: url('/images/backgrounds/grass_block_side.png') repeat-x !important;
+  background-size: auto 48px !important; /* Use a fixed height for consistent scaling */
+  image-rendering: pixelated !important;
   border-radius: 0;
   padding: 1rem;
 }
 
 body.minecraft-mods .dropdown-content {
-  background: url('/images/backgrounds/dirt.png') repeat;
-  background-size: auto 100%;
-  image-rendering: pixelated;
+  background: url('/images/backgrounds/dirt.png') repeat !important;
+  background-size: auto 48px !important; /* Match the header's height for seamless tiling */
+  image-rendering: pixelated !important;
   border-radius: 0;
   padding: 1rem;
 }
@@ -664,15 +673,15 @@ body.minecraft-mods .custom-arrow.rotated {
 }
 
 body.minecraft-mods .dropdown-header {
-  background: url('/images/backgrounds/grass_block_side.png') repeat-x;
-  background-size: auto 100%; /* Fit height, repeat horizontally */
-  image-rendering: pixelated; /* Hard-edge scaling */
+  background: url('/images/backgrounds/grass_block_side.png') repeat-x !important;
+  background-size: auto 48px !important; /* Use a fixed height for consistent scaling */
+  image-rendering: pixelated !important;
 }
 
 body.minecraft-mods .dropdown-content {
-  background: url('/images/backgrounds/dirt.png') repeat;
-  background-size: auto 100%; /* Match grass block's vertical scaling */
-  image-rendering: pixelated;
+  background: url('/images/backgrounds/dirt.png') repeat !important;
+  background-size: auto 48px !important; /* Match the header's height for seamless tiling */
+  image-rendering: pixelated !important;
 }
 
 /* Font face for Minecraft Mods */
