@@ -582,6 +582,7 @@ footer {
 body.minecraft-mods {
   position: relative; /* establish a stacking context */
   overflow: hidden;   /* hide any overflowing background */
+  font-family: 'Mojangles', Arial, sans-serif;
   /* Use your custom (appropriately scaled) cursor files here */
   cursor: url('/images/cursors/pixelated_cursor.cur') 8 8, auto;
 }
@@ -600,7 +601,7 @@ body.minecraft-mods button {
   height: 100%;
   object-fit: cover;
   z-index: -1;
-  opacity: 0.25; /* Optional: change for visibility */
+  opacity: 1.0; /* Optional: change for visibility */
   pointer-events: none; /* Prevent interaction */
 }
 
@@ -627,4 +628,11 @@ body.minecraft-mods .custom-arrow {
 /* When expanded (rotated more) */
 body.minecraft-mods .custom-arrow.rotated {
   transform: rotate(-225deg); /* -135 - 90 = -225 */
+}
+
+/* Font face for Minecraft Mods */
+@font-face {
+  font-family: 'Mojangles';
+  src: url('fonts/mojangles.ttf') format('truetype');
+  font-display: swap;
 }
