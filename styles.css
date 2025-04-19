@@ -51,12 +51,12 @@ header {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px), (pointer: coarse) {
   #end-portal-video {
-    display: none;
+    display: none !important;
   }
   body.minecraft-mods {
-    background: url('/images/backgrounds/end_portal_fallback.png') center center / cover no-repeat;
+    background: url('/images/backgrounds/end_portal_fallback.png') center center / cover no-repeat !important;
   }
 }
 
