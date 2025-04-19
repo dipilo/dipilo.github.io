@@ -33,6 +33,11 @@
       <div id="bot-info" class="dropdown-content" style="display: none;">
         <div class="dashboard" id="dashboard-content">
           Loading dashboard...
+          <div id="dashboard-auth">
+            <button onclick="window.location='http://dipper.ddns.net:5000/login'">Login with Discord</button>
+          </div>
+          <div id="dashboard-user"></div>
+          <div id="dashboard-guilds"></div>
         </div>
       </div>
     </div>
@@ -79,24 +84,31 @@
   </script>
   <script>
     async function loadDashboard() {
+      // Try to fetch user info
+      let user = null;
       try {
-        const res = await fetch('http://dipper.ddns.net:5000/api/status');
-        const data = await res.json();
-        document.getElementById('dashboard-content').innerHTML = `
-          <h2>Yuri Bot Dashboard</h2>
-          <ul>
-            <li><strong>Status:</strong> ${data.status}</li>
-            <li><strong>Total Cards:</strong> ${data.total_cards}</li>
-            <li><strong>Total Users:</strong> ${data.total_users}</li>
-            <li><strong>Servers:</strong> ${data.guild_count}</li>
-          </ul>
-        `;
+        const res = await fetch('http://dipper.ddns.net:5000/api/me', {credentials: 'include'});
+        user = await res.json();
+        if (user && user.id) {
+          document.getElementById('dashboard-auth').style.display = 'none';
+          document.getElementById('dashboard-user').innerHTML = `<b>Logged in as:</b> ${user.username}#${user.discriminator}`;
+          // Fetch guilds
+          const gRes = await fetch('http://dipper.ddns.net:5000/api/guilds', {credentials: 'include'});
+          const guilds = await gRes.json();
+          let html = "<h3>Your Servers (with admin):</h3><ul>";
+          for (const g of guilds) {
+            html += `<li>${g.name} (ID: ${g.id})</li>`;
+            // You can add "Configure" or "Invite" buttons here
+          }
+          html += "</ul>";
+          document.getElementById('dashboard-guilds').innerHTML = html;
+        } else {
+          document.getElementById('dashboard-auth').style.display = 'block';
+        }
       } catch (e) {
-        document.getElementById('dashboard-content').innerText = 'Failed to load dashboard.';
+        document.getElementById('dashboard-auth').style.display = 'block';
       }
     }
-
-    // Optionally, load when dropdown is opened:
     document.querySelector('.dropdown-toggle').addEventListener('click', loadDashboard);
   </script>
 </body>
