@@ -590,9 +590,8 @@ footer {
 /* Only for the Minecraft Mods page */
 body.minecraft-mods {
   position: relative; /* establish a stacking context */
-  overflow: hidden;   /* hide any overflowing background */
+  overflow-x: hidden;   /* allow vertical scrolling */
   font-family: 'Mojangles', Arial, sans-serif;
-  /* Use your custom (appropriately scaled) cursor files here */
   cursor: url('/images/cursors/pixelated_cursor.cur') 8 8, auto;
   min-height: 100vh;
   display: flex;
@@ -618,9 +617,9 @@ body.minecraft-mods button {
 }
 
 body.minecraft-mods .dropdown-section {
-  background: none !important; /* Remove lilac background */
+  background: none !important;
   border-radius: 0;
-  border: 2px solid #BA68C8;
+  border: none !important; /* Remove purple border */
 }
 
 body.minecraft-mods .dropdown-header {
@@ -658,13 +657,14 @@ body.minecraft-mods footer {
 /* Custom arrow for minecraft-mods.html only */
 body.minecraft-mods .custom-arrow {
   background: url("images/icons/arrow.png") no-repeat center;
-  background-size: 24px 24px;
-  width: 32px;
-  height: 32px;
+  background-size: 32px 32px; /* Bigger arrow */
+  width: 40px;
+  height: 40px;
   border: none;
   cursor: url('/images/cursors/pixelated_pointer.cur') 8 8, pointer;
-  transform: rotate(-135deg); /* initial rotation */
+  transform: rotate(-135deg);
   transition: transform 0.3s ease;
+  image-rendering: pixelated; /* Hard edge scaling */
 }
 
 /* When expanded (rotated more) */
@@ -682,6 +682,13 @@ body.minecraft-mods .dropdown-content {
   background: url('/images/backgrounds/dirt.png') repeat !important;
   background-size: auto 48px !important; /* Match the header's height for seamless tiling */
   image-rendering: pixelated !important;
+}
+
+body.minecraft-mods .dropdown-header,
+body.minecraft-mods .dropdown-header a,
+body.minecraft-mods .dropdown-content {
+  color: #fff !important; /* Use white text for readability */
+  text-shadow: 1px 1px 2px #000; /* Optional: add shadow for contrast */
 }
 
 /* Font face for Minecraft Mods */
