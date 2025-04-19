@@ -84,7 +84,6 @@
   </script>
   <script>
     async function loadDashboard() {
-      // Try to fetch user info
       let user = null;
       try {
         const res = await fetch('http://dipper.ddns.net:5000/api/me', {credentials: 'include'});
@@ -97,8 +96,9 @@
           const guilds = await gRes.json();
           let html = "<h3>Your Servers (with admin):</h3><ul>";
           for (const g of guilds) {
-            html += `<li>${g.name} (ID: ${g.id})</li>`;
-            // You can add "Configure" or "Invite" buttons here
+            html += `<li>
+              <button onclick="loadGuildConfig('${g.id}', '${g.name}')">${g.name}</button>
+            </li>`;
           }
           html += "</ul>";
           document.getElementById('dashboard-guilds').innerHTML = html;
@@ -108,6 +108,47 @@
       } catch (e) {
         document.getElementById('dashboard-auth').style.display = 'block';
       }
+    }
+
+    async function loadGuildConfig(guildId, guildName) {
+      const configRes = await fetch(`http://dipper.ddns.net:5000/api/guild/${guildId}/config`, {credentials: 'include'});
+      const config = await configRes.json();
+      let html = `<h4>Config for <b>${guildName}</b></h4>
+        <form id="guild-config-form">
+          <label>Spawn Time Base (seconds): <input type="number" name="spawn_time_base" value="${config.spawn_time_base}" /></label><br>
+          <label>Spawn Variation (seconds): <input type="number" name="spawn_variation" value="${config.spawn_variation}" /></label><br>
+          <label>Variation Enabled: <input type="checkbox" name="variation_enabled" ${config.variation_enabled ? "checked" : ""} /></label><br>
+          <label>Spawn Time Min (seconds): <input type="number" name="spawn_time_min" value="${config.spawn_time_min || ''}" /></label><br>
+          <label>Spawn Time Max (seconds): <input type="number" name="spawn_time_max" value="${config.spawn_time_max || ''}" /></label><br>
+          <label>Spawn Channels (comma-separated IDs): <input type="text" name="spawn_channels" value="${(config.spawn_channels || []).join(',')}" /></label><br>
+          <button type="submit">Save</button>
+        </form>
+        <div id="save-status"></div>
+      `;
+      document.getElementById('dashboard-guilds').innerHTML = html;
+      document.getElementById('guild-config-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+          spawn_time_base: parseInt(form.spawn_time_base.value),
+          spawn_variation: parseInt(form.spawn_variation.value),
+          variation_enabled: form.variation_enabled.checked,
+          spawn_time_min: form.spawn_time_min.value ? parseInt(form.spawn_time_min.value) : null,
+          spawn_time_max: form.spawn_time_max.value ? parseInt(form.spawn_time_max.value) : null,
+          spawn_channels: form.spawn_channels.value.split(',').map(s => Number(s.trim())).filter(Boolean)
+        };
+        const resp = await fetch(`http://dipper.ddns.net:5000/api/guild/${guildId}/config`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          credentials: "include",
+          body: JSON.stringify(data)
+        });
+        if (resp.ok) {
+          document.getElementById('save-status').innerText = "Saved!";
+        } else {
+          document.getElementById('save-status').innerText = "Failed to save.";
+        }
+      };
     }
     document.querySelector('.dropdown-toggle').addEventListener('click', loadDashboard);
   </script>
