@@ -31,13 +31,14 @@
       font-family: monospace;
       max-width: 100%;
       z-index: 1000;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
   <video autoplay muted loop playsinline id="end-portal-video">
-    <source src="images/backgrounds/end_portal.webm" type="video/webm">
-    <source src="images/backgrounds/end_portal.gif" type="image/gif">
+    <source src="https://archive.org/download/end_portal_webm/end_portal.webm" type="video/webm">
+    <source src="https://archive.org/download/end_portal/end_portal.mp4" type="video/mp4">
     Your browser does not support the video tag.
   </video>
 
@@ -65,7 +66,7 @@
     });
 
     video.addEventListener("error", (event) => {
-      logEvent("Event: error - " + event.message || "An error occurred.");
+      logEvent("Event: error - " + (event.message || "An error occurred."));
     });
   </script>
 </body>
