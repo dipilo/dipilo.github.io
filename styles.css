@@ -597,10 +597,14 @@ body.minecraft-mods {
   display: flex;
   flex-direction: column;
   text-shadow:
-    -1px -1px 0 #000,
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000;
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000,
+    -2px  0px 0 #000,
+     2px  0px 0 #000,
+     0px -2px 0 #000,
+     0px  2px 0 #000;
 }
 
 body.minecraft-mods a,
@@ -631,7 +635,7 @@ body.minecraft-mods .dropdown-section {
 
 body.minecraft-mods .dropdown-header {
   background: url('/images/backgrounds/grass_block_side.png') repeat-x !important;
-  background-size: auto 72px !important; /* Use a fixed height for consistent scaling */
+  background-size: auto 72px !important;
   image-rendering: pixelated !important;
   border-radius: 0;
   padding: 1rem;
@@ -639,10 +643,11 @@ body.minecraft-mods .dropdown-header {
 
 body.minecraft-mods .dropdown-content {
   background: url('/images/backgrounds/dirt.png') repeat !important;
-  background-size: auto 72px !important; /* Match the header's height for seamless tiling */
+  background-size: auto 72px !important;
   image-rendering: pixelated !important;
   border-radius: 0;
   padding: 1rem;
+  border-top: none !important;
 }
 
 body.minecraft-mods main {
@@ -681,13 +686,13 @@ body.minecraft-mods .custom-arrow.rotated {
 
 body.minecraft-mods .dropdown-header {
   background: url('/images/backgrounds/grass_block_side.png') repeat-x !important;
-  background-size: auto 48px !important; /* Use a fixed height for consistent scaling */
+  background-size: auto 72px !important;
   image-rendering: pixelated !important;
 }
 
 body.minecraft-mods .dropdown-content {
   background: url('/images/backgrounds/dirt.png') repeat !important;
-  background-size: auto 48px !important; /* Match the header's height for seamless tiling */
+  background-size: auto 72px !important;
   image-rendering: pixelated !important;
 }
 
