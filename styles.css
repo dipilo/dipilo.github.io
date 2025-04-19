@@ -631,7 +631,7 @@ body.minecraft-mods .dropdown-section {
 
 body.minecraft-mods .dropdown-header {
   background: url('/images/backgrounds/grass_block_side.png') repeat-x !important;
-  background-size: auto 48px !important; /* Use a fixed height for consistent scaling */
+  background-size: auto 72px !important; /* Use a fixed height for consistent scaling */
   image-rendering: pixelated !important;
   border-radius: 0;
   padding: 1rem;
@@ -639,7 +639,7 @@ body.minecraft-mods .dropdown-header {
 
 body.minecraft-mods .dropdown-content {
   background: url('/images/backgrounds/dirt.png') repeat !important;
-  background-size: auto 48px !important; /* Match the header's height for seamless tiling */
+  background-size: auto 72px !important; /* Match the header's height for seamless tiling */
   image-rendering: pixelated !important;
   border-radius: 0;
   padding: 1rem;
