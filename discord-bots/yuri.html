@@ -31,7 +31,13 @@
         <button class="dropdown-toggle" onclick="toggleDropdown('bot-info')">&#9660;</button>
       </div>
       <div id="bot-info" class="dropdown-content" style="display: none;">
-        <iframe src="http://dipper.ddns.net:5000/logout" style="width:100%;min-width:320px;height:600px;border:none;border-radius:12px;box-shadow:0 2px 8px rgba(123,31,162,0.08);background:#fff;"></iframe>
+        <div class="dashboard" id="dashboard-content">
+          <div id="dashboard-auth">
+            <button onclick="window.location='http://dipper.ddns.net:5000/logout'">Login with Discord</button>
+          </div>
+          <div id="dashboard-user"></div>
+          <div id="dashboard-guilds"></div>
+        </div>
       </div>
     </div>
     
