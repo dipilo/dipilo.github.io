@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>I Love Amy - Chapter 0</title>
+  <title>I Love Amy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
   <style>
@@ -24,18 +24,61 @@
     .amy-title {
       text-align: center;
       color: #7B1FA2;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       font-size: 2rem;
       font-weight: bold;
       letter-spacing: 0.05em;
+    }
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .chapter-arrow {
+      background: #7B1FA2;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(123,31,162,0.07);
+      user-select: none;
+    }
+    .chapter-arrow:disabled {
+      background: #D1B3E0;
+      color: #fff;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .chapter-select {
+      font-size: 1.1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 2px solid #7B1FA2;
+      color: #7B1FA2;
+      background: #F3E5F5;
+      font-weight: bold;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .chapter-select:focus {
+      border: 2px solid #4A148C;
     }
     .amy-image {
       display: block;
       width: 100%;
       max-width: 100%;
-      margin: 0;           /* Remove spacing between images */
-      border-radius: 0;    /* Remove rounded corners */
-      box-shadow: none;    /* Remove shadow */
+      margin: 0;
+      border-radius: 0;
+      box-shadow: none;
       background: #EDE7F6;
     }
     @media (max-width: 800px) {
@@ -43,74 +86,107 @@
         max-width: 98vw;
         padding: 1rem 0.25rem;
       }
+      .chapter-nav {
+        flex-direction: column;
+        gap: 1rem;
+      }
     }
   </style>
+  <script>
+    // Define chapters and image counts
+    const chapters = [
+      { name: "Chapter 0", folder: "/I Love Amy/Chapter 0/", count: 55 },
+      { name: "Chapter 1", folder: "/I Love Amy/Chapter 1/", count: 23 }
+    ];
+
+    // Pad numbers to two digits
+    function pad(num) {
+      return num.toString().padStart(2, '0');
+    }
+
+    // Get current chapter from hash or default to 0
+    function getCurrentChapter() {
+      const hash = window.location.hash.replace('#', '');
+      const idx = chapters.findIndex(c => c.name.replace(/\s/g, '').toLowerCase() === hash.toLowerCase());
+      return idx >= 0 ? idx : 0;
+    }
+
+    // Render images for the current chapter
+    function renderChapter(idx) {
+      const container = document.getElementById('amy-images');
+      container.innerHTML = '';
+      const chapter = chapters[idx];
+      for (let i = 1; i <= chapter.count; i++) {
+        const img = document.createElement('img');
+        img.className = 'amy-image';
+        img.src = `${chapter.folder}IMG_${pad(i)}.webp`;
+        img.alt = `${chapter.name} Page ${i}`;
+        container.appendChild(img);
+      }
+      document.getElementById('chapter-title').textContent = chapter.name;
+      document.getElementById('chapter-select').value = idx;
+      // Enable/disable arrows
+      document.getElementById('prev-chapter').disabled = idx === 0;
+      document.getElementById('next-chapter').disabled = idx === chapters.length - 1;
+      // Scroll to top of images
+      window.scrollTo(0, 0);
+    }
+
+    // On page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const select = document.getElementById('chapter-select');
+      // Populate dropdown
+      chapters.forEach((c, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = c.name;
+        select.appendChild(opt);
+      });
+      // Handle dropdown change
+      select.addEventListener('change', e => {
+        window.location.hash = chapters[parseInt(e.target.value)].name.replace(/\s/g, '');
+        renderChapter(parseInt(e.target.value));
+      });
+      // Handle arrows
+      document.getElementById('prev-chapter').addEventListener('click', () => {
+        const idx = getCurrentChapter();
+        if (idx > 0) {
+          window.location.hash = chapters[idx - 1].name.replace(/\s/g, '');
+          renderChapter(idx - 1);
+        }
+      });
+      document.getElementById('next-chapter').addEventListener('click', () => {
+        const idx = getCurrentChapter();
+        if (idx < chapters.length - 1) {
+          window.location.hash = chapters[idx + 1].name.replace(/\s/g, '');
+          renderChapter(idx + 1);
+        }
+      });
+      // Initial render
+      renderChapter(getCurrentChapter());
+      // React to hash changes (for browser navigation)
+      window.addEventListener('hashchange', () => {
+        renderChapter(getCurrentChapter());
+      });
+    });
+  </script>
 </head>
 <body>
   <main>
     <div class="amy-container">
-      <div class="amy-title">I Love Amy - Chapter 0</div>
-      <!-- Images stack below -->
-      <!-- prettier-ignore -->
-      <!--#region Amy Images-->
-      <!-- Images 01 to 55 -->
-      <!-- You can generate this with a script if needed -->
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_01.webp" alt="Page 1">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_02.webp" alt="Page 2">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_03.webp" alt="Page 3">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_04.webp" alt="Page 4">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_05.webp" alt="Page 5">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_06.webp" alt="Page 6">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_07.webp" alt="Page 7">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_08.webp" alt="Page 8">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_09.webp" alt="Page 9">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_10.webp" alt="Page 10">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_11.webp" alt="Page 11">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_12.webp" alt="Page 12">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_13.webp" alt="Page 13">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_14.webp" alt="Page 14">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_15.webp" alt="Page 15">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_16.webp" alt="Page 16">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_17.webp" alt="Page 17">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_18.webp" alt="Page 18">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_19.webp" alt="Page 19">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_20.webp" alt="Page 20">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_21.webp" alt="Page 21">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_22.webp" alt="Page 22">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_23.webp" alt="Page 23">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_24.webp" alt="Page 24">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_25.webp" alt="Page 25">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_26.webp" alt="Page 26">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_27.webp" alt="Page 27">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_28.webp" alt="Page 28">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_29.webp" alt="Page 29">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_30.webp" alt="Page 30">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_31.webp" alt="Page 31">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_32.webp" alt="Page 32">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_33.webp" alt="Page 33">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_34.webp" alt="Page 34">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_35.webp" alt="Page 35">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_36.webp" alt="Page 36">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_37.webp" alt="Page 37">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_38.webp" alt="Page 38">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_39.webp" alt="Page 39">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_40.webp" alt="Page 40">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_41.webp" alt="Page 41">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_42.webp" alt="Page 42">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_43.webp" alt="Page 43">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_44.webp" alt="Page 44">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_45.webp" alt="Page 45">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_46.webp" alt="Page 46">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_47.webp" alt="Page 47">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_48.webp" alt="Page 48">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_49.webp" alt="Page 49">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_50.webp" alt="Page 50">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_51.webp" alt="Page 51">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_52.webp" alt="Page 52">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_53.webp" alt="Page 53">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_54.webp" alt="Page 54">
-      <img class="amy-image" src="/I Love Amy/Chapter 0/IMG_55.webp" alt="Page 55">
-      <!--#endregion-->
+      <div class="amy-title">I Love Amy</div>
+      <div class="chapter-nav">
+        <button id="prev-chapter" class="chapter-arrow" title="Previous Chapter">&#8592;</button>
+        <select id="chapter-select" class="chapter-select"></select>
+        <button id="next-chapter" class="chapter-arrow" title="Next Chapter">&#8594;</button>
+      </div>
+      <div id="chapter-title" class="amy-title" style="font-size:1.3rem;margin-bottom:1.5rem;"></div>
+      <div id="amy-images"></div>
+      <div class="chapter-nav">
+        <button id="prev-chapter" class="chapter-arrow" title="Previous Chapter">&#8592;</button>
+        <select id="chapter-select" class="chapter-select" style="visibility:hidden;pointer-events:none;"></select>
+        <button id="next-chapter" class="chapter-arrow" title="Next Chapter">&#8594;</button>
+      </div>
     </div>
   </main>
   <footer>
