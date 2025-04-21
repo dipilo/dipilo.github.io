@@ -125,9 +125,12 @@
       }
       document.getElementById('chapter-title').textContent = chapter.name;
       document.getElementById('chapter-select').value = idx;
-      // Enable/disable arrows
+      document.getElementById('chapter-select-bottom').value = idx;
+      // Enable/disable arrows (top and bottom)
       document.getElementById('prev-chapter').disabled = idx === 0;
       document.getElementById('next-chapter').disabled = idx === chapters.length - 1;
+      document.getElementById('prev-chapter-bottom').disabled = idx === 0;
+      document.getElementById('next-chapter-bottom').disabled = idx === chapters.length - 1;
       // Scroll to top of images
       window.scrollTo(0, 0);
     }
@@ -135,19 +138,26 @@
     // On page load
     window.addEventListener('DOMContentLoaded', () => {
       const select = document.getElementById('chapter-select');
-      // Populate dropdown
+      const selectBottom = document.getElementById('chapter-select-bottom');
+      // Populate both dropdowns
       chapters.forEach((c, i) => {
         const opt = document.createElement('option');
         opt.value = i;
         opt.textContent = c.name;
-        select.appendChild(opt);
+        select.appendChild(opt.cloneNode(true));
+        selectBottom.appendChild(opt);
       });
-      // Handle dropdown change
+      // Handle dropdown change (top)
       select.addEventListener('change', e => {
         window.location.hash = chapters[parseInt(e.target.value)].name.replace(/\s/g, '');
         renderChapter(parseInt(e.target.value));
       });
-      // Handle arrows
+      // Handle dropdown change (bottom, just for sync)
+      selectBottom.addEventListener('change', e => {
+        window.location.hash = chapters[parseInt(e.target.value)].name.replace(/\s/g, '');
+        renderChapter(parseInt(e.target.value));
+      });
+      // Handle arrows (top)
       document.getElementById('prev-chapter').addEventListener('click', () => {
         const idx = getCurrentChapter();
         if (idx > 0) {
@@ -156,6 +166,21 @@
         }
       });
       document.getElementById('next-chapter').addEventListener('click', () => {
+        const idx = getCurrentChapter();
+        if (idx < chapters.length - 1) {
+          window.location.hash = chapters[idx + 1].name.replace(/\s/g, '');
+          renderChapter(idx + 1);
+        }
+      });
+      // Handle arrows (bottom)
+      document.getElementById('prev-chapter-bottom').addEventListener('click', () => {
+        const idx = getCurrentChapter();
+        if (idx > 0) {
+          window.location.hash = chapters[idx - 1].name.replace(/\s/g, '');
+          renderChapter(idx - 1);
+        }
+      });
+      document.getElementById('next-chapter-bottom').addEventListener('click', () => {
         const idx = getCurrentChapter();
         if (idx < chapters.length - 1) {
           window.location.hash = chapters[idx + 1].name.replace(/\s/g, '');
@@ -183,9 +208,9 @@
       <div id="chapter-title" class="amy-title" style="font-size:1.3rem;margin-bottom:1.5rem;"></div>
       <div id="amy-images"></div>
       <div class="chapter-nav">
-        <button id="prev-chapter" class="chapter-arrow" title="Previous Chapter">&#8592;</button>
-        <select id="chapter-select" class="chapter-select" style="visibility:hidden;pointer-events:none;"></select>
-        <button id="next-chapter" class="chapter-arrow" title="Next Chapter">&#8594;</button>
+        <button id="prev-chapter-bottom" class="chapter-arrow" title="Previous Chapter">&#8592;</button>
+        <select id="chapter-select-bottom" class="chapter-select" style="visibility:hidden;pointer-events:none;"></select>
+        <button id="next-chapter-bottom" class="chapter-arrow" title="Next Chapter">&#8594;</button>
       </div>
     </div>
   </main>
