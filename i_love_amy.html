@@ -43,7 +43,7 @@
       border-radius: 50%;
       width: 44px;
       height: 44px;
-      font-size: 1.8rem;
+      font-size: 2rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -206,9 +206,17 @@
     <div class="amy-container">
       <div class="amy-title">I Love Amy</div>
       <div class="chapter-nav">
-        <button id="prev-chapter" class="chapter-arrow" title="Previous Chapter">&#8592;</button>
+        <button id="prev-chapter" class="chapter-arrow" title="Previous Chapter">
+          <svg width="24" height="24" viewBox="0 0 24 24" style="display:block" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+            <polyline points="15 6 9 12 15 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
         <select id="chapter-select" class="chapter-select"></select>
-        <button id="next-chapter" class="chapter-arrow" title="Next Chapter">&#8594;</button>
+        <button id="next-chapter" class="chapter-arrow" title="Next Chapter">
+          <svg width="24" height="24" viewBox="0 0 24 24" style="display:block" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+            <polyline points="9 6 15 12 9 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
       <div id="chapter-title" class="amy-title" style="font-size:1.3rem;margin-bottom:1.5rem;"></div>
       <div id="amy-images"></div>
