@@ -111,7 +111,7 @@
 
     function getCurrentChapter() {
       const hash = window.location.hash.slice(1).toLowerCase();
-      const idx = chapters.findIndex(c => 
+      const idx  = chapters.findIndex(c => 
         c.name.replace(/\s/g,'').toLowerCase() === hash
       );
       return idx < 0 ? 0 : idx;
@@ -125,22 +125,17 @@
       for (let i = 1; i <= chap.count; i++) {
         const img = document.createElement('img');
         img.className = 'amy-image';
-        img.alt = `${chap.name} Page ${i}`;
+        img.alt       = `${chap.name} Page ${i}`;
 
-        // build the list of number-strings
-        let nums;
-        if (i === 1) {
-          nums = ['000', '00', pad3(i), pad2(i), i.toString()];
-        } else {
-          nums = [pad3(i), pad2(i), i.toString()];
-        }
-
-        const prefixes = [
-          `${chap.folder}IMG_`,
-          `${chap.folder}`
-        ];
-        const exts = ['jpg','png','webp'];
-
+        // build the number variants, trying (i-1) first, then i
+        const prev = i - 1;
+        const nums = [
+          pad3(prev), pad2(prev), prev.toString(),
+          pad3(i),    pad2(i),    i.toString()
+        ].filter((v, i, a) => v !== "" && a.indexOf(v) === i);
+        // exts in desired order
+        const exts    = ['jpg','png','webp'];
+        const prefixes= [`${chap.folder}IMG_`, chap.folder];
         // flatten into a single fallback list
         const sources = [];
         nums.forEach(num =>
@@ -151,7 +146,7 @@
           )
         );
 
-        // chain-loading via onerror
+        // chain the fallbacks via onerror
         let attempt = 0;
         img.onerror = () => {
           attempt++;
@@ -165,7 +160,7 @@
         container.appendChild(img);
       }
 
-      // update controls
+      // update UI
       document.getElementById('chapter-title').textContent = chap.name;
       ['chapter-select','chapter-select-bottom'].forEach(id =>
         document.getElementById(id).value = idx
@@ -199,8 +194,8 @@
 
       ['prev-chapter','next-chapter'].forEach(id => {
         document.getElementById(id).addEventListener('click', () => {
-          const idx = getCurrentChapter();
-          const nxt = id.includes('prev') ? idx-1 : idx+1;
+          const cur = getCurrentChapter();
+          const nxt = id.includes('prev') ? cur-1 : cur+1;
           if (nxt >= 0 && nxt < chapters.length) {
             window.location.hash = chapters[nxt].name.replace(/\s/g,'');
             renderChapter(nxt);
@@ -209,8 +204,8 @@
       });
       ['prev-chapter-bottom','next-chapter-bottom'].forEach(id => {
         document.getElementById(id).addEventListener('click', () => {
-          const idx = getCurrentChapter();
-          const nxt = id.includes('prev') ? idx-1 : idx+1;
+          const cur = getCurrentChapter();
+          const nxt = id.includes('prev') ? cur-1 : cur+1;
           if (nxt >= 0 && nxt < chapters.length) {
             window.location.hash = chapters[nxt].name.replace(/\s/g,'');
             renderChapter(nxt);
@@ -218,7 +213,7 @@
         });
       });
 
-      // initial render + back/forward navigation
+      // initial render & hash navigation
       renderChapter(getCurrentChapter());
       window.addEventListener('hashchange', () => renderChapter(getCurrentChapter()));
     });
