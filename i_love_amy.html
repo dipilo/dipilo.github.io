@@ -105,7 +105,9 @@
       { name: "Chapter 3", folder: "/I Love Amy/Chapter 3/", count: 23 },
     ];
 
-    function pad(n) { return n.toString().padStart(2, '0'); }
+    // pad helpers
+    function pad2(n) { return n.toString().padStart(2, '0'); }
+    function pad3(n) { return n.toString().padStart(3, '0'); }
 
     function getCurrentChapter() {
       const hash = window.location.hash.slice(1).toLowerCase();
@@ -123,18 +125,24 @@
         img.className = 'amy-image';
         img.alt = `${chap.name} Page ${i}`;
 
-        // build our fallback list
-        const base = `${chap.folder}${pad(i)}`;
-        const withImg = `${chap.folder}IMG_${pad(i)}`;
-        const sources = [
-          `${withImg}.png`,
-          `${base}.png`,
-          `${withImg}.jpg`,
-          `${base}.jpg`,
-          `${withImg}.webp`
+        // generate all candidate URLs
+        const nums = [pad3(i), pad2(i), i.toString()];
+        const prefixes = [
+          `${chap.folder}IMG_`,
+          `${chap.folder}`
         ];
+        const exts = ['png', 'jpg', 'webp'];
+        const sources = [];
 
-        // set up onerror chain
+        prefixes.forEach(pref => {
+          nums.forEach(num => {
+            exts.forEach(ext => {
+              sources.push(`${pref}${num}.${ext}`);
+            });
+          });
+        });
+
+        // chain the fallbacks
         let attempt = 0;
         img.onerror = () => {
           attempt++;
@@ -145,30 +153,29 @@
           }
         };
 
-        // kick off loading
         img.src = sources[0];
         container.appendChild(img);
       }
 
-      // update UI
+      // update UI controls
       document.getElementById('chapter-title').textContent = chap.name;
-      ['chapter-select','chapter-select-bottom'].forEach(id => {
-        document.getElementById(id).value = idx;
-      });
-      ['prev-chapter','prev-chapter-bottom'].forEach(id => {
-        document.getElementById(id).disabled = idx === 0;
-      });
-      ['next-chapter','next-chapter-bottom'].forEach(id => {
-        document.getElementById(id).disabled = idx === chapters.length - 1;
-      });
-      window.scrollTo(0,0);
+      ['chapter-select','chapter-select-bottom'].forEach(id =>
+        document.getElementById(id).value = idx
+      );
+      ['prev-chapter','prev-chapter-bottom'].forEach(id =>
+        document.getElementById(id).disabled = idx === 0
+      );
+      ['next-chapter','next-chapter-bottom'].forEach(id =>
+        document.getElementById(id).disabled = idx === chapters.length - 1
+      );
+      window.scrollTo(0, 0);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       const selTop    = document.getElementById('chapter-select');
       const selBottom = document.getElementById('chapter-select-bottom');
 
-      chapters.forEach((c,i) => {
+      chapters.forEach((c, i) => {
         selTop.add(   new Option(c.name, i) );
         selBottom.add(new Option(c.name, i) );
       });
@@ -185,7 +192,7 @@
       ['prev-chapter','next-chapter'].forEach(id => {
         document.getElementById(id).addEventListener('click', () => {
           const idx  = getCurrentChapter();
-          const next = id.includes('prev') ? idx-1 : idx+1;
+          const next = id.includes('prev') ? idx - 1 : idx + 1;
           if (next >= 0 && next < chapters.length) {
             window.location.hash = chapters[next].name.replace(/\s/g,'');
             renderChapter(next);
@@ -195,7 +202,7 @@
       ['prev-chapter-bottom','next-chapter-bottom'].forEach(id => {
         document.getElementById(id).addEventListener('click', () => {
           const idx  = getCurrentChapter();
-          const next = id.includes('prev') ? idx-1 : idx+1;
+          const next = id.includes('prev') ? idx - 1 : idx + 1;
           if (next >= 0 && next < chapters.length) {
             window.location.hash = chapters[next].name.replace(/\s/g,'');
             renderChapter(next);
@@ -203,7 +210,7 @@
         });
       });
 
-      // initial draw + support back/forward
+      // initial render + back/forward support
       renderChapter(getCurrentChapter());
       window.addEventListener('hashchange', () => renderChapter(getCurrentChapter()));
     });
