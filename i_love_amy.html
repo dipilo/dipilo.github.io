@@ -100,9 +100,9 @@
   <script>
     // Define chapters and image counts
     const chapters = [
-      { name: "Chapter 0", folder: "/I Love Amy/Chapter 0/", count: 55 },
-      { name: "Chapter 1", folder: "/I Love Amy/Chapter 1/", count: 23 },
-      { name: "Chapter 2", folder: "/I Love Amy/Chapter 2/", count: 29 }
+      { name: "Chapter 0", folder: "/I Love Amy/Chapter 0/", count: 55, pngCount: 23 },
+      { name: "Chapter 1", folder: "/I Love Amy/Chapter 1/", count: 23, pngCount: 28 },
+      { name: "Chapter 2", folder: "/I Love Amy/Chapter 2/", count: 29,  }
     ];
 
     // Pad numbers to two digits
@@ -110,95 +110,101 @@
       return num.toString().padStart(2, '0');
     }
 
-    // Get current chapter from hash or default to 0
+    // Get current chapter index from hash
     function getCurrentChapter() {
-      const hash = window.location.hash.replace('#', '');
-      const idx = chapters.findIndex(c => c.name.replace(/\s/g, '').toLowerCase() === hash.toLowerCase());
+      const hash = window.location.hash.slice(1).toLowerCase();
+      const idx = chapters.findIndex(c => c.name.replace(/\s/g, '').toLowerCase() === hash);
       return idx >= 0 ? idx : 0;
     }
 
-    // Render images for the current chapter
+    // Render images for chapter idx
     function renderChapter(idx) {
       const container = document.getElementById('amy-images');
       container.innerHTML = '';
-      const chapter = chapters[idx];
-      for (let i = 1; i <= chapter.count; i++) {
+      const chap = chapters[idx];
+
+      for (let i = 1; i <= chap.count; i++) {
         const img = document.createElement('img');
         img.className = 'amy-image';
-        img.src = `${chapter.folder}IMG_${pad(i)}.webp`;
-        img.alt = `${chapter.name} Page ${i}`;
+
+        const filename = `IMG_${pad(i)}`;
+        if (i <= chap.pngCount) {
+          // try PNG first, fallback to WebP on error
+          img.src = `${chap.folder}${filename}.png`;
+          img.onerror = () => {
+            img.onerror = null;
+            img.src = `${chap.folder}${filename}.webp`;
+          };
+        } else {
+          // beyond pngCount, just load WebP
+          img.src = `${chap.folder}${filename}.webp`;
+        }
+
+        img.alt = `${chap.name} Page ${i}`;
         container.appendChild(img);
       }
-      document.getElementById('chapter-title').textContent = chapter.name;
-      document.getElementById('chapter-select').value = idx;
-      document.getElementById('chapter-select-bottom').value = idx;
-      // Enable/disable arrows (top and bottom)
-      document.getElementById('prev-chapter').disabled = idx === 0;
-      document.getElementById('next-chapter').disabled = idx === chapters.length - 1;
-      document.getElementById('prev-chapter-bottom').disabled = idx === 0;
-      document.getElementById('next-chapter-bottom').disabled = idx === chapters.length - 1;
-      // Scroll to top of images
+
+      // update title, selects & arrows
+      document.getElementById('chapter-title').textContent = chap.name;
+      ['chapter-select','chapter-select-bottom'].forEach(id => {
+        const sel = document.getElementById(id);
+        sel.value = idx;
+      });
+      ['prev-chapter','prev-chapter-bottom'].forEach(id => {
+        document.getElementById(id).disabled = idx === 0;
+      });
+      ['next-chapter','next-chapter-bottom'].forEach(id => {
+        document.getElementById(id).disabled = idx === chapters.length - 1;
+      });
+
       window.scrollTo(0, 0);
     }
 
-    // On page load
+    // Wire up controls on DOMContentLoaded
     window.addEventListener('DOMContentLoaded', () => {
-      const select = document.getElementById('chapter-select');
+      const selectTop    = document.getElementById('chapter-select');
       const selectBottom = document.getElementById('chapter-select-bottom');
-      // Populate both dropdowns
-      chapters.forEach((c, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = c.name;
-        select.appendChild(opt.cloneNode(true));
-        selectBottom.appendChild(opt);
+
+      chapters.forEach((c,i) => {
+        const opt1 = new Option(c.name, i);
+        const opt2 = new Option(c.name, i);
+        selectTop.add(opt1);
+        selectBottom.add(opt2);
       });
-      // Handle dropdown change (top)
-      select.addEventListener('change', e => {
-        window.location.hash = chapters[parseInt(e.target.value)].name.replace(/\s/g, '');
-        renderChapter(parseInt(e.target.value));
+
+      selectTop.addEventListener('change', e => {
+        window.location.hash = chapters[e.target.value].name.replace(/\s/g,'');
+        renderChapter(+e.target.value);
       });
-      // Handle dropdown change (bottom, just for sync)
       selectBottom.addEventListener('change', e => {
-        window.location.hash = chapters[parseInt(e.target.value)].name.replace(/\s/g, '');
-        renderChapter(parseInt(e.target.value));
+        window.location.hash = chapters[e.target.value].name.replace(/\s/g,'');
+        renderChapter(+e.target.value);
       });
-      // Handle arrows (top)
-      document.getElementById('prev-chapter').addEventListener('click', () => {
-        const idx = getCurrentChapter();
-        if (idx > 0) {
-          window.location.hash = chapters[idx - 1].name.replace(/\s/g, '');
-          renderChapter(idx - 1);
-        }
+
+      ['prev-chapter','next-chapter'].forEach(id => {
+        document.getElementById(id).addEventListener('click', () => {
+          const idx = getCurrentChapter();
+          const next = id.includes('prev') ? idx-1 : idx+1;
+          if (next >= 0 && next < chapters.length) {
+            window.location.hash = chapters[next].name.replace(/\s/g,'');
+            renderChapter(next);
+          }
+        });
       });
-      document.getElementById('next-chapter').addEventListener('click', () => {
-        const idx = getCurrentChapter();
-        if (idx < chapters.length - 1) {
-          window.location.hash = chapters[idx + 1].name.replace(/\s/g, '');
-          renderChapter(idx + 1);
-        }
+      ['prev-chapter-bottom','next-chapter-bottom'].forEach(id => {
+        document.getElementById(id).addEventListener('click', () => {
+          const idx = getCurrentChapter();
+          const next = id.includes('prev') ? idx-1 : idx+1;
+          if (next >= 0 && next < chapters.length) {
+            window.location.hash = chapters[next].name.replace(/\s/g,'');
+            renderChapter(next);
+          }
+        });
       });
-      // Handle arrows (bottom)
-      document.getElementById('prev-chapter-bottom').addEventListener('click', () => {
-        const idx = getCurrentChapter();
-        if (idx > 0) {
-          window.location.hash = chapters[idx - 1].name.replace(/\s/g, '');
-          renderChapter(idx - 1);
-        }
-      });
-      document.getElementById('next-chapter-bottom').addEventListener('click', () => {
-        const idx = getCurrentChapter();
-        if (idx < chapters.length - 1) {
-          window.location.hash = chapters[idx + 1].name.replace(/\s/g, '');
-          renderChapter(idx + 1);
-        }
-      });
-      // Initial render
+
+      // initial render & respond to back/forward
       renderChapter(getCurrentChapter());
-      // React to hash changes (for browser navigation)
-      window.addEventListener('hashchange', () => {
-        renderChapter(getCurrentChapter());
-      });
+      window.addEventListener('hashchange', () => renderChapter(getCurrentChapter()));
     });
   </script>
 </head>

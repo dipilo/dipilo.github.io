@@ -310,7 +310,8 @@ known_species = {
     ("Li", "Li", "Li"): "lion",
     ("Ho", "Hu", "Hu"): "ipotane",
     ("Dr", "Dr", "Dr"): "dragon",
-    ("Bi", "Bi", "Hu"): "tengu"
+    ("Bi", "Bi", "Hu"): "tengu",
+    ("Ho", "Bi", "Ho"): "pegasus"
 }
 
 def count_alleles(gene_index):
@@ -968,6 +969,25 @@ SPECIES_STAT_SOURCES = {
         "Maturation Age": ["bottom"],
         "Lifespan": ["bottom"],
         "Growth Rate": ["bottom"]
+    },
+    "pegasus": {
+        "IQ": ["top"],
+        "EQ": ["top"],
+        "Dexterity": ["top"],
+        "Strength": ["top"],
+        "Land Speed": ["bottom"],
+        "Swim Speed": ["bottom"],
+        "Jump Height": ["bottom"],
+        "Flight Speed": ["mid"],
+        "Climbing": ["bottom"],
+        "Bite": ["top"],
+        "Venom": ["top"],
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"],
+        "Maturation Age": ["bottom"],
+        "Lifespan": ["bottom"],
+        "Growth Rate": ["bottom"]
     }
 }
 
@@ -1329,6 +1349,7 @@ def breed_from_saved(parent1_name, parent2_name):
 
     # 6. Helpers for variant checks
     is_human_allele = (top_expr == "Hu")
+    is_horse_head = (top_expr == "Ho")
     is_not_manticore = (species != "manticore")
     is_giant = (sim_stats["Size"] >= 2.5 * base_size)
     is_small = (sim_stats["Size"] <= 0.5 * base_size)
@@ -1358,6 +1379,9 @@ def breed_from_saved(parent1_name, parent2_name):
          and sim_stats["Strength"] >= 1.2 * base_strength:
         variant_prefix = "Dwarven "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 4.0, 3)
+
+    elif is_horse_head and has_high_magic:
+        variant_prefix = "Unicorn "
 
     species_variant = variant_prefix + species
 
