@@ -105,38 +105,61 @@
       { name: "Chapter 3", folder: "/I Love Amy/Chapter 3/", count: 23 },
     ];
 
+    // state to remember numbering scheme per chapter
+    const chapterState = {};
+
     // pad helpers
-    const pad2 = n => n.toString().padStart(2, '0');
-    const pad3 = n => n.toString().padStart(3, '0');
+    const pad2 = n => String(n).padStart(2, '0');
+    const pad3 = n => String(n).padStart(3, '0');
 
     function getCurrentChapter() {
       const hash = window.location.hash.slice(1).toLowerCase();
-      const idx  = chapters.findIndex(c => 
+      const idx  = chapters.findIndex(c =>
         c.name.replace(/\s/g,'').toLowerCase() === hash
       );
       return idx < 0 ? 0 : idx;
     }
 
     function renderChapter(idx) {
+      // init state if needed
+      if (!chapterState[idx]) chapterState[idx] = { zeroBased: null };
+
       const container = document.getElementById('amy-images');
       container.innerHTML = '';
       const chap = chapters[idx];
+      const state = chapterState[idx];
 
       for (let i = 1; i <= chap.count; i++) {
         const img = document.createElement('img');
         img.className = 'amy-image';
-        img.alt       = `${chap.name} Page ${i}`;
+        img.alt = `${chap.name} Page ${i}`;
 
-        // build the number variants, trying (i-1) first, then i
-        const prev = i - 1;
-        const nums = [
-          pad3(prev), pad2(prev), prev.toString(),
-          pad3(i),    pad2(i),    i.toString()
-        ].filter((v, i, a) => v !== "" && a.indexOf(v) === i);
-        // exts in desired order
-        const exts    = ['jpg','png','webp'];
-        const prefixes= [`${chap.folder}IMG_`, chap.folder];
-        // flatten into a single fallback list
+        // build the candidate number strings:
+        let nums;
+        if (state.zeroBased === null) {
+          // detection mode: try both zero-based *and* one-based variants
+          const prev = i - 1;
+          nums = [
+            pad3(prev), pad2(prev), String(prev),
+            pad3(i),    pad2(i),    String(i)
+          ];
+        } else if (state.zeroBased) {
+          // zero-based scheme: page i → file (i-1)
+          const n = i - 1;
+          nums = [ pad3(n), pad2(n), String(n) ];
+        } else {
+          // one-based scheme: page i → file i
+          nums = [ pad3(i), pad2(i), String(i) ];
+        }
+        // remove duplicates+empties:
+        nums = nums.filter((v, j, arr) => v !== "" && arr.indexOf(v) === j);
+
+        // desired extensions & prefixes
+        const exts     = ['jpg', 'png', 'webp'];
+        const prefixes = [`${chap.folder}IMG_`, chap.folder];
+
+        // flatten into one fallback list in the order:
+        // JPG → PNG → WEBP, IMG_ → bare
         const sources = [];
         nums.forEach(num =>
           prefixes.forEach(pref =>
@@ -146,7 +169,7 @@
           )
         );
 
-        // chain the fallbacks via onerror
+        // set up chaining
         let attempt = 0;
         img.onerror = () => {
           attempt++;
@@ -156,11 +179,21 @@
             img.onerror = null;
           }
         };
+        img.onload = () => {
+          // once page 1 finishes loading, lock in the scheme
+          if (i === 1 && state.zeroBased === null) {
+            // zero-based variants were the *first* 3 entries in nums
+            // so if the loaded index < 3 → zero-based, else one-based
+            state.zeroBased = attempt < 3;
+          }
+        };
+
+        // kick off loading
         img.src = sources[0];
         container.appendChild(img);
       }
 
-      // update UI
+      // update UI controls (titles, selects, arrows)
       document.getElementById('chapter-title').textContent = chap.name;
       ['chapter-select','chapter-select-bottom'].forEach(id =>
         document.getElementById(id).value = idx
@@ -171,18 +204,20 @@
       ['next-chapter','next-chapter-bottom'].forEach(id =>
         document.getElementById(id).disabled = idx === chapters.length - 1
       );
+
       window.scrollTo(0, 0);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      // populate selects
       const topSel    = document.getElementById('chapter-select');
       const bottomSel = document.getElementById('chapter-select-bottom');
-
-      chapters.forEach((c,i) => {
+      chapters.forEach((c, i) => {
         topSel.add(   new Option(c.name, i) );
         bottomSel.add(new Option(c.name, i) );
       });
 
+      // wire selects
       topSel.addEventListener('change', e => {
         window.location.hash = chapters[e.target.value].name.replace(/\s/g,'');
         renderChapter(+e.target.value);
@@ -192,30 +227,24 @@
         renderChapter(+e.target.value);
       });
 
-      ['prev-chapter','next-chapter'].forEach(id => {
-        document.getElementById(id).addEventListener('click', () => {
-          const cur = getCurrentChapter();
-          const nxt = id.includes('prev') ? cur-1 : cur+1;
-          if (nxt >= 0 && nxt < chapters.length) {
-            window.location.hash = chapters[nxt].name.replace(/\s/g,'');
-            renderChapter(nxt);
-          }
+      // wire arrows (top & bottom)
+      ['prev-chapter','next-chapter','prev-chapter-bottom','next-chapter-bottom']
+        .forEach(id => {
+          document.getElementById(id).addEventListener('click', () => {
+            const cur = getCurrentChapter();
+            const nxt = id.includes('prev') ? cur - 1 : cur + 1;
+            if (nxt >= 0 && nxt < chapters.length) {
+              window.location.hash = chapters[nxt].name.replace(/\s/g,'');
+              renderChapter(nxt);
+            }
+          });
         });
-      });
-      ['prev-chapter-bottom','next-chapter-bottom'].forEach(id => {
-        document.getElementById(id).addEventListener('click', () => {
-          const cur = getCurrentChapter();
-          const nxt = id.includes('prev') ? cur-1 : cur+1;
-          if (nxt >= 0 && nxt < chapters.length) {
-            window.location.hash = chapters[nxt].name.replace(/\s/g,'');
-            renderChapter(nxt);
-          }
-        });
-      });
 
-      // initial render & hash navigation
+      // first render + support back/forward
       renderChapter(getCurrentChapter());
-      window.addEventListener('hashchange', () => renderChapter(getCurrentChapter()));
+      window.addEventListener('hashchange', () =>
+        renderChapter(getCurrentChapter())
+      );
     });
   </script>
 </head>
