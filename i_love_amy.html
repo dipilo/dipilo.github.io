@@ -106,12 +106,14 @@
     ];
 
     // pad helpers
-    function pad2(n) { return n.toString().padStart(2, '0'); }
-    function pad3(n) { return n.toString().padStart(3, '0'); }
+    const pad2 = n => n.toString().padStart(2, '0');
+    const pad3 = n => n.toString().padStart(3, '0');
 
     function getCurrentChapter() {
       const hash = window.location.hash.slice(1).toLowerCase();
-      const idx  = chapters.findIndex(c => c.name.replace(/\s/g,'').toLowerCase() === hash);
+      const idx = chapters.findIndex(c => 
+        c.name.replace(/\s/g,'').toLowerCase() === hash
+      );
       return idx < 0 ? 0 : idx;
     }
 
@@ -125,7 +127,7 @@
         img.className = 'amy-image';
         img.alt = `${chap.name} Page ${i}`;
 
-        // generate number variants, including "000" and "00" for the first page
+        // build the list of number-strings
         let nums;
         if (i === 1) {
           nums = ['000', '00', pad3(i), pad2(i), i.toString()];
@@ -133,18 +135,23 @@
           nums = [pad3(i), pad2(i), i.toString()];
         }
 
-        // build prefixes and extensions
-        const prefixes = [`${chap.folder}IMG_`, chap.folder];
-        const exts     = ['png', 'jpg', 'webp'];
-        const sources  = [];
+        const prefixes = [
+          `${chap.folder}IMG_`,
+          `${chap.folder}`
+        ];
+        const exts = ['jpg','png','webp'];
 
-        prefixes.forEach(pref =>
-          nums.forEach(num =>
-            exts.forEach(ext => sources.push(`${pref}${num}.${ext}`))
+        // flatten into a single fallback list
+        const sources = [];
+        nums.forEach(num =>
+          prefixes.forEach(pref =>
+            exts.forEach(ext =>
+              sources.push(`${pref}${num}.${ext}`)
+            )
           )
         );
 
-        // chain the fallbacks
+        // chain-loading via onerror
         let attempt = 0;
         img.onerror = () => {
           attempt++;
@@ -154,12 +161,11 @@
             img.onerror = null;
           }
         };
-
         img.src = sources[0];
         container.appendChild(img);
       }
 
-      // update UI controls
+      // update controls
       document.getElementById('chapter-title').textContent = chap.name;
       ['chapter-select','chapter-select-bottom'].forEach(id =>
         document.getElementById(id).value = idx
@@ -174,45 +180,45 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      const selTop    = document.getElementById('chapter-select');
-      const selBottom = document.getElementById('chapter-select-bottom');
+      const topSel    = document.getElementById('chapter-select');
+      const bottomSel = document.getElementById('chapter-select-bottom');
 
-      chapters.forEach((c, i) => {
-        selTop.add(   new Option(c.name, i) );
-        selBottom.add(new Option(c.name, i) );
+      chapters.forEach((c,i) => {
+        topSel.add(   new Option(c.name, i) );
+        bottomSel.add(new Option(c.name, i) );
       });
 
-      selTop.addEventListener('change', e => {
+      topSel.addEventListener('change', e => {
         window.location.hash = chapters[e.target.value].name.replace(/\s/g,'');
         renderChapter(+e.target.value);
       });
-      selBottom.addEventListener('change', e => {
+      bottomSel.addEventListener('change', e => {
         window.location.hash = chapters[e.target.value].name.replace(/\s/g,'');
         renderChapter(+e.target.value);
       });
 
       ['prev-chapter','next-chapter'].forEach(id => {
         document.getElementById(id).addEventListener('click', () => {
-          const idx  = getCurrentChapter();
-          const next = id.includes('prev') ? idx - 1 : idx + 1;
-          if (next >= 0 && next < chapters.length) {
-            window.location.hash = chapters[next].name.replace(/\s/g,'');
-            renderChapter(next);
+          const idx = getCurrentChapter();
+          const nxt = id.includes('prev') ? idx-1 : idx+1;
+          if (nxt >= 0 && nxt < chapters.length) {
+            window.location.hash = chapters[nxt].name.replace(/\s/g,'');
+            renderChapter(nxt);
           }
         });
       });
       ['prev-chapter-bottom','next-chapter-bottom'].forEach(id => {
         document.getElementById(id).addEventListener('click', () => {
-          const idx  = getCurrentChapter();
-          const next = id.includes('prev') ? idx - 1 : idx + 1;
-          if (next >= 0 && next < chapters.length) {
-            window.location.hash = chapters[next].name.replace(/\s/g,'');
-            renderChapter(next);
+          const idx = getCurrentChapter();
+          const nxt = id.includes('prev') ? idx-1 : idx+1;
+          if (nxt >= 0 && nxt < chapters.length) {
+            window.location.hash = chapters[nxt].name.replace(/\s/g,'');
+            renderChapter(nxt);
           }
         });
       });
 
-      // initial render + back/forward support
+      // initial render + back/forward navigation
       renderChapter(getCurrentChapter());
       window.addEventListener('hashchange', () => renderChapter(getCurrentChapter()));
     });
