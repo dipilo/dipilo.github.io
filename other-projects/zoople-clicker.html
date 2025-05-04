@@ -13,6 +13,14 @@
     /* Zoople wrapper and shake animation */
     #zoopleWrapper { position: relative; width: 200px; height: 200px; }
     #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
+    .blunt {
+      position: absolute;
+      width: 50px;
+      height: auto;
+      left: 75px; /* center horizontally: 100px - (50/2) */
+      top: -30px; /* 200px height - 230px from bottom = -30px */
+      transform-origin: calc(100% - 8px) calc(100% - 17px);
+    }
     @keyframes shake {
       0%, 100% { transform: translate(0); }
       20%, 60% { transform: translate(-5px, 0); }
@@ -107,6 +115,7 @@
     const fryEl = document.getElementById('fry');
     const multEl = document.getElementById('mult');
     const zoople = document.getElementById('zoople');
+    const wrapper = document.getElementById('zoopleWrapper');
     const haze = document.getElementById('haze');
 
     function updateDisplay() {
@@ -118,6 +127,16 @@
 
     function calculateBaseMultiplier() {
       baseMultiplier = 1 + bluntCount * 0.01;
+    }
+
+    function addBluntVisual() {
+      const img = document.createElement('img');
+      img.src = '/images/zoople-clicker/trinkets/blunt.png';
+      img.className = 'blunt';
+      // random rotation angle
+      const angle = Math.random() * 360;
+      img.style.transform = `rotate(${angle}deg)`;
+      wrapper.appendChild(img);
     }
 
     zoople.addEventListener('click', () => {
@@ -144,6 +163,7 @@
         score -= upgradePrices.blunt;
         bluntCount++;
         calculateBaseMultiplier();
+        addBluntVisual();
         upgradePrices.blunt = Math.floor(upgradePrices.blunt * 2);
         document.getElementById('buyBlunt').textContent = `Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;
         updateDisplay();
