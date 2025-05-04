@@ -5,15 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zoople Cookie Clicker</title>
   <style>
-    body { margin: 0; font-family: sans-serif; background: #f0f0f0; }
+    body { margin: 0; font-family: sans-serif; background: #f0f0f0; overflow: hidden; }
     #container { display: flex; height: 100vh; }
     .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-    #center { display: flex; justify-content: center; align-items: center; }
+    #center { display: flex; justify-content: center; align-items: center; position: relative; }
+
+    /* Zoople wrapper and shake animation */
     #zoopleWrapper { position: relative; width: 200px; height: 200px; }
-    #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
-    #haze { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,255,0,0.5); pointer-events: none; opacity: 0; transition: opacity 0.5s; }
+    #zoople { cursor: pointer; width: 100%; height: 100%; background: url('zoople.png') no-repeat center/contain; }
+    @keyframes shake {
+      0%, 100% { transform: translate(0); }
+      20%, 60% { transform: translate(-5px, 0); }
+      40%, 80% { transform: translate(5px, 0); }
+    }
+    #zoople.shake { animation: shake 0.3s ease-in-out; }
+
+    /* Fullscreen haze overlay */
+    #haze {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+      background: 
+        radial-gradient(circle at 30% 30%, rgba(0,255,0,0.2) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(0,200,0,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(0,255,0,0.1) 0%, transparent 60%);
+      backdrop-filter: blur(8px);
+      mix-blend-mode: screen;
+    }
+
+    /* Buttons styling */
+    .panel button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px rgba(0,0,0,0.2);
+      font-size: 16px;
+      padding: 12px;
+      margin: 10px 0;
+      width: 100%;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.3s;
+    }
+    .panel button:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+    .panel button:active {
+      transform: scale(0.95);
+      box-shadow: 0 2px rgba(0,0,0,0.2);
+    }
+
     h2 { margin-top: 0; }
-    button { display: block; margin: 10px 0; padding: 10px; width: 100%; }
     #status { margin: 20px 0; font-size: 1.2em; }
   </style>
 </head>
@@ -27,7 +75,6 @@
       <div>
         <div id="zoopleWrapper">
           <div id="zoople"></div>
-          <div id="haze"></div>
         </div>
         <div id="status">
           Score: <span id="score">0</span><br>
@@ -41,6 +88,7 @@
       <button id="buyBlunt">Buy Blunt (+passive boost) (Cost: 200)</button>
     </div>
   </div>
+  <div id="haze"></div>
 
   <script>
     let score = 0;
@@ -50,8 +98,8 @@
     let isFried = false;
     let autoClickers = 0;
     let bluntCount = 0;
-    let bluntPassive = 0; // per second multiplier addition
-    const fryPassiveRate = 100 / 300; // % per second passive
+    let bluntPassive = 0;
+    const fryPassiveRate = 100 / 300;
     const upgradePrices = { autoClicker: 50, blunt: 200 };
 
     const scoreEl = document.getElementById('score');
@@ -70,8 +118,9 @@
     zoople.addEventListener('click', () => {
       if (!isFried) {
         score += clickValue * multiplier;
-        // Only increase fry meter after buying a blunt
         if (bluntCount > 0) fryPercent += 0.05;
+        zoople.classList.add('shake');
+        zoople.addEventListener('animationend', () => zoople.classList.remove('shake'), { once: true });
         updateDisplay();
       }
     });
@@ -101,7 +150,6 @@
     setInterval(() => {
       if (!isFried) score += autoClickers * multiplier;
       multiplier = 1 + bluntCount * 0.01;
-      // Only passive fry progression after blunt purchased
       if (!isFried && bluntCount > 0) fryPercent += fryPassiveRate;
       if (bluntCount > 0 && fryPercent >= 100 && !isFried) triggerFry();
       updateDisplay();
