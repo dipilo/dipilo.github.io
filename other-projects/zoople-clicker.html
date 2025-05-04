@@ -12,7 +12,7 @@
       overflow: hidden; 
     }
     #container { display: flex; height: 100vh; }
-    .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; background: rgba(255,255,255,0.8); }
+    .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
     #center { display: flex; justify-content: center; align-items: center; position: relative; }
 
     /* Zoople wrapper and shake animation */
@@ -72,8 +72,8 @@
     .panel button:hover { transform: scale(1.05); }
     .panel button:active { transform: scale(0.95); box-shadow: 0 2px rgba(0,0,0,0.2); }
 
-    h2 { margin-top: 0; }
-    #status { margin: 20px 0; font-size: 1.2em; color: #333; }
+    h2 { margin-top: 0; color: white; }
+    #status { margin: 20px 0; font-size: 1.2em; color: white; }
   </style>
 </head>
 <body>
@@ -128,9 +128,9 @@
       img.src = '/images/zoople-clicker/trinkets/blunt.png';
       img.className = 'blunt';
       const W = 200, origW = 409, origH = 486;
-      // pixel ranges in original: x [216,220], y [origH-267,origH-237]
-      const xMin = 216/origW * W, xMax = 220/origW * W;
-      const yMin = (origH-267)/origH * W, yMax = (origH-237)/origH * W;
+      // pixel ranges in original: x [216,243], y [249,267]
+      const xMin = 216/origW * W, xMax = 243/origW * W;
+      const yMin = (origH-237)/origH * W, yMax = (origH-267)/origH * W;
       const x = Math.random()*(xMax-xMin) + xMin;
       const y = Math.random()*(yMax-yMin) + yMin;
       img.style.left = `${x}px`;
