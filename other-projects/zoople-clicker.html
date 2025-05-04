@@ -116,13 +116,12 @@
     }
 
     zoople.addEventListener('click', () => {
-      if (!isFried) {
-        score += clickValue * multiplier;
-        if (bluntCount > 0) fryPercent += 0.05;
-        zoople.classList.add('shake');
-        zoople.addEventListener('animationend', () => zoople.classList.remove('shake'), { once: true });
-        updateDisplay();
-      }
+      // Always allow clicking for score, even when fried
+      score += clickValue * multiplier;
+      if (bluntCount > 0 && !isFried) fryPercent += 0.05;
+      zoople.classList.add('shake');
+      zoople.addEventListener('animationend', () => zoople.classList.remove('shake'), { once: true });
+      updateDisplay();
     });
 
     document.getElementById('autoClicker').addEventListener('click', () => {
@@ -148,9 +147,13 @@
     });
 
     setInterval(() => {
-      if (!isFried) score += autoClickers * multiplier;
+      // Passive auto-click
+      score += autoClickers * multiplier;
+      // Apply passive blunt multiplier
       multiplier = 1 + bluntCount * 0.01;
+      // Passive fry progression only when not fried and blunt unlocked
       if (!isFried && bluntCount > 0) fryPercent += fryPassiveRate;
+      // Trigger fry when meter full
       if (bluntCount > 0 && fryPercent >= 100 && !isFried) triggerFry();
       updateDisplay();
     }, 1000);
