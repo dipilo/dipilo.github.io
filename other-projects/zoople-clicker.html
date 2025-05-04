@@ -5,20 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zoople Cookie Clicker</title>
   <style>
-    body { margin: 0; font-family: sans-serif; background: #f0f0f0; overflow: hidden; }
+    body { 
+      margin: 0; 
+      font-family: sans-serif; 
+      background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; 
+      overflow: hidden; 
+    }
     #container { display: flex; height: 100vh; }
-    .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+    .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; background: rgba(255,255,255,0.8); }
     #center { display: flex; justify-content: center; align-items: center; position: relative; }
 
     /* Zoople wrapper and shake animation */
     #zoopleWrapper { position: relative; width: 200px; height: 200px; }
-    #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
+    #zoople { 
+      cursor: pointer; 
+      width: 100%; 
+      height: 100%; 
+      background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; 
+    }
     .blunt {
       position: absolute;
       width: 50px;
       height: auto;
-      left: 75px; /* center horizontally: 100px - (50/2) */
-      top: -30px; /* 200px height - 230px from bottom = -30px */
+      /* transform origin: 8px from right, 17px from bottom */
       transform-origin: calc(100% - 8px) calc(100% - 17px);
     }
     @keyframes shake {
@@ -60,17 +69,11 @@
       cursor: pointer;
       transition: transform 0.1s, background 0.3s;
     }
-    .panel button:hover {
-      background: #45a049;
-      transform: scale(1.05);
-    }
-    .panel button:active {
-      transform: scale(0.95);
-      box-shadow: 0 2px rgba(0,0,0,0.2);
-    }
+    .panel button:hover { transform: scale(1.05); }
+    .panel button:active { transform: scale(0.95); box-shadow: 0 2px rgba(0,0,0,0.2); }
 
     h2 { margin-top: 0; }
-    #status { margin: 20px 0; font-size: 1.2em; }
+    #status { margin: 20px 0; font-size: 1.2em; color: #333; }
   </style>
 </head>
 <body>
@@ -99,16 +102,9 @@
   <div id="haze"></div>
 
   <script>
-    let score = 0;
-    let baseMultiplier = 1;
-    let multiplier = 1;
-    let clickValue = 1;
-    let fryPercent = 0;
-    let isFried = false;
-    let autoClickers = 0;
-    let bluntCount = 0;
-    const fryPassiveRate = 100 / 300; // % per second when not fried
-    const fryDecreaseRate = 100 / 150; // % per second when fried
+    let score = 0, baseMultiplier = 1, multiplier = 1, clickValue = 1;
+    let fryPercent = 0, isFried = false, autoClickers = 0, bluntCount = 0;
+    const fryPassiveRate = 100/300, fryDecreaseRate = 100/150;
     const upgradePrices = { autoClicker: 50, blunt: 200 };
 
     const scoreEl = document.getElementById('score');
@@ -118,93 +114,73 @@
     const wrapper = document.getElementById('zoopleWrapper');
     const haze = document.getElementById('haze');
 
-    function updateDisplay() {
+    function updateDisplay(){
       scoreEl.textContent = Math.floor(score);
-      fryEl.textContent = Math.min(Math.max(fryPercent, 0), 100).toFixed(2) + '%';
+      fryEl.textContent = Math.min(Math.max(fryPercent,0),100).toFixed(2) + '%';
       multEl.textContent = multiplier.toFixed(1) + 'x';
-      haze.style.opacity = Math.min(bluntCount * 0.1, 0.7);
+      haze.style.opacity = Math.min(bluntCount*0.1,0.7);
     }
 
-    function calculateBaseMultiplier() {
-      baseMultiplier = 1 + bluntCount * 0.01;
-    }
+    function calculateBaseMultiplier(){ baseMultiplier = 1 + bluntCount*0.01; }
 
-    function addBluntVisual() {
+    function addBluntVisual(){
       const img = document.createElement('img');
       img.src = '/images/zoople-clicker/trinkets/blunt.png';
       img.className = 'blunt';
-      // random rotation angle
-      const angle = Math.random() * 360;
+      const W = 200, origW = 409, origH = 486;
+      // pixel ranges in original: x [216,220], y [origH-267,origH-237]
+      const xMin = 216/origW * W, xMax = 220/origW * W;
+      const yMin = (origH-267)/origH * W, yMax = (origH-237)/origH * W;
+      const x = Math.random()*(xMax-xMin) + xMin;
+      const y = Math.random()*(yMax-yMin) + yMin;
+      img.style.left = `${x}px`;
+      img.style.top = `${y}px`;
+      const angle = Math.random()*360;
       img.style.transform = `rotate(${angle}deg)`;
       wrapper.appendChild(img);
     }
 
-    zoople.addEventListener('click', () => {
-      score += clickValue * multiplier;
-      if (bluntCount > 0 && !isFried) fryPercent += 0.05;
+    zoople.addEventListener('click', ()=>{
+      score += clickValue*multiplier;
+      if(bluntCount>0 && !isFried) fryPercent += 0.05;
       zoople.classList.add('shake');
-      zoople.addEventListener('animationend', () => zoople.classList.remove('shake'), { once: true });
+      zoople.addEventListener('animationend', ()=>zoople.classList.remove('shake'), {once:true});
       updateDisplay();
     });
 
-    document.getElementById('autoClicker').addEventListener('click', () => {
-      if (score >= upgradePrices.autoClicker) {
-        score -= upgradePrices.autoClicker;
-        autoClickers++;
-        clickValue++;
-        upgradePrices.autoClicker = Math.floor(upgradePrices.autoClicker * 1.5);
+    document.getElementById('autoClicker').addEventListener('click', ()=>{
+      if(score >= upgradePrices.autoClicker){
+        score -= upgradePrices.autoClicker; autoClickers++; clickValue++;
+        upgradePrices.autoClicker = Math.floor(upgradePrices.autoClicker*1.5);
         document.getElementById('autoClicker').textContent = `Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;
         updateDisplay();
       }
     });
 
-    document.getElementById('buyBlunt').addEventListener('click', () => {
-      if (score >= upgradePrices.blunt) {
-        score -= upgradePrices.blunt;
-        bluntCount++;
-        calculateBaseMultiplier();
-        addBluntVisual();
-        upgradePrices.blunt = Math.floor(upgradePrices.blunt * 2);
+    document.getElementById('buyBlunt').addEventListener('click', ()=>{
+      if(score >= upgradePrices.blunt){
+        score -= upgradePrices.blunt; bluntCount++; calculateBaseMultiplier(); addBluntVisual();
+        upgradePrices.blunt = Math.floor(upgradePrices.blunt*2);
         document.getElementById('buyBlunt').textContent = `Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;
         updateDisplay();
       }
     });
 
-    setInterval(() => {
-      // Passive auto-click
-      score += autoClickers * multiplier;
-      // Fry meter progression or regression
-      if (isFried) {
-        fryPercent -= fryDecreaseRate;
-      } else if (bluntCount > 0) {
-        fryPercent += fryPassiveRate;
-      }
-      // Update multiplier
-      if (!isFried) {
-        calculateBaseMultiplier();
-        multiplier = baseMultiplier;
-      }
-      // Trigger fry when meter full
-      if (bluntCount > 0 && fryPercent >= 100 && !isFried) triggerFry();
-      // Clamp meter
-      fryPercent = Math.min(Math.max(fryPercent, 0), 100);
+    setInterval(()=>{
+      score += autoClickers*multiplier;
+      if(isFried) fryPercent -= fryDecreaseRate;
+      else if(bluntCount>0) fryPercent += fryPassiveRate;
+      if(!isFried){ calculateBaseMultiplier(); multiplier = baseMultiplier; }
+      if(bluntCount>0 && fryPercent >= 100 && !isFried) triggerFry();
+      fryPercent = Math.min(Math.max(fryPercent,0),100);
       updateDisplay();
-    }, 1000);
+    },1000);
 
-    function triggerFry() {
-      isFried = true;
-      multiplier = baseMultiplier * 5;
-      updateDisplay();
-      setTimeout(() => {
-        isFried = false;
-        multiplier = baseMultiplier;
-        fryPercent = 0;
-        updateDisplay();
-      }, 150000); // 2.5 minutes
+    function triggerFry(){ isFried=true; multiplier = baseMultiplier*5; updateDisplay();
+      setTimeout(()=>{ isFried=false; multiplier = baseMultiplier; fryPercent=0; updateDisplay(); }, 150000);
     }
 
-    calculateBaseMultiplier();
-    updateDisplay();
+    calculateBaseMultiplier(); updateDisplay();
   </script>
 </body>
 </html>
