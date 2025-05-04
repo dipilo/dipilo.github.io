@@ -92,14 +92,15 @@
 
   <script>
     let score = 0;
+    let baseMultiplier = 1;
     let multiplier = 1;
     let clickValue = 1;
     let fryPercent = 0;
     let isFried = false;
     let autoClickers = 0;
     let bluntCount = 0;
-    let bluntPassive = 0;
-    const fryPassiveRate = 100 / 300;
+    const fryPassiveRate = 100 / 300; // % per second when not fried
+    const fryDecreaseRate = 100 / 150; // % per second when fried
     const upgradePrices = { autoClicker: 50, blunt: 200 };
 
     const scoreEl = document.getElementById('score');
@@ -110,13 +111,16 @@
 
     function updateDisplay() {
       scoreEl.textContent = Math.floor(score);
-      fryEl.textContent = Math.min(fryPercent,100).toFixed(2) + '%';
+      fryEl.textContent = Math.min(Math.max(fryPercent, 0), 100).toFixed(2) + '%';
       multEl.textContent = multiplier.toFixed(1) + 'x';
       haze.style.opacity = Math.min(bluntCount * 0.1, 0.7);
     }
 
+    function calculateBaseMultiplier() {
+      baseMultiplier = 1 + bluntCount * 0.01;
+    }
+
     zoople.addEventListener('click', () => {
-      // Always allow clicking for score, even when fried
       score += clickValue * multiplier;
       if (bluntCount > 0 && !isFried) fryPercent += 0.05;
       zoople.classList.add('shake');
@@ -139,7 +143,7 @@
       if (score >= upgradePrices.blunt) {
         score -= upgradePrices.blunt;
         bluntCount++;
-        bluntPassive += 0.001;
+        calculateBaseMultiplier();
         upgradePrices.blunt = Math.floor(upgradePrices.blunt * 2);
         document.getElementById('buyBlunt').textContent = `Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;
         updateDisplay();
@@ -149,27 +153,37 @@
     setInterval(() => {
       // Passive auto-click
       score += autoClickers * multiplier;
-      // Apply passive blunt multiplier
-      multiplier = 1 + bluntCount * 0.01;
-      // Passive fry progression only when not fried and blunt unlocked
-      if (!isFried && bluntCount > 0) fryPercent += fryPassiveRate;
+      // Fry meter progression or regression
+      if (isFried) {
+        fryPercent -= fryDecreaseRate;
+      } else if (bluntCount > 0) {
+        fryPercent += fryPassiveRate;
+      }
+      // Update multiplier
+      if (!isFried) {
+        calculateBaseMultiplier();
+        multiplier = baseMultiplier;
+      }
       // Trigger fry when meter full
       if (bluntCount > 0 && fryPercent >= 100 && !isFried) triggerFry();
+      // Clamp meter
+      fryPercent = Math.min(Math.max(fryPercent, 0), 100);
       updateDisplay();
     }, 1000);
 
     function triggerFry() {
       isFried = true;
-      multiplier *= 5;
+      multiplier = baseMultiplier * 5;
       updateDisplay();
       setTimeout(() => {
         isFried = false;
-        multiplier /= 5;
+        multiplier = baseMultiplier;
         fryPercent = 0;
         updateDisplay();
-      }, 150000);
+      }, 150000); // 2.5 minutes
     }
 
+    calculateBaseMultiplier();
     updateDisplay();
   </script>
 </body>
