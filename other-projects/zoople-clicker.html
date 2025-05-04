@@ -64,19 +64,18 @@
       scoreEl.textContent = Math.floor(score);
       fryEl.textContent = Math.min(fryPercent,100).toFixed(2) + '%';
       multEl.textContent = multiplier.toFixed(1) + 'x';
-      // haze opacity based on blunt count
       haze.style.opacity = Math.min(bluntCount * 0.1, 0.7);
     }
 
     zoople.addEventListener('click', () => {
       if (!isFried) {
         score += clickValue * multiplier;
-        fryPercent += 0.05;
+        // Only increase fry meter after buying a blunt
+        if (bluntCount > 0) fryPercent += 0.05;
         updateDisplay();
       }
     });
 
-    // Auto-clickers
     document.getElementById('autoClicker').addEventListener('click', () => {
       if (score >= upgradePrices.autoClicker) {
         score -= upgradePrices.autoClicker;
@@ -88,7 +87,6 @@
       }
     });
 
-    // Blunt shop
     document.getElementById('buyBlunt').addEventListener('click', () => {
       if (score >= upgradePrices.blunt) {
         score -= upgradePrices.blunt;
@@ -100,15 +98,11 @@
       }
     });
 
-    // Main loop: passive gains, fry meter progression, fried state timer
     setInterval(() => {
-      // Passive auto-click
       if (!isFried) score += autoClickers * multiplier;
-      // Passive blunt multiplier boost
       multiplier = 1 + bluntCount * 0.01;
-      // Passive fry meter (only after blunt purchased)
+      // Only passive fry progression after blunt purchased
       if (!isFried && bluntCount > 0) fryPercent += fryPassiveRate;
-      // Check frying only if blunt unlocked
       if (bluntCount > 0 && fryPercent >= 100 && !isFried) triggerFry();
       updateDisplay();
     }, 1000);
