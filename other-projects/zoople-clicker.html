@@ -9,7 +9,9 @@
     #container { display: flex; height: 100vh; }
     .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
     #center { display: flex; justify-content: center; align-items: center; }
-    #zoople { cursor: pointer; width: 200px; height: 200px; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
+    #zoopleWrapper { position: relative; width: 200px; height: 200px; }
+    #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
+    #haze { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,255,0,0.5); pointer-events: none; opacity: 0; transition: opacity 0.5s; }
     h2 { margin-top: 0; }
     button { display: block; margin: 10px 0; padding: 10px; width: 100%; }
     #status { margin: 20px 0; font-size: 1.2em; }
@@ -19,12 +21,14 @@
   <div id="container">
     <div class="panel" id="upgrades">
       <h2>Upgrades</h2>
-      <!-- future upgrade buttons go here -->
       <button id="autoClicker">Buy Auto-Clicker (Cost: 50)</button>
     </div>
     <div class="panel" id="center">
       <div>
-        <div id="zoople"></div>
+        <div id="zoopleWrapper">
+          <div id="zoople"></div>
+          <div id="haze"></div>
+        </div>
         <div id="status">
           Score: <span id="score">0</span><br>
           Fry Meter: <span id="fry">0%</span><br>
@@ -46,18 +50,22 @@
     let isFried = false;
     let autoClickers = 0;
     let bluntCount = 0;
-    const fryPassiveRate = 100 / 300; // % per second for 5min
+    let bluntPassive = 0; // per second multiplier addition
+    const fryPassiveRate = 100 / 300; // % per second passive
     const upgradePrices = { autoClicker: 50, blunt: 200 };
 
     const scoreEl = document.getElementById('score');
     const fryEl = document.getElementById('fry');
     const multEl = document.getElementById('mult');
     const zoople = document.getElementById('zoople');
+    const haze = document.getElementById('haze');
 
     function updateDisplay() {
       scoreEl.textContent = Math.floor(score);
       fryEl.textContent = Math.min(fryPercent,100).toFixed(2) + '%';
       multEl.textContent = multiplier.toFixed(1) + 'x';
+      // haze opacity based on blunt count
+      haze.style.opacity = Math.min(bluntCount * 0.1, 0.7);
     }
 
     zoople.addEventListener('click', () => {
@@ -65,8 +73,6 @@
         score += clickValue * multiplier;
         fryPercent += 0.05;
         updateDisplay();
-      } else {
-        // no effect when fried
       }
     });
 
@@ -74,8 +80,8 @@
     document.getElementById('autoClicker').addEventListener('click', () => {
       if (score >= upgradePrices.autoClicker) {
         score -= upgradePrices.autoClicker;
-        autoClickers += 1;
-        clickValue += 1;
+        autoClickers++;
+        clickValue++;
         upgradePrices.autoClicker = Math.floor(upgradePrices.autoClicker * 1.5);
         document.getElementById('autoClicker').textContent = `Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;
         updateDisplay();
@@ -86,8 +92,7 @@
     document.getElementById('buyBlunt').addEventListener('click', () => {
       if (score >= upgradePrices.blunt) {
         score -= upgradePrices.blunt;
-        bluntCount += 1;
-        // each blunt adds +0.1% multiplier per second
+        bluntCount++;
         bluntPassive += 0.001;
         upgradePrices.blunt = Math.floor(upgradePrices.blunt * 2);
         document.getElementById('buyBlunt').textContent = `Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;
@@ -95,27 +100,16 @@
       }
     });
 
-    let bluntPassive = 0; // per second multiplier addition
-
     // Main loop: passive gains, fry meter progression, fried state timer
     setInterval(() => {
       // Passive auto-click
-      if (!isFried) {
-        score += autoClickers * multiplier;
-      }
+      if (!isFried) score += autoClickers * multiplier;
       // Passive blunt multiplier boost
-      multiplier = 1 + bluntCount * 0.01; // blunt gives 1% per blunt
-
-      // Passive fry meter
-      if (!isFried) {
-        fryPercent += fryPassiveRate;
-      }
-
-      // Check frying
-      if (fryPercent >= 100 && !isFried) {
-        triggerFry();
-      }
-
+      multiplier = 1 + bluntCount * 0.01;
+      // Passive fry meter (only after blunt purchased)
+      if (!isFried && bluntCount > 0) fryPercent += fryPassiveRate;
+      // Check frying only if blunt unlocked
+      if (bluntCount > 0 && fryPercent >= 100 && !isFried) triggerFry();
       updateDisplay();
     }, 1000);
 
@@ -123,9 +117,7 @@
       isFried = true;
       multiplier *= 5;
       updateDisplay();
-      // Stay fried for 150s
       setTimeout(() => {
-        // end fried
         isFried = false;
         multiplier /= 5;
         fryPercent = 0;
