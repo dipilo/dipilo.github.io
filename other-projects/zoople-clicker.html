@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zoople Cookie Clicker</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #f0f0f0; }
+    #container { display: flex; height: 100vh; }
+    .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+    #center { display: flex; justify-content: center; align-items: center; }
+    #zoople { cursor: pointer; width: 200px; height: 200px; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
+    h2 { margin-top: 0; }
+    button { display: block; margin: 10px 0; padding: 10px; width: 100%; }
+    #status { margin: 20px 0; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div class="panel" id="upgrades">
+      <h2>Upgrades</h2>
+      <!-- future upgrade buttons go here -->
+      <button id="autoClicker">Buy Auto-Clicker (Cost: 50)</button>
+    </div>
+    <div class="panel" id="center">
+      <div>
+        <div id="zoople"></div>
+        <div id="status">
+          Score: <span id="score">0</span><br>
+          Fry Meter: <span id="fry">0%</span><br>
+          Multiplier: <span id="mult">1x</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="shop">
+      <h2>Trinkets Shop</h2>
+      <button id="buyBlunt">Buy Blunt (+passive boost) (Cost: 200)</button>
+    </div>
+  </div>
+
+  <script>
+    let score = 0;
+    let multiplier = 1;
+    let clickValue = 1;
+    let fryPercent = 0;
+    let isFried = false;
+    let autoClickers = 0;
+    let bluntCount = 0;
+    const fryPassiveRate = 100 / 300; // % per second for 5min
+    const upgradePrices = { autoClicker: 50, blunt: 200 };
+
+    const scoreEl = document.getElementById('score');
+    const fryEl = document.getElementById('fry');
+    const multEl = document.getElementById('mult');
+    const zoople = document.getElementById('zoople');
+
+    function updateDisplay() {
+      scoreEl.textContent = Math.floor(score);
+      fryEl.textContent = Math.min(fryPercent,100).toFixed(2) + '%';
+      multEl.textContent = multiplier.toFixed(1) + 'x';
+    }
+
+    zoople.addEventListener('click', () => {
+      if (!isFried) {
+        score += clickValue * multiplier;
+        fryPercent += 0.05;
+        updateDisplay();
+      } else {
+        // no effect when fried
+      }
+    });
+
+    // Auto-clickers
+    document.getElementById('autoClicker').addEventListener('click', () => {
+      if (score >= upgradePrices.autoClicker) {
+        score -= upgradePrices.autoClicker;
+        autoClickers += 1;
+        clickValue += 1;
+        upgradePrices.autoClicker = Math.floor(upgradePrices.autoClicker * 1.5);
+        document.getElementById('autoClicker').textContent = `Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;
+        updateDisplay();
+      }
+    });
+
+    // Blunt shop
+    document.getElementById('buyBlunt').addEventListener('click', () => {
+      if (score >= upgradePrices.blunt) {
+        score -= upgradePrices.blunt;
+        bluntCount += 1;
+        // each blunt adds +0.1% multiplier per second
+        bluntPassive += 0.001;
+        upgradePrices.blunt = Math.floor(upgradePrices.blunt * 2);
+        document.getElementById('buyBlunt').textContent = `Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;
+        updateDisplay();
+      }
+    });
+
+    let bluntPassive = 0; // per second multiplier addition
+
+    // Main loop: passive gains, fry meter progression, fried state timer
+    setInterval(() => {
+      // Passive auto-click
+      if (!isFried) {
+        score += autoClickers * multiplier;
+      }
+      // Passive blunt multiplier boost
+      multiplier = 1 + bluntCount * 0.01; // blunt gives 1% per blunt
+
+      // Passive fry meter
+      if (!isFried) {
+        fryPercent += fryPassiveRate;
+      }
+
+      // Check frying
+      if (fryPercent >= 100 && !isFried) {
+        triggerFry();
+      }
+
+      updateDisplay();
+    }, 1000);
+
+    function triggerFry() {
+      isFried = true;
+      multiplier *= 5;
+      updateDisplay();
+      // Stay fried for 150s
+      setTimeout(() => {
+        // end fried
+        isFried = false;
+        multiplier /= 5;
+        fryPercent = 0;
+        updateDisplay();
+      }, 150000);
+    }
+
+    updateDisplay();
+  </script>
+</body>
+</html>
