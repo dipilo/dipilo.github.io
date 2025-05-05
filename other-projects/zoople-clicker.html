@@ -15,6 +15,15 @@
     #zoopleWrapper { position: relative; width: 200px; height: 200px; }
     #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
 
+    /* Green haze overlay */
+    #haze {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 255, 0, 0.2);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s linear;
+    }
+
     /* Blunts: click-through */
     .blunt { position: absolute; width: 50px; height: auto; transform-origin: calc(100% - 8px) calc(100% - 17px); pointer-events: none; }
     @keyframes shake { 0%,100%{transform:translate(0);}20%,60%{transform:translate(-5px,0);}40%,80%{transform:translate(5px,0);} }
@@ -77,6 +86,7 @@
     let score=0, baseMultiplier=1, multiplier=1, clickValue=1;
     let fryPercent=0, isFried=false, autoClickers=0, bluntCount=0;
     let clickUpgradeCount=0, autoBuyerPurchased=false, autoBuyerEnabled=false;
+    let hazeOpacity=0;
     const fryPassiveRate=100/300, fryDecreaseRate=100/150;
     const upgradePrices={autoClicker:50, blunt:200, clickUpgrade:100, autoBuyer:500};
 
@@ -91,7 +101,6 @@
       displayScore.textContent=Math.floor(score);
       displayMult.textContent=multiplier.toFixed(1)+'x';
       displayHigh.textContent=Math.min(Math.max(fryPercent,0),100).toFixed(2)+'%';
-      haze.style.opacity=Math.min(bluntCount*0.1,0.7);
       document.getElementById('autoClicker').textContent = `Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;
       document.getElementById('clickUpgrade').textContent = `Buy Click Upgrade (+1 click) (Cost: ${upgradePrices.clickUpgrade})`;
       document.getElementById('buyBlunt').textContent = `Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;
@@ -137,11 +146,20 @@
 
     setInterval(()=>{
       score+=autoClickers*multiplier;
+      // update fryPercent
       if(isFried) fryPercent-=fryDecreaseRate;
       else if(bluntCount>0) fryPercent+=fryPassiveRate;
-      if(!isFried){calculateBaseMultiplier();multiplier=baseMultiplier;}
-      if(bluntCount>0 && fryPercent>=100 && !isFried) triggerFry();
       fryPercent=Math.min(Math.max(fryPercent,0),100);
+      // trigger fry boost
+      if(bluntCount>0 && fryPercent>=100 && !isFried) triggerFry();
+      // update haze opacity: match fryPercent when rising, decay faster when falling
+      if(fryPercent/100 > hazeOpacity) {
+        hazeOpacity = fryPercent/100;
+      } else {
+        hazeOpacity = Math.max(0, hazeOpacity - (fryDecreaseRate*2/100));
+      }
+      haze.style.opacity = hazeOpacity;
+      // auto-buy
       if(autoBuyerPurchased && autoBuyerEnabled) autoBuy();
       updateDisplay();
     },1000);
