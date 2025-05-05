@@ -8,31 +8,23 @@
     body { margin: 0; font-family: sans-serif; background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; overflow: hidden; }
     #container { display: flex; height: 100vh; }
     .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-    #center { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; padding-top: 20px; }
+    #center { flex: 2; display: flex; flex-direction: column; align-items: center; position: relative; padding-top: 20px; }
 
-    /* Zoople box with neutral gray background */
-    #zoopleBox {
-      background: rgba(128,128,128,0.8); padding: 20px; border-radius: 12px; text-align: center; color: white;
-    }
-
-    #zoopleWrapper { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+    /* Zoople box */
+    #zoopleBox { background: rgba(128,128,128,0.8); padding: 20px; border-radius: 12px; }
+    #zoopleWrapper { position: relative; width: 200px; height: 200px; }
     #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
 
+    /* Blunts */
     .blunt { position: absolute; width: 50px; height: auto; transform-origin: calc(100% - 8px) calc(100% - 17px); }
     @keyframes shake { 0%,100%{transform:translate(0);}20%,60%{transform:translate(-5px,0);}40%,80%{transform:translate(5px,0);} }
     #zoople.shake { animation: shake 0.3s ease-in-out; }
 
-    /* Labels box under zoopleBox */
-    #labelsBox { background: rgba(128,128,128,0.8); padding: 15px; border-radius: 12px; text-align: center; color: white; margin-top: 15px; width: 260px; }
-    #labelsInner { display: flex; justify-content: space-around; align-items: flex-end; }
-    #labelsInner div { display: flex; flex-direction: column; align-items: center; }
-    #labelsInner img { display: block; }
-    #multDisplay, #highDisplay { font-size: 2em; font-weight: bold; margin-top: 5px; }
-
-    /* Score label inside labelsBox */
-    #scoreLabelContainer { margin-top: 10px; }
-    #scoreLabelContainer img { width: 80px; height: auto; }
-    #scoreLabelText { font-size: 1.2em; margin-top: 4px; }
+    /* Labels box under ZoopleBox */
+    #labelsBox { display: flex; justify-content: space-around; background: rgba(128,128,128,0.8); padding: 15px 30px; border-radius: 12px; margin-top: 15px; }
+    .labelItem { display: flex; flex-direction: column; align-items: center; }
+    .labelItem img { width: 80px; height: auto; display: block; }
+    .labelItem div { font-size: 2em; font-weight: bold; margin-top: 5px; color: white; }
 
     /* Buttons styling */
     .panel button { background: #4CAF50; color: white; border: none; border-radius: 8px; box-shadow: 0 4px rgba(0,0,0,0.2); font-size: 16px; padding: 12px; margin: 10px 0; width: 100%; cursor: pointer; transition: transform 0.1s, background 0.3s; }
@@ -52,19 +44,17 @@
         <div id="zoopleWrapper"><div id="zoople"></div></div>
       </div>
       <div id="labelsBox">
-        <div id="labelsInner">
-          <div id="multContainer">
-            <img src="/images/zoople-clicker/labels/zooplier.png" />
-            <div id="multDisplay">1x</div>
-          </div>
-          <div id="highContainer">
-            <img src="/images/zoople-clicker/labels/highmeter.png" />
-            <div id="highDisplay">0%</div>
-          </div>
+        <div class="labelItem" id="multContainer">
+          <img src="/images/zoople-clicker/labels/zooplier.png" alt="Zooplier" />
+          <div id="multDisplay">1x</div>
         </div>
-        <div id="scoreLabelContainer">
-          <img src="/images/zoople-clicker/labels/zooscore.png" />
-          <div id="scoreLabelText"><span id="scoreCopy">0</span></div>
+        <div class="labelItem" id="highContainer">
+          <img src="/images/zoople-clicker/labels/highmeter.png" alt="Highmeter" />
+          <div id="highDisplay">0%</div>
+        </div>
+        <div class="labelItem" id="scoreContainer">
+          <img src="/images/zoople-clicker/labels/zooscore.png" alt="Zooscore" />
+          <div id="scoreCopy">0</div>
         </div>
       </div>
     </div>
@@ -83,13 +73,13 @@
 
     const displayMult=document.getElementById('multDisplay');
     const displayHigh=document.getElementById('highDisplay');
+    const displayScore=document.getElementById('scoreCopy');
     const zoople=document.getElementById('zoople');
     const wrapper=document.getElementById('zoopleWrapper');
-    const scoreCopy=document.getElementById('scoreCopy');
     const haze=document.getElementById('haze');
 
     function updateDisplay(){
-      scoreCopy.textContent=Math.floor(score);
+      displayScore.textContent=Math.floor(score);
       displayMult.textContent=multiplier.toFixed(1)+'x';
       displayHigh.textContent=Math.min(Math.max(fryPercent,0),100).toFixed(2)+'%';
       haze.style.opacity=Math.min(bluntCount*0.1,0.7);
@@ -102,7 +92,7 @@
       img.className='blunt';
       const W=200, origW=409, origH=486;
       const xMin=120/origW*W, xMax=150/origW*W;
-      const yMin=(origH-320)/origH*W, yMax=(origH-280)/origH*W;
+      const yMin=(origH-340)/origH*W, yMax=(origH-300)/origH*W;
       const x=Math.random()*(xMax-xMin)+xMin;
       const y=Math.random()*(yMax-yMin)+yMin;
       img.style.left=x+'px'; img.style.top=y+'px';
@@ -131,8 +121,7 @@
       updateDisplay();
     },1000);
 
-    function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}    
-    calculateBaseMultiplier();updateDisplay();
+    function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}    calculateBaseMultiplier();updateDisplay();
   </script>
 </body>
 </html>
