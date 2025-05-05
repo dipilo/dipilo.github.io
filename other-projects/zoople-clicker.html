@@ -95,6 +95,7 @@
       document.getElementById('autoClicker').textContent = `Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;
       document.getElementById('clickUpgrade').textContent = `Buy Click Upgrade (+1 click) (Cost: ${upgradePrices.clickUpgrade})`;
       document.getElementById('autoBuyer').textContent = `Buy Auto-Buyer (Cost: ${upgradePrices.autoBuyer})`;
+      document.getElementById('buyBlunt').textContent = `Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;
     }
     function calculateBaseMultiplier(){ baseMultiplier=1+bluntCount*0.01; }
 
@@ -130,7 +131,8 @@
     });
 
     document.getElementById('autoClicker').addEventListener('click',()=>{if(score>=upgradePrices.autoClicker){score-=upgradePrices.autoClicker;autoClickers++;clickValue++;upgradePrices.autoClicker=Math.floor(upgradePrices.autoClicker*1.5);updateDisplay();}});
-    document.getElementById('clickUpgrade').addEventListener('click',()=>{if(score>=upgradePrices.clickUpgrade){score-=upgradePrices.clickUpgrade;clickValue++;clickUpgradeCount++;upgradePrices.clickUpgrade=Math.floor(upgradePrices.clickUpgrade*1.5);updateDisplay();}});
+    document.getElementById('clickUpgrade').addEventListener('click',()=>{if(score>=upgradePrices.clickUpgrade){score-=upgradePrices.clickUpgrade;clickValue++;clickUpgradeCount++;upgradePrices.clickUpgrade=
+ Math.floor(upgradePrices.clickUpgrade*1.5);updateDisplay();}});
     document.getElementById('autoBuyer').addEventListener('click',()=>{if(score>=upgradePrices.autoBuyer){score-=upgradePrices.autoBuyer;autoBuyerPurchased=true;document.getElementById('toggleAutoBuyer').classList.remove('hidden');document.getElementById('autoBuyer').disabled=true;updateDisplay();}});
     document.getElementById('toggleAutoBuyer').addEventListener('click',()=>{autoBuyerEnabled=!autoBuyerEnabled;document.getElementById('toggleAutoBuyer').textContent=`Auto-Buy: ${autoBuyerEnabled?'ON':'OFF'}`;});
     document.getElementById('buyBlunt').addEventListener('click',()=>{if(score>=upgradePrices.blunt){score-=upgradePrices.blunt;bluntCount++;calculateBaseMultiplier();addBluntVisual();upgradePrices.blunt=Math.floor(upgradePrices.blunt*2);updateDisplay();}});
