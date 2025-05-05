@@ -5,67 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zoople Cookie Clicker</title>
   <style>
-    body { 
-      margin: 0; 
-      font-family: sans-serif; 
-      background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; 
-      overflow: hidden; 
-    }
+    body { margin: 0; font-family: sans-serif; background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; overflow: hidden; }
     #container { display: flex; height: 100vh; }
     .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-    #center { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; }
+    #center { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; padding-top: 20px; }
 
     /* Zoople box with neutral gray background */
-    #zoopleBox, #labelsBox {
-      background: rgba(128,128,128,0.8);
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      color: white;
-      margin-top: 10px;
+    #zoopleBox {
+      background: rgba(128,128,128,0.8); padding: 20px; border-radius: 12px; text-align: center; color: white;
     }
 
     #zoopleWrapper { position: relative; width: 200px; height: 200px; margin: 0 auto; }
-    #zoople { 
-      cursor: pointer; 
-      width: 100%; height: 100%;
-      background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; 
-    }
-    .blunt {
-      position: absolute; width: 50px; height: auto;
-      transform-origin: calc(100% - 8px) calc(100% - 17px);
-    }
+    #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
+
+    .blunt { position: absolute; width: 50px; height: auto; transform-origin: calc(100% - 8px) calc(100% - 17px); }
     @keyframes shake { 0%,100%{transform:translate(0);}20%,60%{transform:translate(-5px,0);}40%,80%{transform:translate(5px,0);} }
     #zoople.shake { animation: shake 0.3s ease-in-out; }
 
-    /* Status text: only Score and Fry */
-    #status { margin-top: 10px; font-size: 1.2em; }
-    #status span { display: block; }
-
     /* Labels box under zoopleBox */
-    #labelsBox { position: relative; width: 260px; margin: 0 auto; }
-    #labelsInner { display: flex; justify-content: space-between; }
-
-    /* Zooplier, Highmeter containers */
-    #multContainer, #highContainer { position: relative; width: 100px; }
-
-    #multDisplay, #highDisplay { position: absolute; font-size: 2em; font-weight: bold; color: white; pointer-events: none; width: 100%; text-align: center; bottom: 60px; }
+    #labelsBox { background: rgba(128,128,128,0.8); padding: 15px; border-radius: 12px; text-align: center; color: white; margin-top: 15px; width: 260px; }
+    #labelsInner { display: flex; justify-content: space-around; align-items: flex-end; }
+    #labelsInner div { display: flex; flex-direction: column; align-items: center; }
+    #labelsInner img { display: block; }
+    #multDisplay, #highDisplay { font-size: 2em; font-weight: bold; margin-top: 5px; }
 
     /* Score label inside labelsBox */
-    #scoreLabelContainer { position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; }
-    #scoreLabelContainer img { width: 80px; height: auto; display: block; margin: 0 auto; }
+    #scoreLabelContainer { margin-top: 10px; }
+    #scoreLabelContainer img { width: 80px; height: auto; }
     #scoreLabelText { font-size: 1.2em; margin-top: 4px; }
 
     /* Buttons styling */
-    .panel button {
-      background: #4CAF50; color: white; border: none; border-radius: 8px;
-      box-shadow: 0 4px rgba(0,0,0,0.2); font-size: 16px;
-      padding: 12px; margin: 10px 0; width: 100%; cursor: pointer;
-      transition: transform 0.1s, background 0.3s;
-    }
+    .panel button { background: #4CAF50; color: white; border: none; border-radius: 8px; box-shadow: 0 4px rgba(0,0,0,0.2); font-size: 16px; padding: 12px; margin: 10px 0; width: 100%; cursor: pointer; transition: transform 0.1s, background 0.3s; }
     .panel button:hover { transform: scale(1.05); }
     .panel button:active { transform: scale(0.95); box-shadow: 0 2px rgba(0,0,0,0.2); }
-
     h2 { margin-top: 0; color: white; }
   </style>
 </head>
@@ -92,7 +64,7 @@
         </div>
         <div id="scoreLabelContainer">
           <img src="/images/zoople-clicker/labels/zooscore.png" />
-          <div id="scoreLabelText">Score: <span id="scoreCopy">0</span></div>
+          <div id="scoreLabelText"><span id="scoreCopy">0</span></div>
         </div>
       </div>
     </div>
@@ -109,16 +81,14 @@
     const fryPassiveRate=100/300, fryDecreaseRate=100/150;
     const upgradePrices={autoClicker:50, blunt:200};
 
-    const scoreEl=document.getElementById('score');
-    const scoreCopy=document.getElementById('scoreCopy');
     const displayMult=document.getElementById('multDisplay');
     const displayHigh=document.getElementById('highDisplay');
     const zoople=document.getElementById('zoople');
     const wrapper=document.getElementById('zoopleWrapper');
+    const scoreCopy=document.getElementById('scoreCopy');
     const haze=document.getElementById('haze');
 
     function updateDisplay(){
-      scoreEl.textContent=Math.floor(score);
       scoreCopy.textContent=Math.floor(score);
       displayMult.textContent=multiplier.toFixed(1)+'x';
       displayHigh.textContent=Math.min(Math.max(fryPercent,0),100).toFixed(2)+'%';
@@ -132,7 +102,7 @@
       img.className='blunt';
       const W=200, origW=409, origH=486;
       const xMin=120/origW*W, xMax=150/origW*W;
-      const yMin=(origH-300)/origH*W, yMax=(origH-260)/origH*W;
+      const yMin=(origH-320)/origH*W, yMax=(origH-280)/origH*W;
       const x=Math.random()*(xMax-xMin)+xMin;
       const y=Math.random()*(yMax-yMin)+yMin;
       img.style.left=x+'px'; img.style.top=y+'px';
@@ -149,7 +119,6 @@
     });
 
     document.getElementById('autoClicker').addEventListener('click',()=>{if(score>=upgradePrices.autoClicker){score-=upgradePrices.autoClicker;autoClickers++;clickValue++;upgradePrices.autoClicker=Math.floor(upgradePrices.autoClicker*1.5);document.getElementById('autoClicker').textContent=`Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;updateDisplay();}});
-
     document.getElementById('buyBlunt').addEventListener('click',()=>{if(score>=upgradePrices.blunt){score-=upgradePrices.blunt;bluntCount++;calculateBaseMultiplier();addBluntVisual();upgradePrices.blunt=Math.floor(upgradePrices.blunt*2);document.getElementById('buyBlunt').textContent=`Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;updateDisplay();}});
 
     setInterval(()=>{
@@ -163,7 +132,6 @@
     },1000);
 
     function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}    
-    
     calculateBaseMultiplier();updateDisplay();
   </script>
 </body>
