@@ -16,12 +16,13 @@
     #center { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; }
 
     /* Zoople box with neutral gray background */
-    #zoopleBox {
+    #zoopleBox, #labelsBox {
       background: rgba(128,128,128,0.8);
       padding: 20px;
       border-radius: 12px;
       text-align: center;
       color: white;
+      margin-top: 10px;
     }
 
     #zoopleWrapper { position: relative; width: 200px; height: 200px; margin: 0 auto; }
@@ -41,16 +42,19 @@
     #status { margin-top: 10px; font-size: 1.2em; }
     #status span { display: block; }
 
-    /* Zooplier and Highmeter labels, positioned absolute in center */
-    #multContainer, #highContainer { position: absolute; bottom: 20px; }
-    /* Adjusted containers for spacing */
-    #multContainer { left: calc(50% - 140px); }
-    #highContainer { left: calc(50% + 40px); }
+    /* Labels box under zoopleBox */
+    #labelsBox { position: relative; width: 260px; margin: 0 auto; }
+    #labelsInner { display: flex; justify-content: space-between; }
 
-    #multDisplay, #highDisplay { position: absolute; font-size: 2em; font-weight: bold; color: white; pointer-events: none; }
-    /* center the text over image, moved up */
-    #multDisplay { bottom: calc(80px - 1em); right: calc(82px - 0.5ch); transform: translate(50%, 50%); }
-    #highDisplay { bottom: calc(80px - 1em); right: calc(180px - 0.5ch); transform: translate(50%, 50%); }
+    /* Zooplier, Highmeter containers */
+    #multContainer, #highContainer { position: relative; width: 100px; }
+
+    #multDisplay, #highDisplay { position: absolute; font-size: 2em; font-weight: bold; color: white; pointer-events: none; width: 100%; text-align: center; bottom: 60px; }
+
+    /* Score label inside labelsBox */
+    #scoreLabelContainer { position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; }
+    #scoreLabelContainer img { width: 80px; height: auto; display: block; margin: 0 auto; }
+    #scoreLabelText { font-size: 1.2em; margin-top: 4px; }
 
     /* Buttons styling */
     .panel button {
@@ -74,18 +78,22 @@
     <div class="panel" id="center">
       <div id="zoopleBox">
         <div id="zoopleWrapper"><div id="zoople"></div></div>
-        <div id="status">
-          Score: <span id="score">0</span>
+      </div>
+      <div id="labelsBox">
+        <div id="labelsInner">
+          <div id="multContainer">
+            <img src="/images/zoople-clicker/labels/zooplier.png" />
+            <div id="multDisplay">1x</div>
+          </div>
+          <div id="highContainer">
+            <img src="/images/zoople-clicker/labels/highmeter.png" />
+            <div id="highDisplay">0%</div>
+          </div>
         </div>
-      </div>
-      <!-- Labels outside box, side by side -->
-      <div id="multContainer">
-        <img src="/images/zoople-clicker/labels/zooplier.png" />
-        <div id="multDisplay">1x</div>
-      </div>
-      <div id="highContainer">
-        <img src="/images/zoople-clicker/labels/highmeter.png" />
-        <div id="highDisplay">0%</div>
+        <div id="scoreLabelContainer">
+          <img src="/images/zoople-clicker/labels/zooscore.png" />
+          <div id="scoreLabelText">Score: <span id="scoreCopy">0</span></div>
+        </div>
       </div>
     </div>
     <div class="panel" id="shop">
@@ -102,6 +110,7 @@
     const upgradePrices={autoClicker:50, blunt:200};
 
     const scoreEl=document.getElementById('score');
+    const scoreCopy=document.getElementById('scoreCopy');
     const displayMult=document.getElementById('multDisplay');
     const displayHigh=document.getElementById('highDisplay');
     const zoople=document.getElementById('zoople');
@@ -110,6 +119,7 @@
 
     function updateDisplay(){
       scoreEl.textContent=Math.floor(score);
+      scoreCopy.textContent=Math.floor(score);
       displayMult.textContent=multiplier.toFixed(1)+'x';
       displayHigh.textContent=Math.min(Math.max(fryPercent,0),100).toFixed(2)+'%';
       haze.style.opacity=Math.min(bluntCount*0.1,0.7);
@@ -121,7 +131,6 @@
       img.src='/images/zoople-clicker/trinkets/blunt.png';
       img.className='blunt';
       const W=200, origW=409, origH=486;
-      // adjusted region: moved higher and more left
       const xMin=120/origW*W, xMax=150/origW*W;
       const yMin=(origH-300)/origH*W, yMax=(origH-260)/origH*W;
       const x=Math.random()*(xMax-xMin)+xMin;
