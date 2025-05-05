@@ -13,7 +13,7 @@
     }
     #container { display: flex; height: 100vh; }
     .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-    #center { display: flex; justify-content: center; align-items: center; position: relative; }
+    #center { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; }
 
     /* Zoople box with neutral gray background */
     #zoopleBox {
@@ -21,7 +21,6 @@
       padding: 20px;
       border-radius: 12px;
       text-align: center;
-      position: relative;
       color: white;
     }
 
@@ -38,25 +37,18 @@
     @keyframes shake { 0%,100%{transform:translate(0);}20%,60%{transform:translate(-5px,0);}40%,80%{transform:translate(5px,0);} }
     #zoople.shake { animation: shake 0.3s ease-in-out; }
 
-    /* Status text: only Score */
+    /* Status text: only Score and Fry */
     #status { margin-top: 10px; font-size: 1.2em; }
     #status span { display: block; }
 
-    /* Zooplier and Highmeter labels */
-    #multContainer, #highContainer { position: relative; display: inline-block; margin: 10px; }
-    #multContainer img, #highContainer img { display: block; }
-    #multDisplay {
-      position: absolute; bottom: 60px; right: 82px;
-      transform: translate(50%, 50%);
-      font-size: 2em; font-weight: bold; color: white;
-      pointer-events: none;
-    }
-    #highDisplay {
-      position: absolute; bottom: 50px; right: 180px;
-      transform: translate(50%, 50%);
-      font-size: 2em; font-weight: bold; color: white;
-      pointer-events: none;
-    }
+    /* Zooplier and Highmeter labels, positioned absolute in center */
+    #multContainer, #highContainer { position: absolute; display: inline-block; }
+    #multContainer { bottom: 20px; left: calc(50% - 100px); } /* left of center */
+    #highContainer { bottom: 20px; left: calc(50% - 20px); } /* next to mult */
+    #multDisplay, #highDisplay { position: absolute; font-size: 2em; font-weight: bold; color: white; pointer-events: none; }
+    /* center the text over image */
+    #multDisplay { bottom: calc(60px - 1em); right: calc(82px - 1ch); transform: translate(50%, 50%); }
+    #highDisplay { bottom: calc(50px - 1em); right: calc(180px - 1ch); transform: translate(50%, 50%); }
 
     /* Buttons styling */
     .panel button {
@@ -82,15 +74,17 @@
         <div id="zoopleWrapper"><div id="zoople"></div></div>
         <div id="status">
           Score: <span id="score">0</span>
+          Fry Meter: <span id="fry">0%</span>
         </div>
-        <div id="multContainer">
-          <img src="/images/zoople-clicker/labels/zooplier.png" />
-          <div id="multDisplay">1x</div>
-        </div>
-        <div id="highContainer">
-          <img src="/images/zoople-clicker/labels/highmeter.png" />
-          <div id="highDisplay">0%</div>
-        </div>
+      </div>
+      <!-- Labels outside box, side by side -->
+      <div id="multContainer">
+        <img src="/images/zoople-clicker/labels/zooplier.png" />
+        <div id="multDisplay">1x</div>
+      </div>
+      <div id="highContainer">
+        <img src="/images/zoople-clicker/labels/highmeter.png" />
+        <div id="highDisplay">0%</div>
       </div>
     </div>
     <div class="panel" id="shop">
@@ -126,8 +120,9 @@
       img.src='/images/zoople-clicker/trinkets/blunt.png';
       img.className='blunt';
       const W=200,origW=409,origH=486;
-      const xMin=189/origW*W, xMax=216/origW*W;
-      const yMin=(origH-237)/origH*W, yMax=267/origH*W;
+      // adjusted region for higher/left placement
+      const xMin=160/origW*W, xMax=187/origW*W;
+      const yMin=(origH-267)/origH*W, yMax=(origH-237)/origH*W;
       const x=Math.random()*(xMax-xMin)+xMin;
       const y=Math.random()*(yMax-yMin)+yMin;
       img.style.left=x+'px'; img.style.top=y+'px';
@@ -143,13 +138,9 @@
       updateDisplay();
     });
 
-    document.getElementById('autoClicker').addEventListener('click',()=>{
-      if(score>=upgradePrices.autoClicker){score-=upgradePrices.autoClicker;autoClickers++;clickValue++;upgradePrices.autoClicker=Math.floor(upgradePrices.autoClicker*1.5);document.getElementById('autoClicker').textContent=`Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;updateDisplay();}
-    });
+    document.getElementById('autoClicker').addEventListener('click',()=>{if(score>=upgradePrices.autoClicker){score-=upgradePrices.autoClicker;autoClickers++;clickValue++;upgradePrices.autoClicker=Math.floor(upgradePrices.autoClicker*1.5);document.getElementById('autoClicker').textContent=`Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;updateDisplay();}});
 
-    document.getElementById('buyBlunt').addEventListener('click',()=>{
-      if(score>=upgradePrices.blunt){score-=upgradePrices.blunt;bluntCount++;calculateBaseMultiplier();addBluntVisual();upgradePrices.blunt=Math.floor(upgradePrices.blunt*2);document.getElementById('buyBlunt').textContent=`Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;updateDisplay();}
-    });
+    document.getElementById('buyBlunt').addEventListener('click',()=>{if(score>=upgradePrices.blunt){score-=upgradePrices.blunt;bluntCount++;calculateBaseMultiplier();addBluntVisual();upgradePrices.blunt=Math.floor(upgradePrices.blunt*2);document.getElementById('buyBlunt').textContent=`Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;updateDisplay();}});
 
     setInterval(()=>{
       score+=autoClickers*multiplier;
@@ -161,8 +152,8 @@
       updateDisplay();
     },1000);
 
-    function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}
-
+    function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}    
+    
     calculateBaseMultiplier();updateDisplay();
   </script>
 </body>
