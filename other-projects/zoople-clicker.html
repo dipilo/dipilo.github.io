@@ -49,7 +49,6 @@
       transform: translateX(100%);
     }
 
-    /* ensure right panel opens when .open applied */
     .panel.right.open {
       transform: translateX(0);
     }
@@ -151,12 +150,12 @@
     /* PC positions: higher & more left */
     #multDisplay {
       bottom: 50px;
-      right: 55px;
+      right: 50px;
     }
 
     #highDisplay {
-      bottom: 65px;
-      right: 120px;
+      bottom: 60px;
+      right: 60px;
     }
 
     #scoreDisplay {
@@ -168,12 +167,12 @@
     /* Mobile overrides */
     @media (max-width: 768px) {
       #multDisplay {
-        bottom: 35px;
-        right: 45px;
+        bottom: 30px;
+        right: 30px;
       }
       #highDisplay {
-        bottom: 40px;
-        right: 120px;
+        bottom: 45px;
+        right: 45px;
       }
       #labelsBox {
         flex-direction: column;
@@ -212,14 +211,18 @@
       transform: scale(0.95);
     }
 
+    /* Cloudy multi-layered haze */
     #haze {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle, rgba(0,255,0,0.2), rgba(0,100,0,0.4));
-      filter: blur(12px);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0,255,0,0.2), transparent 40%),
+        radial-gradient(circle at 80% 40%, rgba(0,200,0,0.15), transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(0,150,0,0.1), transparent 60%);
+      filter: blur(15px);
       pointer-events: none;
       opacity: 0;
       z-index: 5;
@@ -313,7 +316,7 @@
       if (score >= upgradePrices.clickBoost) {
         score -= upgradePrices.clickBoost;
         clickValue++;
-        upgradePrices.clickBoost = Math.floor(upgradePrices.clickBoost * 2);
+        upgradePrices.clickBoost = Math.floor(upgradePrices.clickBoost * 1.5);
         document.getElementById('clickBoost').textContent = `Click Boost (${upgradePrices.clickBoost})`;
         updateDisplay();
       }
@@ -331,16 +334,13 @@
       }
     });
 
-    document.getElementById('autoBuyer').addEventListener('click', () => {
+    document.getElementById('autoBuyer').addEventListener('click', function() {
       if (score >= upgradePrices.autoBuyer) {
         score -= upgradePrices.autoBuyer;
         autoBuyerUnlocked = true;
-        document.getElementById('autoBuyer').classList.add('hidden');
-        const toggleBtn = document.createElement('button');
-        toggleBtn.id = 'toggleAutoBuyer';
-        toggleBtn.textContent = 'Auto-Buy: OFF';
-        toggleBtn.onclick = () => { autoBuyerEnabled = !autoBuyerEnabled; toggleBtn.textContent = `Auto-Buy: ${autoBuyerEnabled ? 'ON' : 'OFF'}`; };
-        document.getElementById('upgrades').appendChild(toggleBtn);
+        this.textContent = `Auto-Buy: OFF`;
+        this.id = 'toggleAutoBuyer';
+        this.onclick = () => { autoBuyerEnabled = !autoBuyerEnabled; document.getElementById('toggleAutoBuyer').textContent = `Auto-Buy: ${autoBuyerEnabled ? 'ON' : 'OFF'}`; };
         updateDisplay();
       }
     });
