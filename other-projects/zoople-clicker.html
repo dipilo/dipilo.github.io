@@ -22,9 +22,10 @@
 
     /* Labels box under ZoopleBox */
     #labelsBox { display: flex; justify-content: space-around; background: rgba(128,128,128,0.8); padding: 15px 30px; border-radius: 12px; margin-top: 15px; }
-    .labelItem { display: flex; flex-direction: column; align-items: center; }
-    .labelItem img { width: auto; height: auto; display: block; }
-    .labelItem div { font-size: 2em; font-weight: bold; color: white; /* remove extra top margin */ }
+    .labelItem { position: relative; display: inline-block; }
+    .labelItem img { display: block; }
+    /* Overlay text inside icon */
+    .labelItem div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em; font-weight: bold; color: white; pointer-events: none; }
 
     /* Buttons styling */
     .panel button { background: #4CAF50; color: white; border: none; border-radius: 8px; box-shadow: 0 4px rgba(0,0,0,0.2); font-size: 16px; padding: 12px; margin: 10px 0; width: 100%; cursor: pointer; transition: transform 0.1s, background 0.3s; }
