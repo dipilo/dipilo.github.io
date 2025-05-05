@@ -266,10 +266,40 @@
   <div id="haze"></div>
   <script>
     let score = 0, baseMultiplier = 1, multiplier = 1, clickValue = 1;
-    let fryPercent = 0, isFried = false, autoClickers = 0, bluntCount = 0;
+    let fryPercent = 0, isFried = false, autoClickers = 0, bluntCount = 0, crackCount = 0;
     let autoBuyerUnlocked = false, autoBuyerEnabled = false;
+    let autoClickRate = 1; // base auto-clicks per tick multiplier
     const fryPassiveRate = 100 / 300, fryDecreaseRate = 100 / 150;
-    const upgradePrices = { autoClicker: 50, clickBoost: 100, blunt: 200, autoBuyer: 500 };
+    const upgradeBase = { autoClicker: 50, clickBoost: 100, blunt: 200, crack: 1000, autoBuyer: 500 };
+const exponents = { autoClicker: 1.25, clickBoost: 1.5, blunt: 2, crack: 1.5 };
+const linearStart = { clickBoost: 5, blunt: 5 };
+const linearSlope = { clickBoost: 100, blunt: 200 };
+const gamma = 0.05; // diminishing returns
+
+// dynamic price calculation
+function calcPrice(type, n) {
+  const base = upgradeBase[type];
+  const exp = exponents[type] || 1.5;
+  let price;
+  if ((type === 'clickBoost' || type === 'blunt') && n >= linearStart[type]) {
+    // piecewise: linear after n>=5
+    const pivot = base * Math.pow(exp, linearStart[type]) / (1 + gamma * linearStart[type]);
+    price = pivot + linearSlope[type] * (n - linearStart[type]);
+  } else {
+    // exponential with diminishing returns
+    price = base * Math.pow(exp, n) / (1 + gamma * n);
+  }
+  return Math.ceil(price);
+}
+
+// usage: upgradeCounts holds purchase counts
+let upgradeCounts = { autoClicker: 0, clickBoost: 0, blunt: 0, crack: 0, autoBuyer: 0 };
+
+// initialize prices
+let upgradePrices = {};
+Object.keys(upgradeBase).forEach(type => {
+  upgradePrices[type] = calcPrice(type, 0);
+});
 
     const scoreEl = document.getElementById('scoreDisplay');
     const displayMult = document.getElementById('multDisplay');
@@ -282,9 +312,14 @@
       scoreEl.textContent = Math.floor(score);
       displayMult.textContent = multiplier.toFixed(1) + 'x';
       displayHigh.textContent = Math.min(Math.max(fryPercent, 0), 100).toFixed(2) + '%';
+      document.getElementById('autoClicker').textContent = `Auto-Clicker (${upgradePrices.autoClicker})`;
+      document.getElementById('clickBoost').textContent = `Click Boost (${upgradePrices.clickBoost})`;
+      document.getElementById('buyBlunt').textContent = `Blunt (${upgradePrices.blunt})`;
+      if (!autoBuyerUnlocked) document.getElementById('autoBuyer').textContent = `Auto-Buyer (${upgradePrices.autoBuyer})`;
+      document.getElementById('crack').textContent = `Crack (${upgradePrices.crack})`;
     }
 
-    function calculateBaseMultiplier() { baseMultiplier = 1 + bluntCount * 0.05; }
+    function calculateBaseMultiplier() { baseMultiplier = 1 + bluntCount * 0.01; }
 
     function addBluntVisual() {
       if (bluntCount === 1) {
@@ -308,7 +343,6 @@
         score -= upgradePrices.autoClicker;
         autoClickers++;
         upgradePrices.autoClicker = Math.floor(upgradePrices.autoClicker * 1.5);
-        document.getElementById('autoClicker').textContent = `Auto-Clicker (${upgradePrices.autoClicker})`;
         updateDisplay();
       }
     });
@@ -318,7 +352,6 @@
         score -= upgradePrices.clickBoost;
         clickValue++;
         upgradePrices.clickBoost = Math.floor(upgradePrices.clickBoost * 1.5);
-        document.getElementById('clickBoost').textContent = `Click Boost (${upgradePrices.clickBoost})`;
         updateDisplay();
       }
     });
@@ -330,7 +363,16 @@
         calculateBaseMultiplier();
         if (bluntCount === 1) addBluntVisual();
         upgradePrices.blunt = Math.floor(upgradePrices.blunt * 2);
-        document.getElementById('buyBlunt').textContent = `Blunt (${upgradePrices.blunt})`;
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('crack').addEventListener('click', () => {
+      if (score >= upgradePrices.crack) {
+        score -= upgradePrices.crack;
+        crackCount++;
+        autoClickRate += 0.5; // each crack adds 0.5 extra auto-click multiplier
+        upgradePrices.crack = Math.floor(upgradePrices.crack * 2);
         updateDisplay();
       }
     });
@@ -341,13 +383,13 @@
         autoBuyerUnlocked = true;
         this.textContent = `Auto-Buy: OFF`;
         this.id = 'toggleAutoBuyer';
-        this.onclick = () => { autoBuyerEnabled = !autoBuyerEnabled; document.getElementById('toggleAutoBuyer').textContent = `Auto-Buy: ${autoBuyerEnabled ? 'ON' : 'OFF'}`; };
+        this.onclick = () => { autoBuyerEnabled = !autoBuyerEnabled; this.textContent = `Auto-Buy: ${autoBuyerEnabled ? 'ON' : 'OFF'}`; };
         updateDisplay();
       }
     });
 
     setInterval(() => {
-      score += autoClickers * multiplier;
+      score += autoClickers * autoClickRate * multiplier;
       if (isFried) fryPercent -= fryDecreaseRate * 1.5;
       else if (bluntCount > 0) fryPercent += fryPassiveRate;
       fryPercent = Math.min(Math.max(fryPercent, 0), 100);
@@ -358,11 +400,11 @@
     }, 1000);
 
     function attemptAutoBuy() {
-      const ups = ['autoClicker', 'clickBoost', 'buyBlunt'];
+      const ups = ['autoClicker', 'clickBoost', 'buyBlunt', 'crack'];
       for (let id of ups) {
         const btn = document.getElementById(id);
-        const price = upgradePrices[id === 'buyBlunt' ? 'blunt' : id];
-        if (score >= price) { btn.click(); break; }
+        const key = id === 'buyBlunt' ? 'blunt' : id === 'clickBoost' ? 'clickBoost' : id === 'crack' ? 'crack' : id;
+        if (score >= upgradePrices[key]) { btn.click(); break; }
       }
     }
 
