@@ -15,8 +15,8 @@
     #zoopleWrapper { position: relative; width: 200px; height: 200px; }
     #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
 
-    /* Blunts */
-    .blunt { position: absolute; width: 50px; height: auto; transform-origin: calc(100% - 8px) calc(100% - 17px); }
+    /* Blunts: click-through */
+    .blunt { position: absolute; width: 50px; height: auto; transform-origin: calc(100% - 8px) calc(100% - 17px); pointer-events: none; }
     @keyframes shake { 0%,100%{transform:translate(0);}20%,60%{transform:translate(-5px,0);}40%,80%{transform:translate(5px,0);} }
     #zoople.shake { animation: shake 0.3s ease-in-out; }
 
@@ -24,7 +24,7 @@
     #labelsBox { display: flex; justify-content: space-around; background: rgba(128,128,128,0.8); padding: 15px 30px; border-radius: 12px; margin-top: 15px; }
     .labelItem { display: flex; flex-direction: column; align-items: center; }
     .labelItem img { width: auto; height: auto; display: block; }
-    .labelItem div { font-size: 2em; font-weight: bold; margin-top: 5px; color: white; }
+    .labelItem div { font-size: 2em; font-weight: bold; color: white; /* remove extra top margin */ }
 
     /* Buttons styling */
     .panel button { background: #4CAF50; color: white; border: none; border-radius: 8px; box-shadow: 0 4px rgba(0,0,0,0.2); font-size: 16px; padding: 12px; margin: 10px 0; width: 100%; cursor: pointer; transition: transform 0.1s, background 0.3s; }
@@ -48,13 +48,13 @@
           <img src="/images/zoople-clicker/labels/zooplier.png" alt="Zooplier" />
           <div id="multDisplay">1x</div>
         </div>
-        <div class="labelItem" id="highContainer">
-          <img src="/images/zoople-clicker/labels/highmeter.png" alt="Highmeter" />
-          <div id="highDisplay">0%</div>
-        </div>
         <div class="labelItem" id="scoreContainer">
           <img src="/images/zoople-clicker/labels/zooscore.png" alt="Zooscore" />
           <div id="scoreCopy">0</div>
+        </div>
+        <div class="labelItem" id="highContainer">
+          <img src="/images/zoople-clicker/labels/highmeter.png" alt="Highmeter" />
+          <div id="highDisplay">0%</div>
         </div>
       </div>
     </div>
@@ -121,7 +121,7 @@
       updateDisplay();
     },1000);
 
-    function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}    calculateBaseMultiplier();updateDisplay();
+    function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}calculateBaseMultiplier();updateDisplay();
   </script>
 </body>
 </html>
