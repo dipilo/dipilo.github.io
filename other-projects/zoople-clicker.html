@@ -27,7 +27,7 @@
 
     /* Overlay text inside each icon */
     #multDisplay { position: absolute; top: 60%; left: 55%; transform: translate(-50%, -50%); font-size: 1.5em; font-weight: bold; color: white; pointer-events: none; }
-    #scoreCopy  { position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em; font-weight: bold; color: white; pointer-events: none; }
+    #scoreCopy  { position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em; font-weight: bold; color: white; pointer-events: none; }
     #highDisplay{ position: absolute; top: 58%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em; font-weight: bold; color: white; pointer-events: none; }
 
     /* Buttons styling */
@@ -91,17 +91,16 @@
     function calculateBaseMultiplier(){ baseMultiplier=1+bluntCount*0.01; }
 
     function addBluntVisual(){
-      const img=document.createElement('img');
-      img.src='/images/zoople-clicker/trinkets/blunt.png';
-      img.className='blunt';
-      const W=200, origW=409, origH=486;
-      const xMin=120/origW*W, xMax=150/origW*W;
-      const yMin=(origH-340)/origH*W, yMax=(origH-300)/origH*W;
-      const x=Math.random()*(xMax-xMin)+xMin;
-      const y=Math.random()*(yMax-yMin)+yMin;
-      img.style.left=x+'px'; img.style.top=y+'px';
-      img.style.transform='rotate('+Math.random()*360+'deg)';
-      wrapper.appendChild(img);
+      if (bluntCount === 1) {
+        const img=document.createElement('img');
+        img.src='/images/zoople-clicker/trinkets/blunt.png';
+        img.className='blunt';
+        // fixed position and rotation
+        img.style.left='130px';
+        img.style.top='20px';
+        img.style.transform='rotate(45deg)';
+        wrapper.appendChild(img);
+      }
     }
 
     zoople.addEventListener('click',()=>{
