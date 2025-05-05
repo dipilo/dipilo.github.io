@@ -15,6 +15,9 @@
       #container { flex-direction: column; }
       .panel { width: 100%; }
       #center { order: 1; }
+      /* Stack labels vertically on mobile */
+      #labelsBox { flex-direction: column; align-items: center; padding: 10px; }
+      .labelItem { margin: 8px 0; }
     }
 
     /* Zoople box */
@@ -99,6 +102,8 @@
     const displayMult=document.getElementById('multDisplay');
     const displayHigh=document.getElementById('highDisplay');
     const displayScore=document.getElementById('scoreCopy');
+    const wrapper=document.getElementById('zoopleWrapper');
+    const haze=document.getElementById('haze');
 
     function updateDisplay(){
       displayScore.textContent=Math.floor(score);
@@ -146,7 +151,6 @@
       if(isFried) fryPercent-=fryDecreaseRate; else if(bluntCount>0) fryPercent+=fryPassiveRate;
       fryPercent=Math.min(Math.max(fryPercent,0),100);
       if(bluntCount>0 && fryPercent>=100 && !isFried) triggerFry();
-      // haze logic
       if(fryPercent/100 > hazeOpacity) hazeOpacity = fryPercent/100;
       else hazeOpacity = Math.max(0, hazeOpacity - (fryDecreaseRate*2/100));
       haze.style.opacity = hazeOpacity;
