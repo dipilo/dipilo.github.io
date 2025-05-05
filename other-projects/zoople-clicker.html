@@ -42,13 +42,15 @@
     #status span { display: block; }
 
     /* Zooplier and Highmeter labels, positioned absolute in center */
-    #multContainer, #highContainer { position: absolute; display: inline-block; }
-    #multContainer { bottom: 20px; left: calc(50% - 100px); } /* left of center */
-    #highContainer { bottom: 20px; left: calc(50% - 20px); } /* next to mult */
+    #multContainer, #highContainer { position: absolute; }
+    /* Place containers side by side with spacing */
+    #multContainer { bottom: 20px; left: calc(50% - 120px); }
+    #highContainer { bottom: 20px; left: calc(50% + 20px); }
+
     #multDisplay, #highDisplay { position: absolute; font-size: 2em; font-weight: bold; color: white; pointer-events: none; }
     /* center the text over image */
-    #multDisplay { bottom: calc(60px - 1em); right: calc(82px - 1ch); transform: translate(50%, 50%); }
-    #highDisplay { bottom: calc(50px - 1em); right: calc(180px - 1ch); transform: translate(50%, 50%); }
+    #multDisplay { bottom: calc(60px - 1em); right: calc(82px - 0.5ch); transform: translate(50%, 50%); }
+    #highDisplay { bottom: calc(50px - 1em); right: calc(180px - 0.5ch); transform: translate(50%, 50%); }
 
     /* Buttons styling */
     .panel button {
@@ -74,7 +76,6 @@
         <div id="zoopleWrapper"><div id="zoople"></div></div>
         <div id="status">
           Score: <span id="score">0</span>
-          Fry Meter: <span id="fry">0%</span>
         </div>
       </div>
       <!-- Labels outside box, side by side -->
