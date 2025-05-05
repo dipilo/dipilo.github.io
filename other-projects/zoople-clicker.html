@@ -6,39 +6,62 @@
   <title>Zoople Cookie Clicker</title>
   <style>
     body { 
-      margin: 0; font-family: sans-serif; background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; overflow: hidden;
+      margin: 0; 
+      font-family: sans-serif; 
+      background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; 
+      overflow: hidden; 
     }
     #container { display: flex; height: 100vh; }
     .panel { flex: 1; padding: 20px; box-sizing: border-box; overflow-y: auto; }
     #center { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; }
 
-    /* Zoople box */
-    #zoopleBox { background: rgba(128,128,128,0.8); padding: 20px; border-radius: 12px; text-align: center; color: white; }
-    #zoopleWrapper { position: relative; width: 200px; height: 200px; margin: 0 auto; }
-    #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
-    .blunt { position: absolute; width: 50px; height: auto; transform-origin: calc(100% - 8px) calc(100% - 17px); }
+    /* Zoople box with neutral gray background */
+    #zoopleBox {
+      background: rgba(128,128,128,0.8);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      color: white;
+    }
 
+    #zoopleWrapper { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+    #zoople { 
+      cursor: pointer; 
+      width: 100%; height: 100%;
+      background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; 
+    }
+    .blunt {
+      position: absolute; width: 50px; height: auto;
+      transform-origin: calc(100% - 8px) calc(100% - 17px);
+    }
     @keyframes shake { 0%,100%{transform:translate(0);}20%,60%{transform:translate(-5px,0);}40%,80%{transform:translate(5px,0);} }
     #zoople.shake { animation: shake 0.3s ease-in-out; }
 
-    /* Status text */
+    /* Status text: only Score and Fry */
     #status { margin-top: 10px; font-size: 1.2em; }
     #status span { display: block; }
 
-    /* Labels side by side outside box */
+    /* Zooplier and Highmeter labels, positioned absolute in center */
     #multContainer, #highContainer { position: absolute; }
-    #multContainer { bottom: 20px; left: calc(50% - 140px); }
-    #highContainer { bottom: 20px; left: calc(50% - 40px); }
+    /* Place containers side by side with spacing */
+    #multContainer { bottom: 20px; left: calc(50% - 120px); }
+    #highContainer { bottom: 20px; left: calc(50% + 20px); }
 
-    img.label { display: block; }
-    .labelValue { position: absolute; font-size: 2em; font-weight: bold; color: white; pointer-events: none; transform: translate(-50%, -50%); }
-    #multDisplay { bottom: 60px; right: 82px; }
-    #highDisplay { bottom: 50px; right: 180px; }
-    
-    /* Button styling */
-    .panel button { background: #4CAF50; color: white; border: none; border-radius: 8px; box-shadow: 0 4px rgba(0,0,0,0.2); font-size: 16px; padding: 12px; margin: 10px 0; width: 100%; cursor: pointer; transition: transform 0.1s, background 0.3s; }
+    #multDisplay, #highDisplay { position: absolute; font-size: 2em; font-weight: bold; color: white; pointer-events: none; }
+    /* center the text over image */
+    #multDisplay { bottom: calc(60px - 1em); right: calc(82px - 0.5ch); transform: translate(50%, 50%); }
+    #highDisplay { bottom: calc(50px - 1em); right: calc(180px - 0.5ch); transform: translate(50%, 50%); }
+
+    /* Buttons styling */
+    .panel button {
+      background: #4CAF50; color: white; border: none; border-radius: 8px;
+      box-shadow: 0 4px rgba(0,0,0,0.2); font-size: 16px;
+      padding: 12px; margin: 10px 0; width: 100%; cursor: pointer;
+      transition: transform 0.1s, background 0.3s;
+    }
     .panel button:hover { transform: scale(1.05); }
     .panel button:active { transform: scale(0.95); box-shadow: 0 2px rgba(0,0,0,0.2); }
+
     h2 { margin-top: 0; color: white; }
   </style>
 </head>
@@ -51,15 +74,18 @@
     <div class="panel" id="center">
       <div id="zoopleBox">
         <div id="zoopleWrapper"><div id="zoople"></div></div>
-        <div id="status">Score: <span id="score">0</span>
+        <div id="status">
+          Score: <span id="score">0</span>
+        </div>
       </div>
+      <!-- Labels outside box, side by side -->
       <div id="multContainer">
-        <img class="label" src="/images/zoople-clicker/labels/zooplier.png" />
-        <div id="multDisplay" class="labelValue">1x</div>
+        <img src="/images/zoople-clicker/labels/zooplier.png" />
+        <div id="multDisplay">1x</div>
       </div>
       <div id="highContainer">
-        <img class="label" src="/images/zoople-clicker/labels/highmeter.png" />
-        <div id="highDisplay" class="labelValue">0%</div>
+        <img src="/images/zoople-clicker/labels/highmeter.png" />
+        <div id="highDisplay">0%</div>
       </div>
     </div>
     <div class="panel" id="shop">
@@ -91,22 +117,45 @@
     function calculateBaseMultiplier(){ baseMultiplier=1+bluntCount*0.01; }
 
     function addBluntVisual(){
-      const img=document.createElement('img'); img.src='/images/zoople-clicker/trinkets/blunt.png'; img.className='blunt';
-      const W=200, ow=409, oh=486;
-      const xMin=140/ow*W, xMax=160/ow*W;
-      const yMin=(oh-300)/oh*W, yMax=(oh-240)/oh*W;
+      const img=document.createElement('img');
+      img.src='/images/zoople-clicker/trinkets/blunt.png';
+      img.className='blunt';
+      const W=200,origW=409,origH=486;
+      // adjusted region for higher/left placement
+      const xMin=160/origW*W, xMax=187/origW*W;
+      const yMin=(origH-267)/origH*W, yMax=(origH-237)/origH*W;
       const x=Math.random()*(xMax-xMin)+xMin;
       const y=Math.random()*(yMax-yMin)+yMin;
-      img.style.left=x+'px'; img.style.top=y+'px'; img.style.transform='rotate('+Math.random()*360+'deg)';
+      img.style.left=x+'px'; img.style.top=y+'px';
+      img.style.transform='rotate('+Math.random()*360+'deg)';
       wrapper.appendChild(img);
     }
 
-    zoople.addEventListener('click',()=>{ score+=clickValue*multiplier; if(bluntCount>0&&!isFried) fryPercent+=0.05; zoople.classList.add('shake'); zoople.addEventListener('animationend',()=>zoople.classList.remove('shake'),{once:true}); updateDisplay(); });
-    document.getElementById('autoClicker').addEventListener('click',()=>{ if(score>=upgradePrices.autoClicker){ score-=upgradePrices.autoClicker; autoClickers++; clickValue++; upgradePrices.autoClicker=Math.floor(upgradePrices.autoClicker*1.5); document.getElementById('autoClicker').textContent=`Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`; updateDisplay(); }});
-    document.getElementById('buyBlunt').addEventListener('click',()=>{ if(score>=upgradePrices.blunt){ score-=upgradePrices.blunt; bluntCount++; calculateBaseMultiplier(); addBluntVisual(); upgradePrices.blunt=Math.floor(upgradePrices.blunt*2); document.getElementById('buyBlunt').textContent=`Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`; updateDisplay(); }});
-    setInterval(()=>{ score+=autoClickers*multiplier; if(isFried) fryPercent-=fryDecreaseRate; else if(bluntCount>0) fryPercent+=fryPassiveRate; if(!isFried){ calculateBaseMultiplier(); multiplier=baseMultiplier; } if(bluntCount>0 && fryPercent>=100 && !isFried) triggerFry(); fryPercent=Math.min(Math.max(fryPercent,0),100); updateDisplay(); },1000);
-    function triggerFry(){ isFried=true; multiplier=baseMultiplier*5; updateDisplay(); setTimeout(()=>{ isFried=false; multiplier=baseMultiplier; fryPercent=0; updateDisplay(); },150000); }
-    calculateBaseMultiplier(); updateDisplay();
+    zoople.addEventListener('click',()=>{
+      score+=clickValue*multiplier;
+      if(bluntCount>0&&!isFried) fryPercent+=0.05;
+      zoople.classList.add('shake');
+      zoople.addEventListener('animationend',()=>zoople.classList.remove('shake'),{once:true});
+      updateDisplay();
+    });
+
+    document.getElementById('autoClicker').addEventListener('click',()=>{if(score>=upgradePrices.autoClicker){score-=upgradePrices.autoClicker;autoClickers++;clickValue++;upgradePrices.autoClicker=Math.floor(upgradePrices.autoClicker*1.5);document.getElementById('autoClicker').textContent=`Buy Auto-Clicker (Cost: ${upgradePrices.autoClicker})`;updateDisplay();}});
+
+    document.getElementById('buyBlunt').addEventListener('click',()=>{if(score>=upgradePrices.blunt){score-=upgradePrices.blunt;bluntCount++;calculateBaseMultiplier();addBluntVisual();upgradePrices.blunt=Math.floor(upgradePrices.blunt*2);document.getElementById('buyBlunt').textContent=`Buy Blunt (+passive boost) (Cost: ${upgradePrices.blunt})`;updateDisplay();}});
+
+    setInterval(()=>{
+      score+=autoClickers*multiplier;
+      if(isFried) fryPercent-=fryDecreaseRate;
+      else if(bluntCount>0) fryPercent+=fryPassiveRate;
+      if(!isFried){calculateBaseMultiplier();multiplier=baseMultiplier;}
+      if(bluntCount>0 && fryPercent>=100 && !isFried) triggerFry();
+      fryPercent=Math.min(Math.max(fryPercent,0),100);
+      updateDisplay();
+    },1000);
+
+    function triggerFry(){isFried=true;multiplier=baseMultiplier*5;updateDisplay();setTimeout(()=>{isFried=false;multiplier=baseMultiplier;fryPercent=0;updateDisplay();},150000);}    
+    
+    calculateBaseMultiplier();updateDisplay();
   </script>
 </body>
 </html>
