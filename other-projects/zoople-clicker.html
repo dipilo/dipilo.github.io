@@ -49,6 +49,11 @@
       transform: translateX(100%);
     }
 
+    /* ensure right panel opens when .open applied */
+    .panel.right.open {
+      transform: translateX(0);
+    }
+
     .toggle-tab {
       position: absolute;
       top: 20px;
@@ -76,6 +81,7 @@
       justify-content: center;
       position: relative;
       overflow-y: auto;
+      padding-top: 20px;
     }
 
     #zoopleBox {
@@ -142,21 +148,40 @@
       pointer-events: none;
     }
 
-    /* Adjusted positions: higher and more left */
+    /* PC positions: higher & more left */
     #multDisplay {
-      bottom: 35px;
-      right: 35px;
+      bottom: 45px;
+      right: 45px;
     }
 
     #highDisplay {
-      bottom: 45px;
-      right: 45px;
+      bottom: 55px;
+      right: 55px;
     }
 
     #scoreDisplay {
       bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
+    }
+
+    /* Mobile overrides */
+    @media (max-width: 768px) {
+      #multDisplay {
+        bottom: 30px;
+        right: 30px;
+      }
+      #highDisplay {
+        bottom: 40px;
+        right: 40px;
+      }
+      #labelsBox {
+        flex-direction: column;
+        align-items: center;
+      }
+      .labelItem {
+        margin: 8px 0;
+      }
     }
 
     .panel h2 {
@@ -199,16 +224,6 @@
       opacity: 0;
       z-index: 5;
       transition: opacity 0.5s ease;
-    }
-
-    @media (max-width: 768px) {
-      #labelsBox {
-        flex-direction: column;
-        align-items: center;
-      }
-      .labelItem {
-        margin: 8px 0;
-      }
     }
   </style>
 </head>
