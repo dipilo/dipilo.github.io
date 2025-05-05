@@ -5,117 +5,364 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zoople Cookie Clicker</title>
   <style>
-    body { margin: 0; font-family: sans-serif; background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; overflow: hidden; }
-    #container { display: flex; height: 100vh; }
-    .panel { background: rgba(0,0,0,0.5); color: white; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-    #center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 1; }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: url('/images/backgrounds/starry_night.png') no-repeat center/cover;
+      overflow: hidden;
+    }
 
-    /* Off-canvas panels for mobile */
-    .offcanvas { position: fixed; top: 0; width: 200px; height: 100%; background: rgba(0,0,0,0.8); transition: transform 0.3s ease; z-index: 2; }
-    #upgrades { left: 0; transform: translateX(-190px); }
-    #shop { right: 0; transform: translateX(190px); }
-    .offcanvas.show { transform: translateX(0); }
-    /* Arrow tabs */
-    .tab { position: fixed; top: 50%; width: 20px; height: 60px; background: rgba(76,175,80,0.8); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
-    #upTab { left: 0; transform: translate(-100%, -50%); }
-    #shopTab { right: 0; transform: translate(100%, -50%); }
+    #container {
+      display: flex;
+      height: 100vh;
+      position: relative;
+    }
 
-    /* Zoople box */
-    #zoopleBox { background: rgba(128,128,128,0.8); padding: 20px; border-radius: 12px; user-select: none; }
-    #zoopleWrapper { position: relative; width: 200px; height: 200px; z-index: 1; }
-    #zoople { cursor: pointer; width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; }
+    .panel {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 200px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      box-sizing: border-box;
+      z-index: 10;
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
 
-    /* Green haze overlay */
-    #haze { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,255,0,0.4); filter: blur(12px); pointer-events: none; opacity: 0; transition: opacity 0.5s linear; z-index: 0; }
+    .panel.right {
+      right: 0;
+      left: auto;
+      transform: translateX(100%);
+    }
 
-    /* Labels box */
-    #labelsBox { display: flex; justify-content: space-around; background: rgba(128,128,128,0.8); padding: 15px; border-radius: 12px; margin-top: 15px; user-select: none; }
-    .labelItem { position: relative; display: inline-block; }
-    .labelItem img { display: block; }
-    #multDisplay { position: absolute; top: 60%; left: 55%; transform: translate(-50%, -50%); font-size: 1.5em; color: white; }
-    #scoreCopy  { position: absolute; top: 75%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em; color: white; }
-    #highDisplay{ position: absolute; top: 58%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em; color: white; }
+    .panel.open {
+      transform: translateX(0);
+    }
 
-    /* Buttons */
-    .panel button { background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 12px; margin: 10px 0; width: 100%; cursor: pointer; user-select: none; }
-    .panel button:disabled { background: #777; }
+    .toggle-tab {
+      position: absolute;
+      top: 20px;
+      width: 30px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 11;
+    }
 
-    @media (min-width: 769px) {
-      #upTab, #shopTab { display: none; }
-      .offcanvas { position: relative; transform: translateX(0); width: 25%; }
-      #container { display: flex; }
+    #toggleLeft { left: 0; }
+    #toggleRight { right: 0; }
+
+    #center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #zoopleBox {
+      background: rgba(128,128,128,0.8);
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    #zoopleWrapper {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
+    #zoople {
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain;
+    }
+
+    .blunt {
+      position: absolute;
+      width: 50px;
+      height: auto;
+      left: 60px !important;
+      top: 80px !important;
+      transform: rotate(0deg) !important;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    #labelsBox {
+      display: flex;
+      gap: 20px;
+      background: rgba(128,128,128,0.8);
+      padding: 10px;
+      border-radius: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .labelItem {
+      position: relative;
+      display: inline-block;
+      user-select: none;
+    }
+
+    .labelItem img {
+      display: block;
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .labelValue {
+      position: absolute;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2em;
+      pointer-events: none;
+    }
+
+    #multDisplay {
+      bottom: 15px;
+      right: 15px;
+    }
+
+    #highDisplay {
+      bottom: 10px;
+      right: 10px;
+    }
+
+    #scoreDisplay {
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .panel button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px rgba(0,0,0,0.2);
+      font-size: 16px;
+      padding: 12px;
+      margin: 10px 0;
+      width: 100%;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.3s;
+    }
+
+    .panel button:hover {
+      transform: scale(1.05);
+    }
+
+    .panel button:active {
+      transform: scale(0.95);
+    }
+
+    #haze {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(0,255,0,0.2), rgba(0,100,0,0.4));
+      pointer-events: none;
+      opacity: 0;
+      z-index: 5;
+      transition: opacity 0.5s ease;
+    }
+
+    @media (max-width: 768px) {
+      #labelsBox {
+        flex-direction: column;
+        align-items: center;
+      }
+      .labelItem {
+        margin: 8px 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="upTab" class="tab">&#9654;</div>
-  <div id="shopTab" class="tab">&#9664;</div>
-  <div id="upgrades" class="panel offcanvas">
-    <h2>Upgrades</h2>
-    <button id="autoClicker">Auto-Clicker: 50</button>
-    <button id="clickUpgrade">Click Upgrade: 100</button>
-    <button id="autoBuyer">Auto-Buyer: 500</button>
-    <button id="toggleAutoBuyer" class="hidden">Auto-Buy: OFF</button>
-  </div>
-  <div id="center">
-    <div id="zoopleBox">
-      <div id="zoopleWrapper"><div id="zoople"></div></div>
+  <div id="toggleLeft" class="toggle-tab">❮</div>
+  <div id="toggleRight" class="toggle-tab">❯</div>
+  <div id="container">
+    <div class="panel" id="upgrades">
+      <h2>Upgrades</h2>
+      <button id="autoClicker">Auto-Clicker (50)</button>
+      <button id="clickBoost">Click Boost (100)</button>
+      <button id="autoBuyer">Auto-Buyer (500)</button>
     </div>
-    <div id="labelsBox">
-      <div class="labelItem"><img src="/images/zoople-clicker/labels/zooplier.png" /><div id="multDisplay">1x</div></div>
-      <div class="labelItem"><img src="/images/zoople-clicker/labels/zooscore.png" /><div id="scoreCopy">0</div></div>
-      <div class="labelItem"><img src="/images/zoople-clicker/labels/highmeter.png" /><div id="highDisplay">0%</div></div>
+    <div class="panel right" id="shop">
+      <h2>Trinkets</h2>
+      <button id="buyBlunt">Blunt (200)</button>
     </div>
-  </div>
-  <div id="shop" class="panel offcanvas">
-    <h2>Trinkets Shop</h2>
-    <button id="buyBlunt">Blunt: 200</button>
+    <div id="center">
+      <div id="zoopleBox">
+        <div id="zoopleWrapper">
+          <div id="zoople"></div>
+        </div>
+      </div>
+      <div id="labelsBox">
+        <div class="labelItem">
+          <img src="/images/zoople-clicker/labels/zooplier.png" />
+          <div id="multDisplay" class="labelValue">1x</div>
+        </div>
+        <div class="labelItem">
+          <img src="/images/zoople-clicker/labels/zooscore.png" />
+          <div id="scoreDisplay" class="labelValue">0</div>
+        </div>
+        <div class="labelItem">
+          <img src="/images/zoople-clicker/labels/highmeter.png" />
+          <div id="highDisplay" class="labelValue">0%</div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="haze"></div>
-
   <script>
-    const upTab = document.getElementById('upTab'), shopTab = document.getElementById('shopTab');
-    const upgrades = document.getElementById('upgrades'), shop = document.getElementById('shop');
-    upTab.addEventListener('click', ()=> upgrades.classList.toggle('show'));
-    shopTab.addEventListener('click', ()=> shop.classList.toggle('show'));
+    let score = 0, baseMultiplier = 1, multiplier = 1, clickValue = 1;
+    let fryPercent = 0, isFried = false, autoClickers = 0, bluntCount = 0;
+    let autoBuyerUnlocked = false, autoBuyerEnabled = false;
+    const fryPassiveRate = 100 / 300, fryDecreaseRate = 100 / 150;
+    const upgradePrices = { autoClicker: 50, clickBoost: 100, blunt: 200, autoBuyer: 500 };
 
-    let score=0, baseMultiplier=1, multiplier=1, clickValue=1;
-    let fryPercent=0, isFried=false, autoClickers=0, bluntCount=0;
-    let clickUpgradeCount=0, autoBuyerPurchased=false, autoBuyerEnabled=false;
-    let hazeOpacity=0;
-    const fryPassiveRate=100/300, fryDecreaseRate=100/150;
-    const upgradePrices={autoClicker:50, blunt:200, clickUpgrade:100, autoBuyer:500};
+    const scoreEl = document.getElementById('scoreDisplay');
+    const displayMult = document.getElementById('multDisplay');
+    const displayHigh = document.getElementById('highDisplay');
+    const zoople = document.getElementById('zoople');
+    const wrapper = document.getElementById('zoopleWrapper');
+    const haze = document.getElementById('haze');
 
-    const displayMult=document.getElementById('multDisplay');
-    const displayHigh=document.getElementById('highDisplay');
-    const displayScore=document.getElementById('scoreCopy');
-    const zoople=document.getElementById('zoople');
-    const wrapper=document.getElementById('zoopleWrapper');
-    const haze=document.getElementById('haze');
-
-    function updateDisplay(){
-      displayScore.textContent=Math.floor(score);
-      displayMult.textContent=multiplier.toFixed(1)+'x';
-      displayHigh.textContent=Math.min(Math.max(fryPercent,0),100).toFixed(2)+'%';
-      document.getElementById('autoClicker').textContent = `Auto-Clicker: ${upgradePrices.autoClicker}`;
-      document.getElementById('clickUpgrade').textContent = `Click Upgrade: ${upgradePrices.clickUpgrade}`;
-      document.getElementById('buyBlunt').textContent = `Blunt: ${upgradePrices.blunt}`;
+    function updateDisplay() {
+      scoreEl.textContent = Math.floor(score);
+      displayMult.textContent = multiplier.toFixed(1) + 'x';
+      displayHigh.textContent = Math.min(Math.max(fryPercent, 0), 100).toFixed(2) + '%';
+      haze.style.opacity = Math.min(fryPercent / 100, 0.7);
     }
-    function calculateBaseMultiplier(){ baseMultiplier=1+bluntCount*0.01; }
 
-    function addBluntVisual(){ if (bluntCount===1){ const img=document.createElement('img'); img.src='/images/zoople-clicker/trinkets/blunt.png'; img.className='blunt'; img.style.left='60px'; img.style.top='80px'; img.style.transform='rotate(0deg)'; wrapper.appendChild(img); }}
-    function autoBuy(){ const opts=[{btn:'clickUpgrade',price:upgradePrices.clickUpgrade},{btn:'autoClicker',price:upgradePrices.autoClicker},{btn:'buyBlunt',price:upgradePrices.blunt}]; const aff=opts.filter(o=>score>=o.price); if(aff.length){ const c=aff.reduce((a,b)=>a.price<b.price?a:b); document.getElementById(c.btn).click(); }}
+    function calculateBaseMultiplier() {
+      baseMultiplier = 1 + bluntCount * 0.01;
+    }
 
-    zoople.addEventListener('click',()=>{ score+=clickValue*multiplier; if(bluntCount>0&&!isFried) fryPercent+=0.05; zoople.classList.add('shake'); zoople.addEventListener('animationend',()=>zoople.classList.remove('shake'),{once:true}); updateDisplay(); });
-    document.getElementById('autoClicker').addEventListener('click',()=>{ if(score>=upgradePrices.autoClicker){ score-=upgradePrices.autoClicker; autoClickers++; clickValue++; upgradePrices.autoClicker=Math.floor(upgradePrices.autoClicker*1.5); updateDisplay(); }});
-    document.getElementById('clickUpgrade').addEventListener('click',()=>{ if(score>=upgradePrices.clickUpgrade){ score-=upgradePrices.clickUpgrade; clickValue++; clickUpgradeCount++; upgradePrices.clickUpgrade=Math.floor(upgradePrices.clickUpgrade*1.5); updateDisplay(); }});
-    document.getElementById('autoBuyer').addEventListener('click',()=>{ if(score>=upgradePrices.autoBuyer){ score-=upgradePrices.autoBuyer; autoBuyerPurchased=true; document.getElementById('autoBuyer').classList.add('hidden'); const toggle=document.getElementById('toggleAutoBuyer'); toggle.classList.remove('hidden'); toggle.textContent=`Auto-Buy: OFF`; updateDisplay(); }});
-    document.getElementById('toggleAutoBuyer').addEventListener('click',()=>{ autoBuyerEnabled=!autoBuyerEnabled; document.getElementById('toggleAutoBuyer').textContent=`Auto-Buy: ${autoBuyerEnabled?'ON':'OFF'}`; });
-    document.getElementById('buyBlunt').addEventListener('click',()=>{ if(score>=upgradePrices.blunt){ score-=upgradePrices.blunt; bluntCount++; calculateBaseMultiplier(); addBluntVisual(); upgradePrices.blunt=Math.floor(upgradePrices.blunt*2); updateDisplay(); }});
+    function addBluntVisual() {
+      if (bluntCount === 1) {
+        const img = document.createElement('img');
+        img.src = '/images/zoople-clicker/trinkets/blunt.png';
+        img.className = 'blunt';
+        wrapper.appendChild(img);
+      }
+    }
 
-    setInterval(()=>{ score+=autoClickers*multiplier; if(isFried) fryPercent-=fryDecreaseRate; else if(bluntCount>0) fryPercent+=fryPassiveRate; fryPercent=Math.min(Math.max(fryPercent,0),100); if(bluntCount>0&&fryPercent>=100&&!isFried) triggerFry(); if(fryPercent/100>hazeOpacity) hazeOpacity=fryPercent/100; else hazeOpacity=Math.max(0,hazeOpacity-(fryDecreaseRate*2/100)); haze.style.opacity=hazeOpacity; if(autoBuyerPurchased&&autoBuyerEnabled) autoBuy(); updateDisplay(); },1000);
-    function triggerFry(){ isFried=true; multiplier=baseMultiplier*5; updateDisplay(); setTimeout(()=>{ isFried=false; multiplier=baseMultiplier; fryPercent=0; updateDisplay(); },150000); }
-    calculateBaseMultiplier(); updateDisplay();
+    zoople.addEventListener('click', () => {
+      score += clickValue * multiplier;
+      if (bluntCount > 0 && !isFried) fryPercent += 0.05;
+      zoople.classList.add('shake');
+      zoople.addEventListener('animationend', () => zoople.classList.remove('shake'), { once: true });
+      updateDisplay();
+    });
+
+    document.getElementById('autoClicker').addEventListener('click', () => {
+      if (score >= upgradePrices.autoClicker) {
+        score -= upgradePrices.autoClicker;
+        autoClickers++;
+        upgradePrices.autoClicker = Math.floor(upgradePrices.autoClicker * 1.5);
+        document.getElementById('autoClicker').textContent = `Auto-Clicker (${upgradePrices.autoClicker})`;
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('clickBoost').addEventListener('click', () => {
+      if (score >= upgradePrices.clickBoost) {
+        score -= upgradePrices.clickBoost;
+        clickValue++;
+        upgradePrices.clickBoost = Math.floor(upgradePrices.clickBoost * 2);
+        document.getElementById('clickBoost').textContent = `Click Boost (${upgradePrices.clickBoost})`;
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('buyBlunt').addEventListener('click', () => {
+      if (score >= upgradePrices.blunt) {
+        score -= upgradePrices.blunt;
+        bluntCount++;
+        calculateBaseMultiplier();
+        if (bluntCount === 1) addBluntVisual();
+        upgradePrices.blunt = Math.floor(upgradePrices.blunt * 2);
+        document.getElementById('buyBlunt').textContent = `Blunt (${upgradePrices.blunt})`;
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('autoBuyer').addEventListener('click', () => {
+      if (score >= upgradePrices.autoBuyer) {
+        score -= upgradePrices.autoBuyer;
+        autoBuyerUnlocked = true;
+        const toggleBtn = document.createElement('button');
+        toggleBtn.id = 'toggleAutoBuyer';
+        toggleBtn.textContent = 'Toggle Auto-Buyer';
+        toggleBtn.onclick = () => { autoBuyerEnabled = !autoBuyerEnabled; };
+        const parent = document.getElementById('upgrades');
+        parent.removeChild(document.getElementById('autoBuyer'));
+        parent.appendChild(toggleBtn);
+        updateDisplay();
+      }
+    });
+
+    setInterval(() => {
+      score += autoClickers * multiplier;
+      if (isFried) fryPercent -= fryDecreaseRate * 1.5;
+      else if (bluntCount > 0) fryPercent += fryPassiveRate;
+      if (!isFried) {
+        calculateBaseMultiplier();
+        multiplier = baseMultiplier;
+      }
+      if (bluntCount > 0 && fryPercent >= 100 && !isFried) triggerFry();
+      fryPercent = Math.min(Math.max(fryPercent, 0), 100);
+      if (autoBuyerEnabled) attemptAutoBuy();
+      updateDisplay();
+    }, 1000);
+
+    function attemptAutoBuy() {
+      const upgrades = ['autoClicker', 'clickBoost', 'blunt'];
+      for (let up of upgrades) {
+        if (score >= upgradePrices[up]) {
+          document.getElementById(up === 'clickBoost' ? 'clickBoost' : up === 'blunt' ? 'buyBlunt' : up).click();
+          break;
+        }
+      }
+    }
+
+    function triggerFry() {
+      isFried = true;
+      multiplier = baseMultiplier * 5;
+      updateDisplay();
+      setTimeout(() => {
+        isFried = false;
+        multiplier = baseMultiplier;
+        fryPercent = 0;
+        updateDisplay();
+      }, 150000);
+    }
+
+    updateDisplay();
+
+    document.getElementById('toggleLeft').onclick = () => {
+      document.getElementById('upgrades').classList.toggle('open');
+    };
+    document.getElementById('toggleRight').onclick = () => {
+      document.getElementById('shop').classList.toggle('open');
+    };
   </script>
 </body>
 </html>
