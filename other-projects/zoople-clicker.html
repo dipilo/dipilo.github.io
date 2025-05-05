@@ -35,7 +35,7 @@
       z-index: 10;
       transform: translateX(-100%);
       transition: transform 0.3s;
-      pointer-events: none; /* closed panels don't block clicks */
+      pointer-events: none;
     }
 
     .panel.open {
@@ -75,7 +75,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      overflow-y: auto; /* ensure scroll if content overflows */
+      overflow-y: auto;
     }
 
     #zoopleBox {
@@ -138,28 +138,29 @@
       position: absolute;
       color: white;
       font-weight: bold;
-      font-size: 2em; /* bigger text */
+      font-size: 2em;
       pointer-events: none;
     }
 
+    /* Adjusted positions: higher and more left */
     #multDisplay {
-      bottom: 25px; /* higher */
-      right: 25px;  /* more left inside icon */
+      bottom: 35px;
+      right: 35px;
     }
 
     #highDisplay {
-      bottom: 35px; /* way higher */
-      right: 30px;  /* more left */
+      bottom: 45px;
+      right: 45px;
     }
 
     #scoreDisplay {
-      bottom: 30px; /* higher */
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
     }
 
     .panel h2 {
-      margin-left: 20px; /* bring U into view */
+      margin-left: 20px;
       user-select: none;
     }
 
@@ -215,7 +216,7 @@
   <div id="toggleLeft" class="toggle-tab">❮</div>
   <div id="toggleRight" class="toggle-tab">❯</div>
   <div id="container">
-    <div class="panel open" id="upgrades">
+    <div class="panel" id="upgrades">
       <h2>Upgrades</h2>
       <button id="autoClicker">Auto-Clicker (50)</button>
       <button id="clickBoost">Click Boost (100)</button>
@@ -227,9 +228,7 @@
     </div>
     <div id="center">
       <div id="zoopleBox">
-        <div id="zoopleWrapper">
-          <div id="zoople"></div>
-        </div>
+        <div id="zoopleWrapper"><div id="zoople"></div></div>
       </div>
       <div id="labelsBox">
         <div class="labelItem">
