@@ -104,6 +104,10 @@
       user-select: none;
     }
 
+    /* shake animation */
+    @keyframes shake { 0%,100% { transform: translate(0,0); } 20%,60% { transform: translate(-5px,0); } 40%,80% { transform: translate(5px,0); } }
+    .shake { animation: shake 0.3s ease-in-out; }
+
     .blunt {
       position: absolute;
       width: 50px;
@@ -203,13 +207,8 @@
       user-select: none;
     }
 
-    .panel button:hover {
-      transform: scale(1.05);
-    }
-
-    .panel button:active {
-      transform: scale(0.95);
-    }
+    .panel button:hover { transform: scale(1.05); }
+    .panel button:active { transform: scale(0.95); }
 
     /* Cloudy multi-layered haze */
     #haze {
@@ -299,6 +298,8 @@
     zoople.addEventListener('click', () => {
       score += clickValue * multiplier;
       if (bluntCount > 0 && !isFried) fryPercent += 0.05;
+      zoople.classList.add('shake');
+      zoople.addEventListener('animationend', () => zoople.classList.remove('shake'), { once: true });
       updateDisplay();
     });
 
