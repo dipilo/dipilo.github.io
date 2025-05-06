@@ -644,23 +644,24 @@
         elements.btn.autoBuyer.textContent = 'Purchased';
         elements.actionAuto.style.display = 'flex';
         break;
+
         case 'blunt':
-          bluntCount++;
-          addBluntVisual();
-          if (bluntCount === 1) {
-            // auto-build High meter over 300s
+        bluntCount++;
+        addBluntVisual();
+        if (bluntCount === 1) {
             highBuildInterval = setInterval(() => {
-                if (!isFried) {
+            if (!isFried) {
                 fryPercent = Math.min(fryPercent + (100/300), 100);
                 haze.style.opacity = Math.min(fryPercent/100, 0.7);
                 updateDisplay();
-                }
+            }
             }, 1000);
         }
         break;
-      }
+    }
 
-      prices[key] = calcPrice(
+    // 1) Recalculate the price for the item you just bought
+    prices[key] = calcPrice(
         key,
         {
         zooplication: zooplicationCount,
@@ -672,7 +673,7 @@
         }[key]
     );
 
-    // **always refresh the UI**
+    // 2) Immediately refresh counts, prices, and button states
     updateDisplay();
     }
 
