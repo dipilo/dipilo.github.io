@@ -612,7 +612,7 @@
     fryPercent = Math.min(fryPercent + 0.05, 100);
     if (fryPercent === 100) {
         isFried = true;
-        baseMultiplier = 5;
+        calculateBaseMultiplier();
         document.getElementById('haze').style.opacity = 0.7;
         updateDisplay();
         }
@@ -736,6 +736,7 @@
 
     // 150 s “fried” overdrive
     setTimeout(() => {
+        console.log('[FRY END] reverting to normal');
         isFried = false;
         autoClickRate /= 5;
         calculateBaseMultiplier();
