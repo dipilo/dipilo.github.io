@@ -595,6 +595,13 @@
         score += desperationCount * 2;
     }
 
+    setInterval(() => {
+    if (fryPercent < 100 && !isFried) {
+        fryPercent += (100 / (5 * 60)); // ~0.333% per second to reach 100% in 5 minutes
+        updateFryMeter(fryPercent);     // update UI
+    }
+    }, 1000); // every second
+
     // frying build‐up
     if (bluntCount > 0 && !isFried) {
     fryPercent = Math.min(fryPercent + 0.05, 100);
