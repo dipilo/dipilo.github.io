@@ -217,6 +217,16 @@
       cursor: pointer;
     }
 
+    @keyframes shake {
+      0%, 100% { transform: translate(0, 0); }
+      20%, 60% { transform: translate(-5px, 0); }
+      40%, 80% { transform: translate(5px, 0); }
+    }
+
+    .shake {
+      animation: shake 0.3s ease-in-out;
+    }
+
     /* ------------------------------------- */
     /* Labels */
     #labelsBox {
