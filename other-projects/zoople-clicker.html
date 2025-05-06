@@ -614,34 +614,36 @@
 
     /*** Buy Handler ***/
     function buy(key) {
-      if (score < prices[key]) return;
-      score -= prices[key];
+    if (score < prices[key]) return;
+    score -= prices[key];
 
-      switch (key) {
+    switch (key) {
         case 'zooplication':
-          zooplicationCount++;
-          clickValue = 1 + zooplicationCount;
-          break;
+        zooplicationCount++;
+        clickValue = 1 + zooplicationCount;
+        break;
+
         case 'autoClicker':
-          autoClickerCount++;
-          restartAutoClick();
-          break;
+        autoClickerCount++;
+        restartAutoClick();
+        break;
+
         case 'desperation':
-          desperationCount++;
-          break;
+        desperationCount++;
+        break;
+
         case 'crack':
-          crackCount++;
-          restartAutoClick();
-          break;
-          case 'autoBuyer':
-            autoBuyerCount++;
-            // mark as one-time: disable its button and clear price
-            prices.autoBuyer = Infinity;
-            elements.btn.autoBuyer.disabled = true;
-            elements.btn.autoBuyer.textContent = 'Purchased';
-            // reveal toggle UI
-            elements.actionAuto.style.display = 'flex';
-            break;
+        crackCount++;
+        restartAutoClick();
+        break;
+
+        case 'autoBuyer':
+        autoBuyerCount++;
+        prices.autoBuyer = Infinity;
+        elements.btn.autoBuyer.disabled = true;
+        elements.btn.autoBuyer.textContent = 'Purchased';
+        elements.actionAuto.style.display = 'flex';
+        break;
         case 'blunt':
           bluntCount++;
           addBluntVisual();
@@ -658,18 +660,20 @@
         break;
       }
 
-      prices[key] = calcPrice(key,
+      prices[key] = calcPrice(
+        key,
         {
-          zooplication: zooplicationCount,
-          autoClicker: autoClickerCount,
-          desperation: desperationCount,
-          crack: crackCount,
-          autoBuyer: autoBuyerCount,
-          blunt: bluntCount
+        zooplication: zooplicationCount,
+        autoClicker:   autoClickerCount,
+        desperation:   desperationCount,
+        crack:         crackCount,
+        autoBuyer:     autoBuyerCount,
+        blunt:         bluntCount
         }[key]
-      );
+    );
 
-      updateDisplay();
+    // **always refresh the UI**
+    updateDisplay();
     }
 
     Object.keys(elements.btn).forEach(key => {
