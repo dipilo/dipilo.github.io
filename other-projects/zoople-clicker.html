@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zoople Cookie Clicker</title>
   <style>
-    /* ------------------------------------- */
-    /* Base page styles */
+    /* Basic reset and background */
     body {
       margin: 0;
       font-family: sans-serif;
@@ -15,32 +13,32 @@
       overflow: hidden;
     }
 
+    /* Allow scrolling on mobile */
     @media (max-width: 768px) {
       body {
         overflow: auto;
       }
     }
 
+    /* Container & panels */
     #container {
       display: flex;
       height: 100vh;
       position: relative;
     }
 
-    /* ------------------------------------- */
-    /* Panel (Upgrades/Trinkets) */
     .panel {
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 240px;
-      background-color: rgba(0, 0, 0, 0.8);
+      width: 200px;
+      background: rgba(0, 0, 0, 0.8);
       color: white;
-      padding: 16px;
+      padding: 10px;
       box-sizing: border-box;
       z-index: 10;
       transform: translateX(-100%);
-      transition: transform 0.3s ease;
+      transition: transform 0.3s;
       pointer-events: none;
     }
 
@@ -59,21 +57,12 @@
       transform: translateX(0);
     }
 
-    .panel h2 {
-      margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 1.25em;
-      border-bottom: 1px solid #555;
-      padding-bottom: 8px;
-    }
-
-    /* Toggle tab now inside panels */
-    .panel .toggle-tab {
+    .toggle-tab {
       position: absolute;
       top: 20px;
       width: 30px;
       height: 40px;
-      background-color: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.7);
       color: white;
       font-size: 18px;
       display: flex;
@@ -84,87 +73,10 @@
       user-select: none;
     }
 
-    /* Left panel toggle on right edge */
-    #upgrades .toggle-tab {
-      right: -30px;
-    }
-    /* Right panel toggle on left edge */
-    #shop .toggle-tab {
-      left: -30px;
-    }
+    #toggleLeft { left: 0; }
+    #toggleRight { right: 0; }
 
-    /* ------------------------------------- */
-    /* Item container (Upgrade or Trinket) */
-    .item-container {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 16px;
-    }
-
-    .item-count {
-      font-size: 1.2em;
-      align-self: flex-end;
-    }
-
-    .item-info {
-      margin-bottom: 8px;
-    }
-
-    .item-info h3 {
-      margin: 0;
-      font-size: 1em;
-      text-align: left;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-info p {
-      margin: 4px 0 0;
-      font-size: 0.8em;
-      color: #ccc;
-      text-align: left;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-button {
-      padding: 8px;
-      font-size: 1em;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      background-color: #444;
-      color: #fff;
-      transition: background 0.2s;
-      align-self: flex-start;
-    }
-
-    .item-button.enabled {
-      background-color: #4CAF50;
-    }
-
-    .item-button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-
-    /* ------------------------------------- */
-    /* Auto-buy dropdown */
-    .autobuy-select {
-      width: 100%;
-      margin-top: 12px;
-      padding: 8px;
-      background-color: #333;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
-
-    /* ------------------------------------- */
-    /* Center Zoople clicker area */
+    /* Center area */
     #center {
       flex: 1;
       display: flex;
@@ -176,26 +88,29 @@
       padding-top: 20px;
     }
 
+    /* Zoople clicker box */
     #zoopleBox {
-      background-color: rgba(128, 128, 128, 0.8);
+      background: rgba(128, 128, 128, 0.8);
       padding: 20px;
       border-radius: 12px;
-      margin-bottom: 20px;
+      margin-top: 20px;
     }
 
     #zoopleWrapper {
+      position: relative;
       width: 200px;
       height: 200px;
-      position: relative;
     }
 
     #zoople {
+      cursor: pointer;
       width: 100%;
       height: 100%;
       background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain;
-      cursor: pointer;
+      user-select: none;
     }
 
+    /* Shake animation */
     @keyframes shake {
       0%, 100% { transform: translate(0, 0); }
       20%, 60% { transform: translate(-5px, 0); }
@@ -206,40 +121,77 @@
       animation: shake 0.3s ease-in-out;
     }
 
-    /* ------------------------------------- */
+    /* Blunt visual */
+    .blunt {
+      position: absolute;
+      width: 50px;
+      left: 60px;
+      top: 80px;
+      user-select: none;
+      pointer-events: none;
+    }
+
     /* Labels */
     #labelsBox {
       display: flex;
       gap: 20px;
-      background-color: rgba(128, 128, 128, 0.8);
+      background: rgba(128, 128, 128, 0.8);
       padding: 10px;
       border-radius: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .labelItem {
       position: relative;
     }
 
+    .labelItem img {
+      display: block;
+    }
+
     .labelValue {
       position: absolute;
-      font-size: 2em;
-      font-weight: bold;
       color: white;
+      font-weight: bold;
+      font-size: 2em;
+      pointer-events: none;
     }
 
     #multDisplay { bottom: 50px; right: 55px; }
-    #highDisplay { bottom: 65px; right: 140px; }
+    #highDisplay { bottom: 65px; right: 120px; }
     #scoreDisplay { bottom: 30px; left: 50%; transform: translateX(-50%); }
 
     @media (max-width: 768px) {
-      #multDisplay { bottom: 35px; right: 70px; }
-      #highDisplay { bottom: 40px; right: 140px; }
-      #scoreDisplay { bottom: 30px; left: 50%; transform: translateX(-50%); }
+      #multDisplay { bottom: 35px; right: 45px; }
+      #highDisplay { bottom: 40px; right: 120px; }
       #labelsBox { flex-direction: column; }
     }
 
-    /* ------------------------------------- */
-    /* Haze overlay */
+    .panel h2 {
+      margin-left: 20px;
+      user-select: none;
+    }
+
+    .panel button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      padding: 12px;
+      margin: 10px 0;
+      width: 100%;
+      cursor: pointer;
+      transition: transform 0.1s;
+      user-select: none;
+    }
+
+    .panel button:hover { transform: scale(1.05); }
+    .panel button:active { transform: scale(0.95); }
+
+    /* Haze effect */
     #haze {
       position: absolute;
       top: 0;
@@ -247,289 +199,291 @@
       width: 100%;
       height: 100%;
       background:
-        radial-gradient(circle at 20% 20%, rgba(0, 255, 0, 0.2), transparent 40%),
-        radial-gradient(circle at 80% 40%, rgba(0, 200, 0, 0.15), transparent 50%),
-        radial-gradient(circle at 50% 80%, rgba(0, 150, 0, 0.1), transparent 60%);
+        radial-gradient(circle at 20% 20%, rgba(0,255,0,0.2), transparent 40%),
+        radial-gradient(circle at 80% 40%, rgba(0,200,0,0.15), transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(0,150,0,0.1), transparent 60%);
       filter: blur(15px);
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.5s ease;
     }
-
   </style>
 </head>
-
 <body>
-  <div id="container">
+  <div id="toggleLeft" class="toggle-tab">❮</div>
+  <div id="toggleRight" class="toggle-tab">❯</div>
 
-    <!-- Upgrades Panel -->
+  <div id="container">
     <div class="panel" id="upgrades">
       <h2>Upgrades</h2>
-      <div id="toggleLeft" class="toggle-tab">❮</div>
-
-      <!-- Zooplication -->
-      <div class="item-container" id="container-zooplication">
-        <div class="item-info">
-          <h3>Zooplication</h3>
-          <p>Increases points per click.</p>
-        </div>
-        <button class="item-button" id="btn-zooplication">50</button>
-        <div class="item-count" id="count-zooplication">0</div>
-      </div>
-
-      <!-- Auto-Clicker -->
-      <div class="item-container" id="container-autoClicker">
-        <div class="item-info">
-          <h3>Auto-Clicker</h3>
-          <p>Grants one automatic click per second.</p>
-        </div>
-        <button class="item-button" id="btn-autoClicker">100</button>
-        <div class="item-count" id="count-autoClicker">0</div>
-      </div>
-
-      <!-- Desperation -->
-      <div class="item-container" id="container-desperation">
-        <div class="item-info">
-          <h3>Desperation</h3>
-          <p>Gives more zoo-score per click when you can't afford anything.</p>
-        </div>
-        <button class="item-button" id="btn-desperation">150</button>
-        <div class="item-count" id="count-desperation">0</div>
-      </div>
-
-      <!-- Crack -->
-      <div class="item-container" id="container-crack">
-        <div class="item-info">
-          <h3>Crack</h3>
-          <p>Increases auto-click speed.</p>
-        </div>
-        <button class="item-button" id="btn-crack">1000</button>
-        <div class="item-count" id="count-crack">0</div>
-      </div>
-
-      <!-- Auto-Buyer -->
-      <div class="item-container" id="container-autoBuyer">
-        <div class="item-info">
-          <h3>Auto-Buyer</h3>
-          <p>Automatically purchases items.</p>
-        </div>
-        <button class="item-button" id="btn-autoBuyer">500</button>
-        <div class="item-count" id="count-autoBuyer">0</div>
-      </div>
-
-      <!-- Auto-Buy Selection -->
-      <select class="autobuy-select" id="select-autoBuyer">
-        <option value="off">Off</option>
-        <option value="upgrades">All Upgrades</option>
-        <option value="trinkets">All Trinkets</option>
-        <option value="zooplication">Zooplication</option>
-        <option value="autoClicker">Auto-Clicker</option>
-        <option value="desperation">Desperation</option>
-        <option value="crack">Crack</option>
-        <option value="blunt">Blunt</option>
-      </select>
+      <button id="zooplication">Zooplication (50)</button>
+      <button id="autoClicker">Auto-Clicker (100)</button>
+      <button id="desperation">Desperation (150)</button>
+      <button id="crack">Crack (1000)</button>
+      <button id="autoBuyer">Auto-Buyer (500)</button>
     </div>
 
-    <!-- Trinkets Panel -->
     <div class="panel right" id="shop">
       <h2>Trinkets</h2>
-      <div id="toggleRight" class="toggle-tab">❯</div>
+      <button id="buyBlunt">Blunt (200)</button>
+    </div>
 
-      <!-- Blunt -->
-      <div class="item-container trinket" id="container-blunt">
-        <div class="item-info">
-          <h3>Blunt</h3>
-          <p>Increases base multiplier by 1% each.</p>
-        </div>
-        <button class="item-button" id="btn-blunt">200</button>
-        <div class="item-count" id="count-blunt">0</div>
-      </div>
-
-    </div><!-- end Trinkets -->
-
-    <!-- Center Area -->
     <div id="center">
       <div id="zoopleBox">
         <div id="zoopleWrapper">
           <div id="zoople"></div>
         </div>
       </div>
-
       <div id="labelsBox">
         <div class="labelItem">
-          <img src="/images/zoople-clicker/labels/zooplier.png" alt="Multiplier Icon">
+          <img src="/images/zoople-clicker/labels/zooplier.png" />
           <div id="multDisplay" class="labelValue">1x</div>
         </div>
         <div class="labelItem">
-          <img src="/images/zoople-clicker/labels/zooscore.png" alt="Score Icon">
+          <img src="/images/zoople-clicker/labels/zooscore.png" />
           <div id="scoreDisplay" class="labelValue">0</div>
         </div>
         <div class="labelItem">
-          <img src="/images/zoople-clicker/labels/highmeter.png" alt="High Meter Icon">
+          <img src="/images/zoople-clicker/labels/highmeter.png" />
           <div id="highDisplay" class="labelValue">0%</div>
         </div>
       </div>
     </div>
-
-  </div><!-- end Container -->
+  </div>
 
   <div id="haze"></div>
 
   <script>
-    /*** State Variables ***/
+    // Game state
     let score = 0;
+    let baseMultiplier = 1;
+    let multiplier = 1;
     let clickValue = 1;
-    let zooplicationCount = 0;
-    let autoClickerCount = 0;
-    let desperationCount = 0;
-    let crackCount = 0;
-    let autoBuyerCount = 0;
+    let fryPercent = 0;
+    let isFried = false;
+    let autoClickers = 0;
     let bluntCount = 0;
+    let crackCount = 0;
+    let desperationCount = 0;
+    let autoBuyerUnlocked = false;
     let autoBuyerEnabled = false;
-    let autoClickRate = 1; // clicks/sec per auto-clicker
+    let autoClickRate = 1; // clicks per second per auto-clicker
 
-    /*** Pricing Config ***/
+    // Pricing parameters (pure exponential)
     const upgradeBase = {
       zooplication: 50,
       autoClicker: 100,
       desperation: 150,
+      blunt: 200,
       crack: 1000,
-      autoBuyer: 500,
-      blunt: 200
+      autoBuyer: 500
     };
 
     const exponents = {
       zooplication: 1.5,
       autoClicker: 1.25,
       desperation: 1.3,
+      blunt: 2,
       crack: 1.5,
-      autoBuyer: 1.4,
-      blunt: 2
+      autoBuyer: 1.4
     };
 
     function calcPrice(type, count) {
-      return Math.ceil(upgradeBase[type] * Math.pow(exponents[type], count));
+      // price = base * (exp)^count
+      return Math.ceil(upgradeBase[type] * Math.pow(exponents[type] || 1.5, count));
     }
 
-    // Initialize prices
-    let prices = {};
-    Object.keys(upgradeBase).forEach(key => {
-      prices[key] = calcPrice(key, 0);
+    // Track prices
+    let upgradePrices = {};
+    Object.keys(upgradeBase).forEach(type => {
+      upgradePrices[type] = calcPrice(type, 0);
     });
 
-    /*** DOM Elements ***/
-    const elements = {
-      score: document.getElementById('scoreDisplay'),
-      mult: document.getElementById('multDisplay'),
-      high: document.getElementById('highDisplay'),
-      count: {
-        zooplication: document.getElementById('count-zooplication'),
-        autoClicker: document.getElementById('count-autoClicker'),
-        desperation: document.getElementById('count-desperation'),
-        crack: document.getElementById('count-crack'),
-        autoBuyer: document.getElementById('count-autoBuyer'),
-        blunt: document.getElementById('count-blunt')
-      },
-      btn: {
-        zooplication: document.getElementById('btn-zooplication'),
-        autoClicker: document.getElementById('btn-autoClicker'),
-        desperation: document.getElementById('btn-desperation'),
-        crack: document.getElementById('btn-crack'),
-        autoBuyer: document.getElementById('btn-autoBuyer'),
-        blunt: document.getElementById('btn-blunt')
-      },
-      selectAuto: document.getElementById('select-autoBuyer')
-    };
+    // DOM elements
+    const scoreEl = document.getElementById('scoreDisplay');
+    const multEl = document.getElementById('multDisplay');
+    const highEl = document.getElementById('highDisplay');
+    const zoople = document.getElementById('zoople');
+    const wrapper = document.getElementById('zoopleWrapper');
+    const haze = document.getElementById('haze');
 
-    /*** Update Display ***/
     function updateDisplay() {
-      elements.score.textContent = Math.floor(score);
-      elements.mult.textContent = (1 + (bluntCount * 0.01)).toFixed(2) + 'x';
-      elements.high.textContent = '0%';
+      scoreEl.textContent = Math.floor(score);
+      multEl.textContent = multiplier.toFixed(1) + 'x';
+      highEl.textContent = Math.min(Math.max(fryPercent, 0), 100).toFixed(2) + '%';
 
-      Object.keys(elements.btn).forEach(key => {
-        const button = elements.btn[key];
-        button.textContent = prices[key];
-        const count = {
-          zooplication: zooplicationCount,
-          autoClicker: autoClickerCount,
-          desperation: desperationCount,
-          crack: crackCount,
-          autoBuyer: autoBuyerCount,
-          blunt: bluntCount
-        }[key];
+      document.getElementById('zooplication').textContent = `Zooplication (${upgradePrices.zooplication})`;
+      document.getElementById('autoClicker').textContent = `Auto-Clicker (${upgradePrices.autoClicker})`;
+      document.getElementById('desperation').textContent = `Desperation (${upgradePrices.desperation})`;
+      document.getElementById('buyBlunt').textContent = `Blunt (${upgradePrices.blunt})`;
+      document.getElementById('crack').textContent = `Crack (${upgradePrices.crack})`;
+      if (!autoBuyerUnlocked) {
+        document.getElementById('autoBuyer').textContent = `Auto-Buyer (${upgradePrices.autoBuyer})`;
+      }
+    }
 
-        if (score >= prices[key]) {
-          button.classList.add('enabled');
-          button.disabled = false;
-        } else {
-          button.classList.remove('enabled');
-          button.disabled = true;
+    function calculateBaseMultiplier() {
+      baseMultiplier = 1 + bluntCount * 0.01;
+    }
+
+    function addBluntVisual() {
+      if (bluntCount === 1) {
+        const img = document.createElement('img');
+        img.src = '/images/zoople-clicker/trinkets/blunt.png';
+        img.className = 'blunt';
+        wrapper.appendChild(img);
+      }
+    }
+
+    // Click handler
+    zoople.addEventListener('click', () => {
+      score += clickValue * multiplier;
+
+      // Desperation extra if you can't afford any non-trinket
+      const nonTrinkets = ['zooplication', 'autoClicker', 'crack', 'autoBuyer'];
+      const cannotAffordAny = nonTrinkets.every(key => score < upgradePrices[key]);
+      if (desperationCount > 0 && cannotAffordAny) {
+        score += desperationCount * 2;
+      }
+
+      // Fry effects
+      if (bluntCount > 0 && !isFried) {
+        fryPercent += 0.05;
+      }
+
+      // Shake animation
+      zoople.classList.add('shake');
+      zoople.addEventListener('animationend', () => {
+        zoople.classList.remove('shake');
+      }, { once: true });
+
+      updateDisplay();
+    });
+
+    // Upgrade purchase handlers
+    document.getElementById('zooplication').addEventListener('click', () => {
+      if (score >= upgradePrices.zooplication) {
+        score -= upgradePrices.zooplication;
+        clickValue++;
+        upgradePrices.zooplication = calcPrice('zooplication', clickValue - 1);
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('autoClicker').addEventListener('click', () => {
+      if (score >= upgradePrices.autoClicker) {
+        score -= upgradePrices.autoClicker;
+        autoClickers++;
+        upgradePrices.autoClicker = calcPrice('autoClicker', autoClickers);
+        restartAutoClick();
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('desperation').addEventListener('click', () => {
+      if (score >= upgradePrices.desperation) {
+        score -= upgradePrices.desperation;
+        desperationCount++;
+        upgradePrices.desperation = calcPrice('desperation', desperationCount);
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('crack').addEventListener('click', () => {
+      if (score >= upgradePrices.crack) {
+        score -= upgradePrices.crack;
+        crackCount++;
+        autoClickRate += 0.5;
+        upgradePrices.crack = calcPrice('crack', crackCount);
+        restartAutoClick();
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('buyBlunt').addEventListener('click', () => {
+      if (score >= upgradePrices.blunt) {
+        score -= upgradePrices.blunt;
+        bluntCount++;
+        calculateBaseMultiplier();
+        addBluntVisual();
+        upgradePrices.blunt = calcPrice('blunt', bluntCount);
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('autoBuyer').addEventListener('click', function() {
+      if (score >= upgradePrices.autoBuyer) {
+        score -= upgradePrices.autoBuyer;
+        autoBuyerUnlocked = true;
+        this.textContent = 'Auto-Buy: OFF';
+        this.id = 'toggleAutoBuyer';
+        this.onclick = () => {
+          autoBuyerEnabled = !autoBuyerEnabled;
+          this.textContent = `Auto-Buy: ${autoBuyerEnabled ? 'ON' : 'OFF'}`;
+        };
+        updateDisplay();
+      }
+    });
+
+    // Auto-click logic
+    function restartAutoClick() {
+      if (window.autoClickInterval) {
+        clearInterval(window.autoClickInterval);
+      }
+      if (autoClickers > 0) {
+        window.autoClickInterval = setInterval(() => {
+          score += autoClickers * multiplier;
+          if (isFried) {
+            fryPercent -= 100 / 150;
+          } else if (bluntCount > 0) {
+            fryPercent += 100 / 300;
+          }
+          fryPercent = Math.min(Math.max(fryPercent, 0), 100);
+          if (bluntCount > 0 && fryPercent >= 100 && !isFried) {
+            triggerFry();
+          }
+          haze.style.opacity = Math.min(fryPercent / 100, 0.7);
+          if (autoBuyerEnabled) {
+            attemptAutoBuy();
+          }
+          updateDisplay();
+        }, 1000 / autoClickRate);
+      }
+    }
+
+    function attemptAutoBuy() {
+      // Try all upgrades including trinket
+      ['zooplication', 'autoClicker', 'desperation', 'buyBlunt', 'crack'].some(id => {
+        const key = id === 'buyBlunt' ? 'blunt' : id;
+        if (score >= upgradePrices[key]) {
+          document.getElementById(id).click();
+          return true;
         }
-        elements.count[key].textContent = count;
       });
     }
 
-    /*** Click Zoople ***/
-    document.getElementById('zoople').addEventListener('click', () => {
-      score += clickValue;
-      const upgradeKeys = ['zooplication','autoClicker','crack','autoBuyer'];
-      const cannotAfford = upgradeKeys.every(k => score < prices[k]);
-      if (desperationCount > 0 && cannotAfford) {
-        score += (desperationCount * 2);
-      }
-      updateDisplay();
-    });
-
-    /*** Purchase Handler ***/
-    function buy(key) {
-      if (score < prices[key]) return;
-      score -= prices[key];
-      switch(key) {
-        case 'zooplication': zooplicationCount++; break;
-        case 'autoClicker': autoClickerCount++; restartAutoClick(); break;
-        case 'desperation': desperationCount++; break;
-        case 'crack': crackCount++; restartAutoClick(); break;
-        case 'autoBuyer': autoBuyerCount++; break;
-        case 'blunt': bluntCount++; break;
-      }
-      prices[key] = calcPrice(key, {
-        zooplication:zooplicationCount, autoClicker:autoClickerCount,
-        desperation:desperationCount, crack:crackCount,
-        autoBuyer:autoBuyerCount, blunt:bluntCount
-      }[key]);
-      updateDisplay();
-    }
-
-    Object.keys(elements.btn).forEach(key => {
-      elements.btn[key].addEventListener('click', () => buy(key));
-    });
-
-    /*** Auto-Click Logic ***/
-    function restartAutoClick() {
-      if (window.autoInterval) clearInterval(window.autoInterval);
-      window.autoInterval = setInterval(() => {
-        score += autoClickerCount;
+    function triggerFry() {
+      isFried = true;
+      multiplier = baseMultiplier * 5;
+      setTimeout(() => {
+        isFried = false;
+        multiplier = baseMultiplier;
+        fryPercent = 0;
         updateDisplay();
-      }, 1000 / autoClickRate);
+      }, 150000);
     }
 
-    /*** Auto-Buy Logic ***/
-    elements.selectAuto.addEventListener('change', () => {
-      autoBuyerEnabled = elements.selectAuto.value !== 'off';
-    });
+    // Panel toggles
+    document.getElementById('toggleLeft').onclick = () => {
+      document.getElementById('upgrades').classList.toggle('open');
+    };
+    document.getElementById('toggleRight').onclick = () => {
+      document.getElementById('shop').classList.toggle('open');
+    };
 
-    setInterval(() => {
-      if (!autoBuyerEnabled) return;
-      const choice = elements.selectAuto.value;
-      if (choice === 'upgrades') ['zooplication','autoClicker','desperation','crack'].forEach(k => buy(k));
-      else if (choice === 'trinkets') buy('blunt');
-      else buy(choice);
-    }, 500);
-
-    // Initialize
+    // Initialize game
+    restartAutoClick();
     updateDisplay();
   </script>
 </body>
-
 </html>
