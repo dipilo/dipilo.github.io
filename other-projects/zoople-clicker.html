@@ -621,9 +621,15 @@
           crackCount++;
           restartAutoClick();
           break;
-        case 'autoBuyer':
-          autoBuyerCount++;
-          break;
+          case 'autoBuyer':
+            autoBuyerCount++;
+            // mark as one-time: disable its button and clear price
+            prices.autoBuyer = Infinity;
+            elements.btn.autoBuyer.disabled = true;
+            elements.btn.autoBuyer.textContent = 'Purchased';
+            // reveal toggle UI
+            elements.actionAuto.style.display = 'flex';
+            break;
         case 'blunt':
           bluntCount++;
           addBluntVisual();
@@ -739,7 +745,7 @@
 
     if (choice === 'all') {
         // Attempt one purchase of every item each tick
-        ['zooplication','autoClicker','desperation','crack','autoBuyer','blunt']
+        ['zooplication','autoClicker','desperation','crack','blunt']
         .forEach(k => buy(k));
     }
     else if (choice === 'upgrades') {
