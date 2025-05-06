@@ -682,14 +682,14 @@
     });
 
     function restartAutoClick() {
-        console.log(`Auto-click interval is now ${Math.max(50, intervalMs)}ms`);
-
         if (window.autoInterval) clearInterval(window.autoInterval);
 
         // hyperbolic speed-up: reduction = 1 − 1/(1 + a*x)
         const reduction = 1 - 1 / (1 + crackFactor * crackCount);
         // interval = baseInterval * (1 − reduction) = 1000 / (1 + a*x)
         const intervalMs = 1000 * (1 - reduction);
+
+        console.log(`Auto-click interval is now ${Math.max(50, intervalMs)}ms`);
 
         // floor at 50ms so it never goes to zero
         window.autoInterval = setInterval(() => {
