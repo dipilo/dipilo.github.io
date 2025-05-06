@@ -236,12 +236,13 @@
     }
 
     #multDisplay { bottom: 50px; right: 55px; }
-    #highDisplay { bottom: 65px; right: 120px; }
+    #highDisplay { bottom: 65px; right: 140px; }
     #scoreDisplay { bottom: 30px; left: 50%; transform: translateX(-50%); }
 
     @media (max-width: 768px) {
-      #multDisplay { bottom: 35px; right: 45px; }
-      #highDisplay { bottom: 40px; right: 120px; }
+      #multDisplay { bottom: 35px; right: 70px; }
+      #highDisplay { bottom: 40px; right: 140px; }
+      #scoreDisplay { bottom: 30px; left: 50%; transform: translateX(-50%); }
       #labelsBox { flex-direction: column; }
     }
 
@@ -282,7 +283,7 @@
         <div class="item-count" id="count-zooplication">0</div>
         <div class="item-info">
           <h3>Zooplication</h3>
-          <p>Increases points per click permanently.</p>
+          <p>Increases points per click.</p>
         </div>
         <button class="item-button" id="btn-zooplication">50</button>
       </div>
@@ -302,7 +303,7 @@
         <div class="item-count" id="count-desperation">0</div>
         <div class="item-info">
           <h3>Desperation</h3>
-          <p>Gives +2 points per click when you can’t afford anything else.</p>
+          <p>Gives more zoo-score per click than Zooplication when you can't afford anything.</p>
         </div>
         <button class="item-button" id="btn-desperation">150</button>
       </div>
@@ -312,7 +313,7 @@
         <div class="item-count" id="count-crack">0</div>
         <div class="item-info">
           <h3>Crack</h3>
-          <p>Increases auto-click speed by 0.5 clicks/sec.</p>
+          <p>Increases auto-click speed.</p>
         </div>
         <button class="item-button" id="btn-crack">1000</button>
       </div>
@@ -322,7 +323,7 @@
         <div class="item-count" id="count-autoBuyer">0</div>
         <div class="item-info">
           <h3>Auto-Buyer</h3>
-          <p>Automatically purchases selected items.</p>
+          <p>Automatically purchases items.</p>
         </div>
         <button class="item-button" id="btn-autoBuyer">500</button>
       </div>
