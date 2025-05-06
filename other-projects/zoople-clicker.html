@@ -271,6 +271,15 @@
       }
     }
 
+    .blunt {
+      position: absolute;
+      width: 50px;
+      left: 60px;
+      top: 80px;
+      user-select: none;
+      pointer-events: none;
+    }
+
     /* ------------------------------------- */
     /* Haze overlay */
     #haze {
@@ -430,6 +439,9 @@
     let autoBuyerEnabled = false;
     let autoClickRate = 1;
     const crackFactor = 0.2;
+    let baseMultiplier = 1;
+    let fryPercent = 0;
+    let isFried = false;
 
     /*** Pricing ***/
     const upgradeBase = {
@@ -485,6 +497,19 @@
       actionAuto: document.getElementById('action-autoBuyer')
     };
 
+    function calculateBaseMultiplier() {
+      baseMultiplier = 1 + bluntCount * 0.01;
+    }
+
+    function addBluntVisual() {
+      if (bluntCount === 1) {
+        const img = document.createElement('img');
+        img.src = '/images/zoople-clicker/trinkets/blunt.png';
+        img.className = 'blunt';
+        wrapper.appendChild(img);
+      }
+    }
+
     /*** Update Display ***/
     function updateDisplay() {
       elements.score.textContent = Math.floor(score);
@@ -521,23 +546,30 @@
     /*** Click Zoople ***/
     const zoopleEl = document.getElementById('zoople');
     zoopleEl.addEventListener('click', () => {
-    // ─── existing click logic ───
-    const mult = 1 + bluntCount * 0.01;            // ← apply blunt multiplier
+    // apply blunt multiplier
+    const mult = baseMultiplier;
     score += clickValue * mult;
+
+    // desperation bonus
     const cannotAfford = ['zooplication','autoClicker','crack','autoBuyer']
         .every(k => score < prices[k]);
     if (desperationCount > 0 && cannotAfford) {
         score += desperationCount * 2;
     }
+
+    // frying build‐up
+    if (bluntCount > 0 && !isFried) {
+        fryPercent = Math.min(fryPercent + 0.5, 100);
+    }
+
     updateDisplay();
 
-    // ─── NEW: shake animation ───
+    // shake animation
     zoopleEl.classList.add('shake');
     zoopleEl.addEventListener('animationend', () => {
         zoopleEl.classList.remove('shake');
     }, { once: true });
     });
-
 
     /*** Buy Handler ***/
     function buy(key) {
@@ -565,6 +597,8 @@
           break;
         case 'blunt':
           bluntCount++;
+          calculateBaseMultiplier();
+          addBluntVisual();
           break;
       }
 
@@ -596,10 +630,35 @@
 
         // floor at 50ms so it never goes to zero
         window.autoInterval = setInterval(() => {
-          const mult = 1 + bluntCount * 0.01;            // ← same blunt multiplier
-          score += autoClickerCount * mult;
-          updateDisplay();
-      }, Math.max(50, intervalMs));
+        // apply blunt multiplier
+        const mult = baseMultiplier;
+        score += autoClickerCount * mult;
+
+        // frying over time
+        if (isFried) {
+            fryPercent = Math.max(fryPercent - (100/150), 0);
+        } else if (bluntCount > 0) {
+            fryPercent = Math.min(fryPercent + (100/300), 100);
+        }
+
+        // trigger fry state
+        if (bluntCount > 0 && fryPercent >= 100 && !isFried) {
+            isFried = true;
+            // e.g. 5× speed for 150s
+            autoClickRate *= 5;
+            setTimeout(() => {
+            isFried = false;
+            autoClickRate /= 5;
+            fryPercent = 0;
+            updateDisplay();
+            }, 150000);
+        }
+
+        // update green haze
+        document.getElementById('haze').style.opacity = Math.min(fryPercent/100, 0.7);
+
+        updateDisplay();
+        }, Math.max(50, intervalMs));
     }
 
 
