@@ -524,8 +524,15 @@
     };
 
     function calculateBaseMultiplier() {
-      baseMultiplier = 1 + bluntCount * 0.01;
+    // 1× normally, 5× when fried
+    baseMultiplier = isFried ? 5 : 1;
     }
+
+    function calculateTotalMultiplier() {
+    // Base + blunt bonus of (base/100) per blunt
+    return baseMultiplier * (1 + bluntCount / 100);
+    }
+
 
     function addBluntVisual() {
         if (bluntCount === 1) {
@@ -541,7 +548,7 @@
     /*** Update Display ***/
     function updateDisplay() {
       elements.score.textContent = Math.floor(score);
-      elements.mult.textContent = (baseMultiplier + bluntCount * 0.01).toFixed(2) + 'x';
+      elements.mult.textContent = calculateTotalMultiplier().toFixed(2) + 'x';
       elements.high.textContent = `${fryPercent.toFixed(2)}%`;
 
       Object.keys(elements.btn).forEach(key => {
@@ -575,7 +582,7 @@
     const zoopleEl = document.getElementById('zoople');
     zoopleEl.addEventListener('click', () => {
     // apply blunt multiplier
-    const mult = baseMultiplier;
+    const mult = calculateTotalMultiplier;
     score += clickValue * mult;
 
     // desperation bonus
@@ -602,6 +609,8 @@
         zoopleEl.classList.remove('shake');
     }, { once: true });
     });
+
+    updatreDisplay();
 
     /*** Buy Handler ***/
     function buy(key) {
@@ -680,7 +689,7 @@
         // floor at 50ms so it never goes to zero
         window.autoInterval = setInterval(() => {
         // apply blunt multiplier
-        const mult = baseMultiplier;
+        const mult = calculateTotalMultiplier;
         score += autoClickerCount * mult;
 
         // frying over time
@@ -713,7 +722,7 @@
         isFried = true;
         autoClickRate *= 5;
         calculateBaseMultiplier();
-        multiplier = baseMultiplier;
+        multiplier = calculateTotalMultiplier;
         updateDisplay();
 
     // END “fried” after 150 s
