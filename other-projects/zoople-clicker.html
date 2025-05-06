@@ -735,6 +735,8 @@
         isFried = false;
         autoClickRate /= 5;
 
+        calculateBaseMultiplier();
+
         // 1) Start High-meter cooldown: 100→0% over 150 s
         const cooldown = setInterval(() => {
         fryPercent = Math.max(fryPercent - (100 / 150), 0);
