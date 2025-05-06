@@ -8,261 +8,73 @@
   <style>
     /* ------------------------------------- */
     /* Base page styles */
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: url('/images/backgrounds/starry_night.png') no-repeat center/cover;
-      overflow: hidden;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        overflow: auto;
-      }
-    }
-
-    #container {
-      display: flex;
-      height: 100vh;
-      position: relative;
-    }
+    body { margin: 0; font-family: sans-serif; background: url('/images/backgrounds/starry_night.png') no-repeat center/cover; overflow: hidden; }
+    @media (max-width: 768px) { body { overflow: auto; } }
+    #container { display: flex; height: 100vh; position: relative; }
 
     /* ------------------------------------- */
     /* Panel (Upgrades/Trinkets) */
-    .panel {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 240px;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 16px;
-      box-sizing: border-box;
-      z-index: 10;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      /* allow toggle-tab clicks even when closed */
-      pointer-events: auto;
-    }
-
-    .panel.open {
-      transform: translateX(0);
-    }
-
-    .panel.right {
-      right: 0;
-      left: auto;
-      transform: translateX(100%);
-    }
-
-    .panel.right.open {
-      transform: translateX(0);
-    }
-
-    .panel h2 {
-      margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 1.25em;
-      border-bottom: 1px solid #555;
-      padding-bottom: 8px;
-      user-select: none;
-    }
-
-    /* Toggle tab inside panels */
-    .panel .toggle-tab {
-      position: absolute;
-      top: 20px;
-      width: 30px;
-      height: 40px;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: white;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 11;
-      user-select: none;
-    }
-
-    /* Left panel toggle on right edge */
-    #upgrades .toggle-tab {
-      right: -30px;
-    }
-    /* Right panel toggle on left edge */
-    #shop .toggle-tab {
-      left: -30px;
-    }
+    .panel { position: absolute; top: 0; bottom: 0; width: 240px; background-color: rgba(0,0,0,0.8); color: white; padding: 16px; box-sizing: border-box; z-index: 10; transform: translateX(-100%); transition: transform 0.3s ease; pointer-events: auto; }
+    .panel.open { transform: translateX(0); }
+    .panel.right { right: 0; left: auto; transform: translateX(100%); }
+    .panel.right.open { transform: translateX(0); }
+    .panel h2 { margin-top: 0; margin-bottom: 16px; font-size: 1.25em; border-bottom: 1px solid #555; padding-bottom: 8px; user-select: none; }
+    .panel .toggle-tab { position: absolute; top: 20px; width: 30px; height: 40px; background-color: rgba(0,0,0,0.7); color: white; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 11; user-select: none; }
+    #upgrades .toggle-tab { right: -30px; }
+    #shop .toggle-tab { left: -30px; }
 
     /* ------------------------------------- */
     /* Item container (Upgrade or Trinket) */
-    .item-container {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 16px;
-    }
-
-    .item-count {
-      font-size: 1.2em;
-      align-self: flex-end;
-      user-select: none;
-    }
-
-    .item-info {
-      margin-bottom: 8px;
-    }
-
-    .item-info h3,
-    .item-info p {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-button {
-      padding: 8px;
-      font-size: 1em;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      background-color: #444;
-      color: #fff;
-      transition: background 0.2s;
-      align-self: flex-start;
-      user-select: none;
-    }
-
-    .item-button.enabled {
-      background-color: #4CAF50;
-    }
-
-    .item-button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
+    .item-container { display: flex; flex-direction: column; margin-bottom: 16px; }
+    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .item-info { flex: 1; margin-right: 8px; }
+    .item-info h3, .item-info p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+    .item-count { font-size: 1.2em; user-select: none; }
+    .item-button { padding: 8px; font-size: 1em; border: none; border-radius: 4px; cursor: pointer; background-color: #444; color: #fff; transition: background 0.2s; width: 100%; user-select: none; }
+    .item-button.enabled { background-color: #4CAF50; }
+    .item-button:disabled { opacity: 0.5; cursor: default; }
+    /* Autobuyer action row */
+    .item-action { display: flex; gap: 8px; }
+    .item-action .item-button { width: 50%; align-self: auto; }
+    .item-action .autobuy-select { width: 50%; margin-top: 0; }
 
     /* prevent selecting any images */
-    img {
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
-    }
+    img { user-select: none; -webkit-user-drag: none; pointer-events: none; }
 
     /* ------------------------------------- */
     /* Auto-buy dropdown */
-    .autobuy-select {
-      width: 100%;
-      margin-top: 12px;
-      padding: 8px;
-      background-color: #333;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
+    .autobuy-select { padding: 8px; background-color: #333; color: #fff; border: none; border-radius: 4px; font-size: 0.9em; }
 
     /* ------------------------------------- */
     /* Center Zoople clicker area */
-    #center {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow-y: auto;
-      padding-top: 20px;
-    }
-
-    #zoopleBox {
-      background-color: rgba(128, 128, 128, 0.8);
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
-
-    #zoopleWrapper {
-      width: 200px;
-      height: 200px;
-      position: relative;
-    }
-
-    #zoople {
-      width: 100%;
-      height: 100%;
-      background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain;
-      cursor: pointer;
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translate(0, 0); }
-      20%, 60% { transform: translate(-5px, 0); }
-      40%, 80% { transform: translate(5px, 0); }
-    }
-
-    .shake {
-      animation: shake 0.3s ease-in-out;
-    }
+    #center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow-y: auto; padding-top: 20px; }
+    #zoopleBox { background-color: rgba(128,128,128,0.8); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    #zoopleWrapper { width: 200px; height: 200px; position: relative; }
+    #zoople { width: 100%; height: 100%; background: url('/images/zoople-clicker/zoople/zoople.png') no-repeat center/contain; cursor: pointer; }
+    @keyframes shake { 0%,100%{transform:translate(0,0);}20%,60%{transform:translate(-5px,0);}40%,80%{transform:translate(5px,0);} }
+    .shake { animation: shake 0.3s ease-in-out; }
 
     /* ------------------------------------- */
     /* Labels */
-    #labelsBox {
-      display: flex;
-      gap: 20px;
-      background-color: rgba(128, 128, 128, 0.8);
-      padding: 10px;
-      border-radius: 12px;
-    }
-
-    .labelItem {
-      position: relative;
-    }
-
-    .labelValue {
-      position: absolute;
-      font-size: 2em;
-      font-weight: bold;
-      color: white;
-    }
-
-    /* default positions */
-    #multDisplay { bottom: 50px; right: 55px; }
-    #highDisplay { bottom: 65px; right: 140px; }
-    #scoreDisplay { bottom: 30px; left: 50%; transform: translateX(-50%); }
+    #labelsBox { display: flex; gap: 20px; background-color: rgba(128,128,128,0.8); padding: 10px; border-radius: 12px; }
+    .labelItem { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    .labelItem img { margin-bottom: 4px; }
+    .labelValue { font-size: 2em; font-weight: bold; color: white; user-select: none; }
 
     @media (max-width: 768px) {
-      /* move multiplier further left */
-      #multDisplay { bottom: 35px; right: 90px; }
-      /* high meter unchanged */
-      #highDisplay { bottom: 40px; right: 140px; }
-      /* move score further left */
-      #scoreDisplay { bottom: 30px; left: 40%; transform: translateX(-50%); }
       #labelsBox { flex-direction: column; }
+      #multDisplay, #scoreDisplay, #highDisplay { position: static; transform: none; }
+      /* mobile label centering handled by flex */
     }
 
     /* ------------------------------------- */
     /* Haze overlay */
-    #haze {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(0, 255, 0, 0.2), transparent 40%),
-        radial-gradient(circle at 80% 40%, rgba(0, 200, 0, 0.15), transparent 50%),
-        radial-gradient(circle at 50% 80%, rgba(0, 150, 0, 0.1), transparent 60%);
-      filter: blur(15px);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
+    #haze { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 20%, rgba(0,255,0,0.2), transparent 40%), radial-gradient(circle at 80% 40%, rgba(0,200,0,0.15), transparent 50%), radial-gradient(circle at 50% 80%, rgba(0,150,0,0.1), transparent 60%); filter: blur(15px); pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
 
   </style>
 </head>
 
 <body>
-
   <div id="container">
 
     <!-- Upgrades Panel -->
@@ -272,65 +84,75 @@
 
       <!-- Zooplication -->
       <div class="item-container" id="container-zooplication">
-        <div class="item-info">
-          <h3>Zooplication</h3>
-          <p>Increases points per click.</p>
+        <div class="item-header">
+          <div class="item-info">
+            <h3>Zooplication</h3>
+            <p>Increases points per click.</p>
+          </div>
+          <div class="item-count" id="count-zooplication">0</div>
         </div>
         <button class="item-button" id="btn-zooplication">50</button>
-        <div class="item-count" id="count-zooplication">0</div>
       </div>
 
       <!-- Auto-Clicker -->
       <div class="item-container" id="container-autoClicker">
-        <div class="item-info">
-          <h3>Auto-Clicker</h3>
-          <p>Grants one automatic click per second.</p>
+        <div class="item-header">
+          <div class="item-info">
+            <h3>Auto-Clicker</h3>
+            <p>Grants one automatic click per second.</p>
+          </div>
+          <div class="item-count" id="count-autoClicker">0</div>
         </div>
         <button class="item-button" id="btn-autoClicker">100</button>
-        <div class="item-count" id="count-autoClicker">0</div>
       </div>
 
       <!-- Desperation -->
       <div class="item-container" id="container-desperation">
-        <div class="item-info">
-          <h3>Desperation</h3>
-          <p>Gives more zoo-score per click when you can't afford anything.</p>
+        <div class="item-header">
+          <div class="item-info">
+            <h3>Desperation</h3>
+            <p>Gives more zoo-score per click when you can't afford anything.</p>
+          </div>
+          <div class="item-count" id="count-desperation">0</div>
         </div>
         <button class="item-button" id="btn-desperation">150</button>
-        <div class="item-count" id="count-desperation">0</div>
       </div>
 
       <!-- Crack -->
       <div class="item-container" id="container-crack">
-        <div class="item-info">
-          <h3>Crack</h3>
-          <p>Increases auto-click speed.</p>
+        <div class="item-header">
+          <div class="item-info">
+            <h3>Crack</h3>
+            <p>Increases auto-click speed.</p>
+          </div>
+          <div class="item-count" id="count-crack">0</div>
         </div>
         <button class="item-button" id="btn-crack">1000</button>
-        <div class="item-count" id="count-crack">0</div>
       </div>
 
       <!-- Auto-Buyer -->
       <div class="item-container" id="container-autoBuyer">
-        <div class="item-info">
-          <h3>Auto-Buyer</h3>
-          <p>Automatically purchases items.</p>
+        <div class="item-header">
+          <div class="item-info">
+            <h3>Auto-Buyer</h3>
+            <p>Automatically purchases items.</p>
+          </div>
+          <div class="item-count" id="count-autoBuyer">0</div>
         </div>
-        <button class="item-button" id="btn-autoBuyer">500</button>
-        <div class="item-count" id="count-autoBuyer">0</div>
+        <div class="item-action">
+          <button class="item-button" id="btn-autoBuyer">500</button>
+          <select class="autobuy-select" id="select-autoBuyer">
+            <option value="off">Off</option>
+            <option value="upgrades">All Upgrades</option>
+            <option value="trinkets">All Trinkets</option>
+            <option value="zooplication">Zooplication</option>
+            <option value="autoClicker">Auto-Clicker</option>
+            <option value="desperation">Desperation</option>
+            <option value="crack">Crack</option>
+            <option value="blunt">Blunt</option>
+          </select>
+        </div>
       </div>
-
-      <!-- Auto-Buy Selection -->
-      <select class="autobuy-select" id="select-autoBuyer">
-        <option value="off">Off</option>
-        <option value="upgrades">All Upgrades</option>
-        <option value="trinkets">All Trinkets</option>
-        <option value="zooplication">Zooplication</option>
-        <option value="autoClicker">Auto-Clicker</option>
-        <option value="desperation">Desperation</option>
-        <option value="crack">Crack</option>
-        <option value="blunt">Blunt</option>
-      </select>
     </div>
 
     <!-- Trinkets Panel -->
@@ -340,203 +162,65 @@
 
       <!-- Blunt -->
       <div class="item-container trinket" id="container-blunt">
-        <div class="item-info">
-          <h3>Blunt</h3>
-          <p>Increases base multiplier by 1% each.</p>
+        <div class="item-header">
+          <div class="item-info">
+            <h3>Blunt</h3>
+            <p>Increases base multiplier by 1% each.</p>
+          </div>
+          <div class="item-count" id="count-blunt">0</div>
         </div>
         <button class="item-button" id="btn-blunt">200</button>
-        <div class="item-count" id="count-blunt">0</div>
-      </div>
-
-    </div><!-- end Trinkets -->
-
-    <!-- Center Area -->
-    <div id="center">
-      <div id="zoopleBox">
-        <div id="zoopleWrapper">
-          <div id="zoople"></div>
-        </div>
-      </div>
-
-      <div id="labelsBox">
-        <div class="labelItem">
-          <img src="/images/zoople-clicker/labels/zooplier.png" alt="Multiplier Icon">
-          <div id="multDisplay" class="labelValue">1x</div>
-        </div>
-        <div class="labelItem">
-          <img src="/images/zoople-clicker/labels/zooscore.png" alt="Score Icon">
-          <div id="scoreDisplay" class="labelValue">0</div>
-        </div>
-        <div class="labelItem">
-          <img src="/images/zoople-clicker/labels/highmeter.png" alt="High Meter Icon">
-          <div id="highDisplay" class="labelValue">0%</div>
-        </div>
       </div>
     </div>
 
-  </div><!-- end Container -->
-
+    <!-- Center Area -->
+    <div id="center">
+      <div id="zoopleBox"><div id="zoopleWrapper"><div id="zoople"></div></div></div>
+      <div id="labelsBox">
+        <div class="labelItem"><img src="/images/zoople-clicker/labels/zooplier.png" alt="Multiplier Icon"><div id="multDisplay" class="labelValue">1x</div></div>
+        <div class="labelItem"><img src="/images/zoople-clicker/labels/zooscore.png" alt="Score Icon"><div id="scoreDisplay" class="labelValue">0</div></div>
+        <div class="labelItem"><img src="/images/zoople-clicker/labels/highmeter.png" alt="High Meter Icon"><div id="highDisplay" class="labelValue">0%</div></div>
+      </div>
+    </div>
+  </div>
   <div id="haze"></div>
 
   <script>
     /*** State Variables ***/
-    let score = 0;
-    let clickValue = 1;
-    let zooplicationCount = 0;
-    let autoClickerCount = 0;
-    let desperationCount = 0;
-    let crackCount = 0;
-    let autoBuyerCount = 0;
-    let bluntCount = 0;
-    let autoBuyerEnabled = false;
-    let autoClickRate = 1; // clicks/sec per auto-clicker
+    let score=0, clickValue=1, zooplicationCount=0, autoClickerCount=0, desperationCount=0, crackCount=0, autoBuyerCount=0, bluntCount=0;
+    let autoBuyerEnabled=false, autoClickRate=1;
 
     /*** Pricing Config ***/
-    const upgradeBase = {
-      zooplication: 50,
-      autoClicker: 100,
-      desperation: 150,
-      crack: 1000,
-      autoBuyer: 500,
-      blunt: 200
-    };
-
-    const exponents = {
-      zooplication: 1.5,
-      autoClicker: 1.25,
-      desperation: 1.3,
-      crack: 1.5,
-      autoBuyer: 1.4,
-      blunt: 2
-    };
-
-    function calcPrice(type, count) {
-      return Math.ceil(upgradeBase[type] * Math.pow(exponents[type], count));
-    }
-
-    // Initialize prices
-    let prices = {};
-    Object.keys(upgradeBase).forEach(key => {
-      prices[key] = calcPrice(key, 0);
-    });
+    const upgradeBase={zooplication:50,autoClicker:100,desperation:150,crack:1000,autoBuyer:500,blunt:200};
+    const exponents={zooplication:1.5,autoClicker:1.25,desperation:1.3,crack:1.5,autoBuyer:1.4,blunt:2};
+    function calcPrice(type,count){return Math.ceil(upgradeBase[type]*Math.pow(exponents[type],count));}
+    let prices={};Object.keys(upgradeBase).forEach(k=>prices[k]=calcPrice(k,0));
 
     /*** DOM Elements ***/
-    const elements = {
-      score: document.getElementById('scoreDisplay'),
-      mult: document.getElementById('multDisplay'),
-      high: document.getElementById('highDisplay'),
-      count: {
-        zooplication: document.getElementById('count-zooplication'),
-        autoClicker: document.getElementById('count-autoClicker'),
-        desperation: document.getElementById('count-desperation'),
-        crack: document.getElementById('count-crack'),
-        autoBuyer: document.getElementById('count-autoBuyer'),
-        blunt: document.getElementById('count-blunt')
-      },
-      btn: {
-        zooplication: document.getElementById('btn-zooplication'),
-        autoClicker: document.getElementById('btn-autoClicker'),
-        desperation: document.getElementById('btn-desperation'),
-        crack: document.getElementById('btn-crack'),
-        autoBuyer: document.getElementById('btn-autoBuyer'),
-        blunt: document.getElementById('btn-blunt')
-      },
-      selectAuto: document.getElementById('select-autoBuyer')
-    };
+    const el={score:document.getElementById('scoreDisplay'),mult:document.getElementById('multDisplay'),high:document.getElementById('highDisplay'),count:{zooplication:document.getElementById('count-zooplication'),autoClicker:document.getElementById('count-autoClicker'),desperation:document.getElementById('count-desperation'),crack:document.getElementById('count-crack'),autoBuyer:document.getElementById('count-autoBuyer'),blunt:document.getElementById('count-blunt')},btn:{zooplication:document.getElementById('btn-zooplication'),autoClicker:document.getElementById('btn-autoClicker'),desperation:document.getElementById('btn-desperation'),crack:document.getElementById('btn-crack'),autoBuyer:document.getElementById('btn-autoBuyer'),blunt:document.getElementById('btn-blunt')},select:document.getElementById('select-autoBuyer')};
 
     /*** Update Display ***/
-    function updateDisplay() {
-      elements.score.textContent = Math.floor(score);
-      elements.mult.textContent = (1 + (bluntCount * 0.01)).toFixed(2) + 'x';
-      elements.high.textContent = '0%';
-
-      Object.keys(elements.btn).forEach(key => {
-        const button = elements.btn[key];
-        button.textContent = prices[key];
-        const count = {
-          zooplication: zooplicationCount,
-          autoClicker: autoClickerCount,
-          desperation: desperationCount,
-          crack: crackCount,
-          autoBuyer: autoBuyerCount,
-          blunt: bluntCount
-        }[key];
-
-        if (score >= prices[key]) {
-          button.classList.add('enabled');
-          button.disabled = false;
-        } else {
-          button.classList.remove('enabled');
-          button.disabled = true;
-        }
-        elements.count[key].textContent = count;
-      });
-    }
+    function updateDisplay(){el.score.textContent=Math.floor(score);el.mult.textContent=(1+bluntCount*0.01).toFixed(2)+'x';el.high.textContent='0%';
+      Object.keys(el.btn).forEach(key=>{let btn=el.btn[key], cnt={zooplication:zooplicationCount,autoClicker:autoClickerCount,desperation:desperationCount,crack:crackCount,autoBuyer:autoBuyerCount,blunt:bluntCount}[key];btn.textContent=prices[key];btn.disabled=score<prices[key];btn.classList.toggle('enabled',score>=prices[key]);el.count[key].textContent=cnt;});}
 
     /*** Click Zoople ***/
-    document.getElementById('zoople').addEventListener('click', () => {
-      score += clickValue;
-      const upgradeKeys = ['zooplication','autoClicker','crack','autoBuyer'];
-      const cannotAfford = upgradeKeys.every(k => score < prices[k]);
-      if (desperationCount > 0 && cannotAfford) {
-        score += (desperationCount * 2);
-      }
-      updateDisplay();
-    });
+    document.getElementById('zoople').addEventListener('click',()=>{score+=clickValue;let cannot= ['zooplication','autoClicker','crack','autoBuyer'].every(k=>score<prices[k]);if(desperationCount>0&&cannot)score+=desperationCount*2;updateDisplay();});
 
     /*** Purchase Handler ***/
-    function buy(key) {
-      if (score < prices[key]) return;
-      score -= prices[key];
-      switch(key) {
-        case 'zooplication': zooplicationCount++; break;
-        case 'autoClicker': autoClickerCount++; restartAutoClick(); break;
-        case 'desperation': desperationCount++; break;
-        case 'crack': crackCount++; restartAutoClick(); break;
-        case 'autoBuyer': autoBuyerCount++; break;
-        case 'blunt': bluntCount++; break;
-      }
-      prices[key] = calcPrice(key, {
-        zooplication:zooplicationCount, autoClicker:autoClickerCount,
-        desperation:desperationCount, crack:crackCount,
-        autoBuyer:autoBuyerCount, blunt:bluntCount
-      }[key]);
-      updateDisplay();
-    }
-
-    Object.keys(elements.btn).forEach(key => {
-      elements.btn[key].addEventListener('click', () => buy(key));
-    });
+    function buy(key){if(score<prices[key])return;score-=prices[key];
+      switch(key){case'zooplication':zooplicationCount++;clickValue=1+zooplicationCount;break;case'autoClicker':autoClickerCount++;restartAutoClick();break;case'desperation':desperationCount++;break;case'crack':crackCount++;restartAutoClick();break;case'autoBuyer':autoBuyerCount++;break;case'blunt':bluntCount++;break;}
+      prices[key]=calcPrice(key,{zooplication:zooplicationCount,autoClicker:autoClickerCount,desperation:desperationCount,crack:crackCount,autoBuyer:autoBuyerCount,blunt:bluntCount}[key]);updateDisplay();}
+    Object.keys(el.btn).forEach(k=>el.btn[k].addEventListener('click',()=>buy(k)));
 
     /*** Auto-Click Logic ***/
-    function restartAutoClick() {
-      if (window.autoInterval) clearInterval(window.autoInterval);
-      window.autoInterval = setInterval(() => {
-        score += autoClickerCount;
-        updateDisplay();
-      }, 1000 / autoClickRate);
-    }
+    function restartAutoClick(){if(window.autoInterval)clearInterval(window.autoInterval);window.autoInterval=setInterval(()=>{score+=autoClickerCount;updateDisplay();},1000/autoClickRate);}
 
     /*** Auto-Buy Logic ***/
-    elements.selectAuto.addEventListener('change', () => {
-      autoBuyerEnabled = elements.selectAuto.value !== 'off';
-    });
-
-    setInterval(() => {
-      if (!autoBuyerEnabled) return;
-      const choice = elements.selectAuto.value;
-      if (choice === 'upgrades') ['zooplication','autoClicker','desperation','crack'].forEach(k => buy(k));
-      else if (choice === 'trinkets') buy('blunt');
-      else buy(choice);
-    }, 500);
+    el.select.addEventListener('change',()=>autoBuyerEnabled=el.select.value!=='off');setInterval(()=>{if(!autoBuyerEnabled)return;let c=el.select.value;if(c==='upgrades')['zooplication','autoClicker','desperation','crack'].forEach(k=>buy(k));else if(c==='trinkets')buy('blunt');else buy(c);},500);
 
     // Panel Toggles
-    document.getElementById('toggleLeft').addEventListener('click', () => {
-      document.getElementById('upgrades').classList.toggle('open');
-    });
-    document.getElementById('toggleRight').addEventListener('click', () => {
-      document.getElementById('shop').classList.toggle('open');
-    });
+    document.getElementById('toggleLeft').addEventListener('click',()=>document.getElementById('upgrades').classList.toggle('open'));
+    document.getElementById('toggleRight').addEventListener('click',()=>document.getElementById('shop').classList.toggle('open'));
 
     // Initialize
     updateDisplay();
