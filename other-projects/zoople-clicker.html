@@ -173,8 +173,31 @@
       width: 50%;
     }
 
+    /* ── Style Auto-Buyer dropdown ── */
+    .autobuy-select {
+    appearance: none;
+    background-color: #444;
+    color: #fff;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 6px 8px;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+    }
+
+    .autobuy-select:focus {
+    outline: none;
+    border-color: #4caf50;
+    }
+
+    .autobuy-select option {
+    background-color: #333;
+    color: #fff;
+    }
+
     .autobuy-select option[value="off"] {
-      display: none;
+    display: none;
     }
 
     /* prevent selecting images */
@@ -367,8 +390,9 @@
         </div>
         <button class="item-button" id="btn-autoBuyer">Buy (500)</button>
         <div class="item-action" id="action-autoBuyer" style="display: none;">
-          <button class="item-button" id="toggle-autoBuyer">Toggle</button>
+          <button class="item-button" id="toggle-autoBuyer">Auto-Buy: OFF</button>
           <select class="autobuy-select" id="select-autoBuyer">
+            <option value="all">All</option>
             <option value="upgrades">All Upgrades</option>
             <option value="trinkets">All Trinkets</option>
             <option value="zooplication">Zooplication</option>
@@ -704,8 +728,9 @@
 
     /*** Auto-Buy Logic ***/
     elements.toggleAuto.addEventListener('click', () => {
-      autoBuyerEnabled = !autoBuyerEnabled;
-      elements.toggleAuto.classList.toggle('enabled', autoBuyerEnabled);
+        autoBuyerEnabled = !autoBuyerEnabled;
+        elements.toggleAuto.classList.toggle('enabled', autoBuyerEnabled);
+        elements.toggleAuto.textContent = `Auto-Buy: ${autoBuyerEnabled ? 'ON' : 'OFF'}`;
     });
 
     setInterval(() => {
