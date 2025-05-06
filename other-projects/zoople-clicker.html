@@ -442,6 +442,7 @@
     let baseMultiplier = 1;
     let fryPercent = 0;
     let isFried = false;
+    const haze = document.getElementById('haze');
 
     /*** Pricing ***/
     const upgradeBase = {
@@ -601,7 +602,6 @@
           break;
         case 'blunt':
           bluntCount++;
-          calculateBaseMultiplier();
           addBluntVisual();
           if (bluntCount === 1) {
             // auto-build High meter: 100% over 300 s ⇒ 100/300 ≈0.3333% per second
@@ -657,15 +657,7 @@
 
         // trigger fry state
         if (bluntCount > 0 && fryPercent >= 100 && !isFried) {
-            isFried = true;
-            // e.g. 5× speed for 150s
-            autoClickRate *= 5;
-            setTimeout(() => {
-            isFried = false;
-            autoClickRate /= 5;
-            fryPercent = 0;
-            updateDisplay();
-            }, 150000);
+            triggerFry();
         }
 
         // update green haze
@@ -675,6 +667,40 @@
         }, Math.max(50, intervalMs));
     }
 
+    /**
+     * Handles entering “fried” state for 150s,
+     * then 150s high-meter cooldown + 100s haze fade.
+     */
+    function triggerFry() {
+    isFried = true;
+    autoClickRate *= 5;             // speed up 5×
+    calculateBaseMultiplier();      // recalc zooplier now
+    multiplier = baseMultiplier;    
+    updateDisplay();
+
+    // END “fried” after 150 s
+    setTimeout(() => {
+        isFried = false;
+        autoClickRate /= 5;
+
+        // 1) Start High-meter cooldown: 100→0% over 150 s
+        const cooldown = setInterval(() => {
+        fryPercent = Math.max(fryPercent - (100 / 150), 0);
+        elements.high.textContent = `${fryPercent.toFixed(2)}%`;
+        if (fryPercent === 0) clearInterval(cooldown);
+        }, 1000);
+
+        // 2) Fade haze 0.7→0 over 100 s
+        const hazeFade = setInterval(() => {
+        const cur = parseFloat(document.getElementById('haze').style.opacity) || 0;
+        const next = Math.max(cur - (0.7 / 100), 0);
+        document.getElementById('haze').style.opacity = next;
+        if (next === 0) clearInterval(hazeFade);
+        }, 1000);
+
+        updateDisplay();
+    }, 150000);
+    }
 
     /*** Auto-Buy Logic ***/
     elements.toggleAuto.addEventListener('click', () => {
