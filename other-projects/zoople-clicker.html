@@ -470,7 +470,6 @@
     let isFried = false;
     let highBuildInterval;
     const haze = document.getElementById('haze');
-    let coolingDown = false;
     let cooldownInterval, hazeFadeInterval;
 
 
@@ -547,17 +546,6 @@
             // ← use the real element
             document.getElementById('zoopleWrapper').appendChild(img);
         }
-    }
-
-    // ── High‐meter build (runs every second when NOT fried or cooling) ──
-    function startHighBuild() {
-      highBuildInterval = setInterval(() => {
-        if (!isFried && !coolingDown) {
-          fryPercent = Math.min(fryPercent + (100 / 300), 100);
-          haze.style.opacity = Math.min(fryPercent / 100, 0.7);
-          updateDisplay();
-        }
-      }, 1000);
     }
 
     /*** Update Display ***/
@@ -663,7 +651,6 @@
         case 'blunt':
         bluntCount++;
         addBluntVisual();
-        if (bluntCount === 1) startHighBuild();
         break;
     }
 
@@ -704,13 +691,6 @@
         const mult = calculateTotalMultiplier();
         score += autoClickerCount * mult;
 
-        // frying over time
-        if (isFried) {
-            fryPercent = Math.max(fryPercent - (100/150), 0);
-        } else if (bluntCount > 0) {
-            fryPercent = Math.min(fryPercent + (100/300), 100);
-        }
-
         // trigger fry state
         if (bluntCount > 0 && fryPercent >= 100 && !isFried) {
             triggerFry();
@@ -724,47 +704,43 @@
     }
 
     function triggerFry() {
-    // stop any existing build-up, haze‐fade or cooldown
+    // clear any running intervals
     clearInterval(highBuildInterval);
-    clearInterval(hazeFadeInterval);
     clearInterval(cooldownInterval);
+    clearInterval(hazeFadeInterval);
 
+    // enter fried state
     isFried = true;
-    autoClickRate *= 5;
-    calculateBaseMultiplier();
+    calculateBaseMultiplier();   // now 5×
     updateDisplay();
 
-    // 150 s “fried” overdrive
-    setTimeout(() => {
-        console.log('[FRY END] reverting to normal');
+    const totalMs = 150000;      // 150 s
+    const tick    = 1000;        // update every second
+    const steps   = totalMs / tick;
+    const drop    = 100 / steps;
+    let elapsed   = 0;
+
+    const fryInterval = setInterval(() => {
+        elapsed += tick;
+
+        // drain high-meter from 100 → 0
+        fryPercent = Math.max(100 - drop * (elapsed / tick), 0);
+
+        // fade haze in parallel
+        haze.style.opacity = Math.max((fryPercent / 100) * 0.7, 0);
+
+        updateDisplay();
+
+        if (elapsed >= totalMs) {
+        // end of “fried” cooldown
+        clearInterval(fryInterval);
         isFried = false;
-        autoClickRate /= 5;
-        calculateBaseMultiplier();
+        calculateBaseMultiplier();  // back to 1×
         updateDisplay();
-
-        // start 150 s cooldown (meter → 0)
-        coolingDown = true;
-        cooldownInterval = setInterval(() => {
-        fryPercent = Math.max(fryPercent - (100 / 150), 0);
-        updateDisplay();
-        if (fryPercent === 0) {
-            clearInterval(cooldownInterval);
-            coolingDown = false;
-            // rebuild meter after cool-down ends
-            startHighBuild();
         }
-        }, 1000);
-
-        // fade haze over 120 s (finishes before 150 s cooldown)
-        hazeFadeInterval = setInterval(() => {
-        const cur = parseFloat(haze.style.opacity) || 0;
-        const next = Math.max(cur - (0.7 / 120), 0);
-        haze.style.opacity = next;
-        if (next === 0) clearInterval(hazeFadeInterval);
-        }, 1000);
-
-    }, 150000);
+    }, tick);
     }
+
 
 
     /*** Auto-Buy Logic ***/
