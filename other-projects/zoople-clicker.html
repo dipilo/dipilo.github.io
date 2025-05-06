@@ -661,6 +661,9 @@
         case 'blunt':
         bluntCount++;
         addBluntVisual();
+        if (bluntCount === 1) {
+            startHighBuild();
+        }
         break;
     }
 
@@ -799,7 +802,6 @@
 
     // Initialize display
     updateDisplay();
-    startHighBuild();
   </script>
 </body>
 
