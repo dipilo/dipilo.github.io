@@ -312,9 +312,11 @@
       width: 100%;
       height: 100%;
       background:
-        radial-gradient(circle at 20% 20%, rgba(0, 255, 0, 0.2), transparent 40%),
-        radial-gradient(circle at 80% 40%, rgba(0, 200, 0, 0.15), transparent 50%),
-        radial-gradient(circle at 50% 80%, rgba(0, 150, 0, 0.1), transparent 60%);
+        radial-gradient(circle at 20% 20%, rgba(0,255,0,0.2), transparent 40%),
+        radial-gradient(circle at 50% 10%, rgba(0,230,0,0.25), transparent 45%),
+        radial-gradient(circle at 80% 40%, rgba(0,200,0,0.15), transparent 50%),
+        radial-gradient(circle at 30% 70%, rgba(0,180,0,0.12), transparent 55%),
+        radial-gradient(circle at 50% 80%, rgba(0,150,0,0.1), transparent 60%);
       filter: blur(15px);
       pointer-events: none;
       opacity: 0;
@@ -468,6 +470,9 @@
     let isFried = false;
     let highBuildInterval;
     const haze = document.getElementById('haze');
+    let coolingDown = false;
+    let cooldownInterval, hazeFadeInterval;
+
 
     /*** Pricing ***/
     const upgradeBase = {
@@ -544,6 +549,16 @@
         }
     }
 
+    // ── High‐meter build (runs every second when NOT fried or cooling) ──
+    function startHighBuild() {
+      highBuildInterval = setInterval(() => {
+        if (!isFried && !coolingDown) {
+          fryPercent = Math.min(fryPercent + (100 / 300), 100);
+          haze.style.opacity = Math.min(fryPercent / 100, 0.7);
+          updateDisplay();
+        }
+      }, 1000);
+    }
 
     /*** Update Display ***/
     function updateDisplay() {
@@ -648,15 +663,7 @@
         case 'blunt':
         bluntCount++;
         addBluntVisual();
-        if (bluntCount === 1) {
-            highBuildInterval = setInterval(() => {
-            if (!isFried) {
-                fryPercent = Math.min(fryPercent + (100/300), 100);
-                haze.style.opacity = Math.min(fryPercent/100, 0.7);
-                updateDisplay();
-            }
-            }, 1000);
-        }
+        if (bluntCount === 1) startHighBuild();
         break;
     }
 
@@ -716,45 +723,48 @@
         }, Math.max(50, intervalMs));
     }
 
-    /**
-     * Handles entering “fried” state for 150s,
-     * then 150s high-meter cooldown + 100s haze fade.
-     */
-     function triggerFry() {
-        // stop the build-up so it doesn’t fight the cooldown
-        clearInterval(highBuildInterval);
+    function triggerFry() {
+    // stop any existing build-up, haze‐fade or cooldown
+    clearInterval(highBuildInterval);
+    clearInterval(hazeFadeInterval);
+    clearInterval(cooldownInterval);
 
-        isFried = true;
-        autoClickRate *= 5;
-        calculateBaseMultiplier();
-        multiplier = calculateTotalMultiplier();
-        updateDisplay();
+    isFried = true;
+    autoClickRate *= 5;
+    calculateBaseMultiplier();
+    updateDisplay();
 
-    // END “fried” after 150 s
+    // 150 s “fried” overdrive
     setTimeout(() => {
         isFried = false;
         autoClickRate /= 5;
-
         calculateBaseMultiplier();
-
-        // 1) Start High-meter cooldown: 100→0% over 150 s
-        const cooldown = setInterval(() => {
-        fryPercent = Math.max(fryPercent - (100 / 150), 0);
-        elements.high.textContent = `${fryPercent.toFixed(2)}%`;
-        if (fryPercent === 0) clearInterval(cooldown);
-        }, 1000);
-
-        // 2) Fade haze 0.7→0 over 100 s
-        const hazeFade = setInterval(() => {
-        const cur = parseFloat(document.getElementById('haze').style.opacity) || 0;
-        const next = Math.max(cur - (0.7 / 100), 0);
-        document.getElementById('haze').style.opacity = next;
-        if (next === 0) clearInterval(hazeFade);
-        }, 1000);
-
         updateDisplay();
+
+        // start 150 s cooldown (meter → 0)
+        coolingDown = true;
+        cooldownInterval = setInterval(() => {
+        fryPercent = Math.max(fryPercent - (100 / 150), 0);
+        updateDisplay();
+        if (fryPercent === 0) {
+            clearInterval(cooldownInterval);
+            coolingDown = false;
+            // rebuild meter after cool-down ends
+            startHighBuild();
+        }
+        }, 1000);
+
+        // fade haze over 120 s (finishes before 150 s cooldown)
+        hazeFadeInterval = setInterval(() => {
+        const cur = parseFloat(haze.style.opacity) || 0;
+        const next = Math.max(cur - (0.7 / 120), 0);
+        haze.style.opacity = next;
+        if (next === 0) clearInterval(hazeFadeInterval);
+        }, 1000);
+
     }, 150000);
     }
+
 
     /*** Auto-Buy Logic ***/
     elements.toggleAuto.addEventListener('click', () => {
