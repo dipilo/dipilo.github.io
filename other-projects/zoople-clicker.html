@@ -235,6 +235,16 @@
       color: white;
     }
 
+    #multDisplay { bottom: 50px; right: 55px; }
+    #highDisplay { bottom: 65px; right: 120px; }
+    #scoreDisplay { bottom: 30px; left: 50%; transform: translateX(-50%); }
+
+    @media (max-width: 768px) {
+      #multDisplay { bottom: 35px; right: 45px; }
+      #highDisplay { bottom: 40px; right: 120px; }
+      #labelsBox { flex-direction: column; }
+    }
+
     /* ------------------------------------- */
     /* Haze overlay */
     #haze {
