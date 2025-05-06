@@ -466,6 +466,7 @@
     let baseMultiplier = 1;
     let fryPercent = 0;
     let isFried = false;
+    let highBuildInterval;
     const haze = document.getElementById('haze');
 
     /*** Pricing ***/
@@ -540,7 +541,7 @@
     /*** Update Display ***/
     function updateDisplay() {
       elements.score.textContent = Math.floor(score);
-      elements.mult.textContent = (1 + bluntCount * 0.01).toFixed(2) + 'x';
+      elements.mult.textContent = (baseMultiplier + bluntCount * 0.01).toFixed(2) + 'x';
       elements.high.textContent = `${fryPercent.toFixed(2)}%`;
 
       Object.keys(elements.btn).forEach(key => {
@@ -586,12 +587,14 @@
 
     // frying build‐up
     if (bluntCount > 0 && !isFried) {
-        fryPercent = Math.min(fryPercent + 0.05, 100);
+    fryPercent = Math.min(fryPercent + 0.05, 100);
+    if (fryPercent === 100) {
+        isFried = true;
+        baseMultiplier = 5;
+        document.getElementById('haze').style.opacity = 0.7;
+        updateDisplay();
+        }
     }
-    // ← update green haze immediately
-    document.getElementById('haze').style.opacity = Math.min(fryPercent/100, 0.7);
-
-    updateDisplay();
 
     // shake animation
     zoopleEl.classList.add('shake');
@@ -634,16 +637,16 @@
           bluntCount++;
           addBluntVisual();
           if (bluntCount === 1) {
-            // auto-build High meter: 100% over 300 s ⇒ 100/300 ≈0.3333% per second
-            setInterval(() => {
+            // auto-build High meter over 300s
+            highBuildInterval = setInterval(() => {
                 if (!isFried) {
                 fryPercent = Math.min(fryPercent + (100/300), 100);
-                document.getElementById('haze').style.opacity = Math.min(fryPercent/100, 0.7);
+                haze.style.opacity = Math.min(fryPercent/100, 0.7);
                 updateDisplay();
                 }
             }, 1000);
-            }
-          break;
+        }
+        break;
       }
 
       prices[key] = calcPrice(key,
@@ -665,6 +668,8 @@
     });
 
     function restartAutoClick() {
+        console.log(`Auto-click interval is now ${Math.max(50, intervalMs)}ms`);
+
         if (window.autoInterval) clearInterval(window.autoInterval);
 
         // hyperbolic speed-up: reduction = 1 − 1/(1 + a*x)
@@ -701,12 +706,15 @@
      * Handles entering “fried” state for 150s,
      * then 150s high-meter cooldown + 100s haze fade.
      */
-    function triggerFry() {
-    isFried = true;
-    autoClickRate *= 5;             // speed up 5×
-    calculateBaseMultiplier();      // recalc zooplier now
-    multiplier = baseMultiplier;    
-    updateDisplay();
+     function triggerFry() {
+        // stop the build-up so it doesn’t fight the cooldown
+        clearInterval(highBuildInterval);
+
+        isFried = true;
+        autoClickRate *= 5;
+        calculateBaseMultiplier();
+        multiplier = baseMultiplier;
+        updateDisplay();
 
     // END “fried” after 150 s
     setTimeout(() => {
