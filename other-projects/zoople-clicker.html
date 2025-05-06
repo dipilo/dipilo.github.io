@@ -502,19 +502,21 @@
     }
 
     function addBluntVisual() {
-      if (bluntCount === 1) {
-        const img = document.createElement('img');
-        img.src = '/images/zoople-clicker/trinkets/blunt.png';
-        img.className = 'blunt';
-        wrapper.appendChild(img);
-      }
+        if (bluntCount === 1) {
+            const img = document.createElement('img');
+            img.src = '/images/zoople-clicker/trinkets/blunt.png';
+            img.className = 'blunt';
+            // ← use the real element
+            document.getElementById('zoopleWrapper').appendChild(img);
+        }
     }
+
 
     /*** Update Display ***/
     function updateDisplay() {
       elements.score.textContent = Math.floor(score);
       elements.mult.textContent = (1 + bluntCount * 0.01).toFixed(2) + 'x';
-      elements.high.textContent = '0%';
+      elements.high.textContent = `${Math.floor(fryPercent)}%`;
 
       Object.keys(elements.btn).forEach(key => {
         let btn = elements.btn[key];
@@ -561,6 +563,8 @@
     if (bluntCount > 0 && !isFried) {
         fryPercent = Math.min(fryPercent + 0.5, 100);
     }
+    // ← update green haze immediately
+    document.getElementById('haze').style.opacity = Math.min(fryPercent/100, 0.7);
 
     updateDisplay();
 
