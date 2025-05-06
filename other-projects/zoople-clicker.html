@@ -582,7 +582,7 @@
     const zoopleEl = document.getElementById('zoople');
     zoopleEl.addEventListener('click', () => {
     // apply blunt multiplier
-    const mult = calculateTotalMultiplier;
+    const mult = calculateTotalMultiplier();
     score += clickValue * mult;
 
     // desperation bonus
@@ -608,9 +608,9 @@
     zoopleEl.addEventListener('animationend', () => {
         zoopleEl.classList.remove('shake');
     }, { once: true });
+    
+    updateDisplay();
     });
-
-    updatreDisplay();
 
     /*** Buy Handler ***/
     function buy(key) {
@@ -689,7 +689,7 @@
         // floor at 50ms so it never goes to zero
         window.autoInterval = setInterval(() => {
         // apply blunt multiplier
-        const mult = calculateTotalMultiplier;
+        const mult = calculateTotalMultiplier();
         score += autoClickerCount * mult;
 
         // frying over time
@@ -722,7 +722,7 @@
         isFried = true;
         autoClickRate *= 5;
         calculateBaseMultiplier();
-        multiplier = calculateTotalMultiplier;
+        multiplier = calculateTotalMultiplier();
         updateDisplay();
 
     // END “fried” after 150 s
