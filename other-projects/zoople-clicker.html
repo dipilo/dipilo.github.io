@@ -471,6 +471,7 @@
     let highBuildInterval;
     const haze = document.getElementById('haze');
     let cooldownInterval, hazeFadeInterval;
+    const naturalBuildRate = 100 / (5 * 60);
 
 
     /*** Pricing ***/
@@ -546,6 +547,18 @@
             // ← use the real element
             document.getElementById('zoopleWrapper').appendChild(img);
         }
+    }
+
+    function startHighBuild() {
+        clearInterval(highBuildInterval);
+        highBuildInterval = setInterval(() => {
+        if (!isFried) {
+            fryPercent = Math.min(fryPercent + naturalBuildRate, 100);
+            haze.style.opacity = Math.min(fryPercent / 100, 0.7);
+            updateDisplay();
+            if (fryPercent === 100) triggerFry();
+        }
+        }, 1000);
     }
 
     /*** Update Display ***/
@@ -710,11 +723,11 @@
 
     // enter fried state
     isFried = true;
-    calculateBaseMultiplier();   // now 5×
+    calculateBaseMultiplier();
     updateDisplay();
 
-    const totalMs = 150000;      // 150 s
-    const tick    = 1000;        // update every second
+    const totalMs = 150000;
+    const tick    = 1000;
     const steps   = totalMs / tick;
     const drop    = 100 / steps;
     let elapsed   = 0;
@@ -722,23 +735,21 @@
     const fryInterval = setInterval(() => {
         elapsed += tick;
 
-        // drain high-meter from 100 → 0
         fryPercent = Math.max(100 - drop * (elapsed / tick), 0);
-
-        // fade haze in parallel
         haze.style.opacity = Math.max((fryPercent / 100) * 0.7, 0);
-
         updateDisplay();
 
         if (elapsed >= totalMs) {
-        // end of “fried” cooldown
         clearInterval(fryInterval);
         isFried = false;
-        calculateBaseMultiplier();  // back to 1×
+        calculateBaseMultiplier();
         updateDisplay();
+        // now that we’re done frying, resume natural build
+        startHighBuild();
         }
     }, tick);
     }
+
 
 
 
@@ -788,6 +799,7 @@
 
     // Initialize display
     updateDisplay();
+    startHighBuild();
   </script>
 </body>
 
