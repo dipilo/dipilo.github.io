@@ -599,10 +599,7 @@
     if (bluntCount > 0 && !isFried) {
     fryPercent = Math.min(fryPercent + 0.05, 100);
     if (fryPercent === 100) {
-        isFried = true;
-        calculateBaseMultiplier();
-        document.getElementById('haze').style.opacity = 0.7;
-        updateDisplay();
+        triggerFry();
         }
     }
 
@@ -691,10 +688,12 @@
         const mult = calculateTotalMultiplier();
         score += autoClickerCount * mult;
 
-        // trigger fry state
-        if (bluntCount > 0 && fryPercent >= 100 && !isFried) {
-            triggerFry();
+        if (bluntCount > 0 && !isFried) {
+            if (fryPercent >= 100) {
+                triggerFry();
+            }
         }
+
 
         // update green haze
         document.getElementById('haze').style.opacity = Math.min(fryPercent/100, 0.7);
