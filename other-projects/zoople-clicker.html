@@ -41,12 +41,12 @@
       z-index: 10;
       transform: translateX(-100%);
       transition: transform 0.3s ease;
-      pointer-events: none;
+      /* allow toggle-tab clicks even when closed */
+      pointer-events: auto;
     }
 
     .panel.open {
       transform: translateX(0);
-      pointer-events: auto;
     }
 
     .panel.right {
@@ -65,9 +65,10 @@
       font-size: 1.25em;
       border-bottom: 1px solid #555;
       padding-bottom: 8px;
+      user-select: none;
     }
 
-    /* Toggle tab now inside panels */
+    /* Toggle tab inside panels */
     .panel .toggle-tab {
       position: absolute;
       top: 20px;
@@ -104,26 +105,15 @@
     .item-count {
       font-size: 1.2em;
       align-self: flex-end;
+      user-select: none;
     }
 
     .item-info {
       margin-bottom: 8px;
     }
 
-    .item-info h3 {
-      margin: 0;
-      font-size: 1em;
-      text-align: left;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
+    .item-info h3,
     .item-info p {
-      margin: 4px 0 0;
-      font-size: 0.8em;
-      color: #ccc;
-      text-align: left;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -139,6 +129,7 @@
       color: #fff;
       transition: background 0.2s;
       align-self: flex-start;
+      user-select: none;
     }
 
     .item-button.enabled {
@@ -148,6 +139,13 @@
     .item-button:disabled {
       opacity: 0.5;
       cursor: default;
+    }
+
+    /* prevent selecting any images */
+    img {
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
     }
 
     /* ------------------------------------- */
@@ -227,14 +225,18 @@
       color: white;
     }
 
+    /* default positions */
     #multDisplay { bottom: 50px; right: 55px; }
     #highDisplay { bottom: 65px; right: 140px; }
     #scoreDisplay { bottom: 30px; left: 50%; transform: translateX(-50%); }
 
     @media (max-width: 768px) {
-      #multDisplay { bottom: 35px; right: 100px; }
+      /* move multiplier further left */
+      #multDisplay { bottom: 35px; right: 90px; }
+      /* high meter unchanged */
       #highDisplay { bottom: 40px; right: 140px; }
-      #scoreDisplay { bottom: 30px; right: 50%; transform: translateX(-50%); }
+      /* move score further left */
+      #scoreDisplay { bottom: 30px; left: 40%; transform: translateX(-50%); }
       #labelsBox { flex-direction: column; }
     }
 
@@ -260,6 +262,7 @@
 </head>
 
 <body>
+
   <div id="container">
 
     <!-- Upgrades Panel -->
@@ -526,6 +529,14 @@
       else if (choice === 'trinkets') buy('blunt');
       else buy(choice);
     }, 500);
+
+    // Panel Toggles
+    document.getElementById('toggleLeft').addEventListener('click', () => {
+      document.getElementById('upgrades').classList.toggle('open');
+    });
+    document.getElementById('toggleRight').addEventListener('click', () => {
+      document.getElementById('shop').classList.toggle('open');
+    });
 
     // Initialize
     updateDisplay();
