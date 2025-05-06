@@ -734,16 +734,26 @@
     });
 
     setInterval(() => {
-      if (!autoBuyerEnabled) return;
-      const choice = elements.selectAuto.value;
-      if (choice === 'upgrades') {
+    if (!autoBuyerEnabled) return;
+    const choice = elements.selectAuto.value;
+
+    if (choice === 'all') {
+        // Attempt one purchase of every item each tick
+        ['zooplication','autoClicker','desperation','crack','autoBuyer','blunt']
+        .forEach(k => buy(k));
+    }
+    else if (choice === 'upgrades') {
         ['zooplication','autoClicker','desperation','crack'].forEach(k => buy(k));
-      } else if (choice === 'trinkets') {
+    }
+    else if (choice === 'trinkets') {
         buy('blunt');
-      } else {
+    }
+    else {
+        // specific key (zooplication, autoClicker, etc.)
         buy(choice);
-      }
+    }
     }, 500);
+
 
     /*** Panel Toggles ***/
     document.getElementById('toggleLeft').addEventListener('click', () => {
