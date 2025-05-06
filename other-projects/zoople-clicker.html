@@ -516,7 +516,7 @@
     function updateDisplay() {
       elements.score.textContent = Math.floor(score);
       elements.mult.textContent = (1 + bluntCount * 0.01).toFixed(2) + 'x';
-      elements.high.textContent = `${Math.floor(fryPercent)}%`;
+      elements.high.textContent = `${fryPercent.toFixed(2)}%`;
 
       Object.keys(elements.btn).forEach(key => {
         let btn = elements.btn[key];
@@ -561,7 +561,7 @@
 
     // frying build‐up
     if (bluntCount > 0 && !isFried) {
-        fryPercent = Math.min(fryPercent + 0.5, 100);
+        fryPercent = Math.min(fryPercent + 0.05, 100);
     }
     // ← update green haze immediately
     document.getElementById('haze').style.opacity = Math.min(fryPercent/100, 0.7);
@@ -603,6 +603,16 @@
           bluntCount++;
           calculateBaseMultiplier();
           addBluntVisual();
+          if (bluntCount === 1) {
+            // auto-build High meter: 100% over 300 s ⇒ 100/300 ≈0.3333% per second
+            setInterval(() => {
+                if (!isFried) {
+                fryPercent = Math.min(fryPercent + (100/300), 100);
+                document.getElementById('haze').style.opacity = Math.min(fryPercent/100, 0.7);
+                updateDisplay();
+                }
+            }, 1000);
+            }
           break;
       }
 
