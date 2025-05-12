@@ -1504,36 +1504,21 @@ class HybridCLI:
             else:
                 arg1, arg2 = parts[1].lower(), parts[2].lower()
 
-                # === Saved-hybrid branch ===
+                # — Saved‐hybrid branch —
                 if self.SAVE_MODE and arg1 in self.saved_hybrids and arg2 in self.saved_hybrids:
-                    # get parents from session memory
-                    parent1 = self.saved_hybrids[arg1]
-                    parent2 = self.saved_hybrids[arg2]
+                    # Try up to 10 times, with full variant & stat logic inside breed_from_saved()
+                    result = breed_from_saved(arg1, arg2)
+                    if result is None:
+                        output += "Miscarriage: could not determine offspring species after 10 attempts.\n"
+                        return output
 
-                    # cross via their stored genotypes
-                    geno1 = parent1["genotype"]
-                    geno2 = parent2["genotype"]
-                    offspring_geno, species = cross_breed_from_genotype(geno1, geno2)
-
-                    # simulate stats
-                    top_e = top_expression(offspring_geno["top"])
-                    mid_e = mid_expression(offspring_geno["mid"])
-                    bot_e = bottom_expression(offspring_geno["bottom"])
-                    stats, mutations = generate_individual_stats(species, top_e, mid_e, bot_e)
-
-                    # assemble offspring record
-                    offspring = {
-                        "name": generate_unique_name(species),
-                        "genotype": offspring_geno,
-                        "species": species,
-                        "stats": stats,
-                        "parents": [parent1["name"], parent2["name"]]
-                    }
+                    offspring, mutations = result
+                    # Store into this session
                     self.saved_hybrids[offspring["name"].lower()] = offspring
 
                     output += "\n--- BREEDING RESULT (from saved hybrids) ---\n"
-                    output += f"Parent 1: {parent1['name']} (Species: {parent1['species']})\n"
-                    output += f"Parent 2: {parent2['name']} (Species: {parent2['species']})\n"
+                    output += f"Parent 1: {self.saved_hybrids[arg1]['name']} (Species: {self.saved_hybrids[arg1]['species']})\n"
+                    output += f"Parent 2: {self.saved_hybrids[arg2]['name']} (Species: {self.saved_hybrids[arg2]['species']})\n"
                     output += f"Offspring name: {offspring['name']}\n"
                     output += f"Species: {offspring['species']}\n"
                     output += "(Saved into session memory)\n"
@@ -1542,7 +1527,7 @@ class HybridCLI:
                     output += f"  Mid   : {offspring['genotype']['mid']}\n"
                     output += f"  Bottom: {offspring['genotype']['bottom']}\n"
                     output += "Stats:\n"
-                    for stat, val in stats.items():
+                    for stat, val in offspring["stats"].items():
                         unit = STAT_UNITS.get(stat, "")
                         output += f"  {stat:15s}: {val} {unit}".rstrip() + "\n"
                         if stat in mutations:
