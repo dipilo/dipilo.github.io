@@ -1,8 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                          http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
   <url>
-    <loc>https://dipilo.github.io/</loc>
-    <changefreq>weekly</changefreq>
+    <loc>https://dipilo.github.io/discord-bots.html</loc>
   </url>
-  <!-- add more <url> entries for each page -->
+  <url>
+    <loc>https://dipilo.github.io/discord-bots/zoople%20tcg.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/discord-bots/yuri.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/discord-bots/anon-vent.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/discord-bots/skedooler.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/discord-bots/dip'n'dots'n'boxes.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/discord-bots/the%20voices.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/discord-bots/pincord.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/minecraft-mods.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/other-projects.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/other-projects/fantasy%20hybrid%20simulator.html</loc>
+  </url>
+  <url>
+    <loc>https://dipilo.github.io/other-projects/zoople-clicker.html</loc>
+  </url>
+
 </urlset>
