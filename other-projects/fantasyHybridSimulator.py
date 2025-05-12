@@ -1444,9 +1444,7 @@ def simulate_random(n):
 class HybridCLI:
     def __init__(self):
         self.SAVE_MODE = False
-        self.SAVED_FILE = "hybrids.json"
         self.saved_hybrids = {}
-        self.load_saved_hybrids()
 
     def load_saved_hybrids(self):
         if os.path.exists(self.SAVED_FILE):
@@ -1487,13 +1485,15 @@ class HybridCLI:
             )
         elif cmd == "toggle":
             self.SAVE_MODE = not self.SAVE_MODE
+            if self.SAVE_MODE:
+                self.saved_hybrids.clear()
             mode_status = "ON" if self.SAVE_MODE else "OFF"
-            output += f"Save mode toggled {mode_status}.\n"
+            output += f"Save mode is now {mode_status}.\n"
         elif cmd == "list":
             output += "Available species (from known definitions):\n"
             for sp in sorted(phenotype_genotypes.keys()):
                 output += f"  {sp}\n"
-            if self.SAVE_MODE:
+            if self.SAVE_MODE and self.saved_hybrids:
                 output += "\nSaved hybrids:\n"
                 for name in sorted(self.saved_hybrids.keys()):
                     record = self.saved_hybrids[name]
@@ -1503,16 +1503,23 @@ class HybridCLI:
                 output += "Usage: breed [species_or_saved_name1] [species_or_saved_name2]\n"
             else:
                 arg1, arg2 = parts[1].lower(), parts[2].lower()
+
+                # Branch when both parents are in-session saved hybrids
                 if self.SAVE_MODE and (arg1 in self.saved_hybrids and arg2 in self.saved_hybrids):
                     offspring_data = breed_from_saved(arg1, arg2)
                     if offspring_data is None:
                         return output
                     offspring, mutations = offspring_data
+
+                    # Save offspring into this session’s memory
+                    self.saved_hybrids[offspring["name"].lower()] = offspring
+
                     output += "\n--- BREEDING RESULT (from saved hybrids) ---\n"
-                    output += f"Parent 1: {self.saved_hybrids[arg1]['name']} (Species: {self.saved_hybrids[arg1]['species']}, Genotype: {self.saved_hybrids[arg1].get('genotype','N/A')})\n"
-                    output += f"Parent 2: {self.saved_hybrids[arg2]['name']} (Species: {self.saved_hybrids[arg2]['species']}, Genotype: {self.saved_hybrids[arg2].get('genotype','N/A')})\n"
+                    output += f"Parent 1: {self.saved_hybrids[arg1]['name']} (Species: {self.saved_hybrids[arg1]['species']})\n"
+                    output += f"Parent 2: {self.saved_hybrids[arg2]['name']} (Species: {self.saved_hybrids[arg2]['species']})\n"
                     output += f"Offspring name: {offspring['name']}\n"
                     output += f"Inherited species: {offspring['species']}\n"
+                    output += "(Saved into session memory)\n"
                     output += "Offspring genotype:\n"
                     output += f"  Top   : {offspring['genotype']['top']}\n"
                     output += f"  Mid   : {offspring['genotype']['mid']}\n"
@@ -1523,6 +1530,8 @@ class HybridCLI:
                         output += f"  {stat:15s}: {value} {unit}".rstrip() + "\n"
                         if stat in mutations:
                             output += f"                <-- {mutations[stat]}\n"
+
+                # Otherwise do a simulated cross-breed from known species
                 else:
                     try:
                         MAX_ATTEMPTS = 10
@@ -1539,20 +1548,52 @@ class HybridCLI:
                     except ValueError as e:
                         output += f"Error: {e}\n"
                         return output
+
+                    # Compute expressions and stats
                     off_top = top_expression(result["offspring_top"])
                     off_mid = mid_expression(result["offspring_mid"])
                     off_bottom = bottom_expression(result["offspring_bottom"])
-                    stats, mutations = generate_individual_stats(result["phenotype"], off_top, off_mid, off_bottom)
-                    base_size = (SIZE_STATS.get(off_top, 170) + SIZE_STATS.get(off_mid, 170) + SIZE_STATS.get(off_bottom, 170)) / 3.0
+                    stats, mutations = generate_individual_stats(
+                        result["phenotype"], off_top, off_mid, off_bottom
+                    )
+
+                    # Handle size/strength variants
+                    base_size = (
+                        SIZE_STATS.get(off_top, 170)
+                        + SIZE_STATS.get(off_mid, 170)
+                        + SIZE_STATS.get(off_bottom, 170)
+                    ) / 3.0
                     base_strength = TOP_STATS.get(off_top, {}).get("Strength", 60)
                     variant_prefix = ""
                     if stats["Size"] >= 3.0 * base_size:
                         variant_prefix = "Giant "
                         stats["Lifespan"] = round(stats["Lifespan"] * 3.0, 3)
-                    elif off_top == "Hu" and result["phenotype"] != "manticore" and stats["Size"] <= 0.8 * base_size and stats["Strength"] >= 1.2 * base_strength:
+                    elif (
+                        off_top == "Hu"
+                        and result["phenotype"] != "manticore"
+                        and stats["Size"] <= 0.8 * base_size
+                        and stats["Strength"] >= 1.2 * base_strength
+                    ):
                         variant_prefix = "Dwarven "
                         stats["Lifespan"] = round(stats["Lifespan"] * 4.0, 3)
-                    result["phenotype"] = variant_prefix + result["phenotype"]
+
+                    # Build a record for the new offspring
+                    offspring = {
+                        "name": generate_unique_name(variant_prefix + result["phenotype"]),
+                        "species": variant_prefix + result["phenotype"],
+                        "genotype": {
+                            "top": result["offspring_top"],
+                            "mid": result["offspring_mid"],
+                            "bottom": result["offspring_bottom"],
+                        },
+                        "stats": stats
+                    }
+
+                    # Session save if toggled on
+                    if self.SAVE_MODE:
+                        self.saved_hybrids[offspring["name"].lower()] = offspring
+                        output += f"(Saved as “{offspring['name']}” in session)\n"
+
                     output += "\n--- BREEDING RESULT (from known species simulation) ---\n"
                     output += f"Parent 1 ({arg1}) - Genotype: {result['parent1_genotype']}\n"
                     output += f"Parent 2 ({arg2}) - Genotype: {result['parent2_genotype']}\n"
@@ -1560,7 +1601,7 @@ class HybridCLI:
                     output += f"  Top   : {result['offspring_top']}\n"
                     output += f"  Mid   : {result['offspring_mid']}\n"
                     output += f"  Bottom: {result['offspring_bottom']}\n"
-                    output += f"Offspring species: {result['phenotype']}\n"
+                    output += f"Offspring species: {offspring['species']}\n"
                     output += "\nOffspring stats (sources per stat are defined by species):\n"
                     for stat, value in stats.items():
                         unit = STAT_UNITS.get(stat, "")
@@ -1575,38 +1616,52 @@ class HybridCLI:
             output += f"  Mid   : {genotype['mid']}\n"
             output += f"  Bottom: {genotype['bottom']}\n"
             output += f"Species: {sp}\n"
+
             expr_top = top_expression(genotype["top"])
             expr_mid = mid_expression(genotype["mid"])
             expr_bottom = bottom_expression(genotype["bottom"])
             stats, mutations = generate_individual_stats(sp, expr_top, expr_mid, expr_bottom)
-            base_size = (SIZE_STATS.get(expr_top, 170) + SIZE_STATS.get(expr_mid, 170) + SIZE_STATS.get(expr_bottom, 170)) / 3.0
+
+            base_size = (
+                SIZE_STATS.get(expr_top, 170)
+                + SIZE_STATS.get(expr_mid, 170)
+                + SIZE_STATS.get(expr_bottom, 170)
+            ) / 3.0
             base_strength = TOP_STATS.get(expr_top, {}).get("Strength", 60)
             variant_prefix = ""
             if stats["Size"] >= 3.0 * base_size:
                 variant_prefix = "Giant "
                 stats["Lifespan"] = round(stats["Lifespan"] * 3.0, 3)
-            elif expr_top == "Hu" and sp != "manticore" and stats["Size"] <= 0.8 * base_size and stats["Strength"] >= 1.2 * base_strength:
+            elif (
+                expr_top == "Hu"
+                and sp != "manticore"
+                and stats["Size"] <= 0.8 * base_size
+                and stats["Strength"] >= 1.2 * base_strength
+            ):
                 variant_prefix = "Dwarven "
                 stats["Lifespan"] = round(stats["Lifespan"] * 4.0, 3)
+
             sp = variant_prefix + sp
             output += f"Species (with variant): {sp}\n"
+
             if self.SAVE_MODE:
                 new_name = generate_unique_name(sp)
                 record = {
                     "name": new_name,
                     "genotype": {
-                        "top": list(genotype["top"]),
-                        "mid": list(genotype["mid"]),
-                        "bottom": list(genotype["bottom"])
+                        "top": genotype["top"],
+                        "mid": genotype["mid"],
+                        "bottom": genotype["bottom"]
                     },
                     "species": sp,
                     "stats": stats,
                     "mode": "generated",
                     "parents": []
                 }
+                # session‐only save (no disk write)
                 self.saved_hybrids[new_name.lower()] = record
-                self.save_saved_hybrids()
-                output += f"Assigned unique name: {new_name}\n"
+                output += f"(Saved in session as “{new_name}”)\n"
+
             output += "\nStats:\n"
             for stat, value in stats.items():
                 unit = STAT_UNITS.get(stat, "")
