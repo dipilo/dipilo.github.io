@@ -5,432 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zoople Chaser</title>
   <style>
-    /* Base styling */
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: sans-serif;
-    }
-
-    #gameContainer {
-      position: relative;
-      width: 800px;
-      height: 600px;
-    }
-
-    #gameCanvas {
-      background: #111;
-      display: block;
-    }
-
-    /* Overlay menus */
-    .overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 3;
-    }
-
-    #settings {
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      z-index: 4;
-    }
-
-    /* Buttons */
-    button {
-      padding: 12px 24px;
-      font-size: 20px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border: 2px solid #444;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    button:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: #888;
-    }
-
-    /* Toggle switches and dropdown */
-    .toggle,
-    .dropdown {
-      display: inline-block;
-    }
-
-    .toggle {
-      position: relative;
-      width: 50px;
-      height: 24px;
-    }
-
-    .toggle input {
-      display: none;
-    }
-
-    .toggle .track {
-      position: absolute;
-      inset: 0;
-      background: #444;
-      border-radius: 12px;
-      transition: background 0.2s;
-    }
-
-    .toggle .thumb {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 20px;
-      height: 20px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform 0.2s;
-    }
-
-    .toggle input:checked + .track {
-      background: #4caf50;
-    }
-
-    .toggle input:checked + .track + .thumb {
-      transform: translateX(26px);
-    }
-
-    .dropdown {
-      position: relative;
-    }
-
-    .dropdown select {
-      appearance: none;
-      padding: 10px 40px 10px 16px;
-      font-size: 18px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border: 2px solid #444;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    .dropdown select:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: #888;
-    }
-
-    .dropdown select option {
-      background: #444;
-      color: #fff;
-    }
-
-    .dropdown::after {
-      content: '▾';
-      position: absolute;
-      top: 50%;
-      right: 12px;
-      transform: translateY(-50%);
-      color: #fff;
-      pointer-events: none;
-    }
+    body { margin:0; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; }
+    #gameContainer { position:relative; width:800px; height:600px; }
+    #gameCanvas { background:#111; display:block; }
+    .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:3; }
+    #settings { display:none; z-index:4; }
+    button { padding:12px 24px; font-size:20px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; transition:background .2s; }
+    button:hover { background:rgba(255,255,255,0.2); }
+    .toggle, .dropdown { display:inline-block; }
+    .toggle { position:relative; width:50px; height:24px; }
+    .toggle input { display:none; }
+    .toggle .track { position:absolute; inset:0; background:#444; border-radius:12px; transition:background .2s; }
+    .toggle .thumb { position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .2s; }
+    .toggle input:checked + .track { background:#4caf50; }
+    .toggle input:checked + .track + .thumb { transform:translateX(26px); }
+    .dropdown { position:relative; }
+    .dropdown select { -webkit-appearance:none; appearance:none; padding:10px 40px 10px 16px; font-size:18px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; }
+    .dropdown select option { background:#444; color:#fff; }
+    .dropdown::after { content:'▾'; position:absolute; top:50%; right:12px; transform:translateY(-50%); color:#fff; pointer-events:none; }
   </style>
 </head>
 <body>
   <div id="gameContainer">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-    <!-- Main Menu -->
+    <!-- Start/Pause Menu -->
     <div id="menu" class="overlay">
       <button id="playBtn">Play</button>
       <button id="settingsBtn">Settings</button>
       <button id="quitBtn">Quit</button>
     </div>
-
-    <!-- Settings Menu -->
+    <!-- Settings -->
     <div id="settings" class="overlay">
       <h2 style="color:#fff; margin:0;">Settings</h2>
-      <div style="display:flex; align-items:center; gap:10px; color:#fff;">
+      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
         <span>Physics Player</span>
-        <label class="toggle">
-          <input type="checkbox" id="physPlayer" checked />
-          <div class="track"></div>
-          <div class="thumb"></div>
-        </label>
+        <label class="toggle"><input type="checkbox" id="physPlayer" /><div class="track"></div><div class="thumb"></div></label>
       </div>
-      <div style="display:flex; align-items:center; gap:10px; color:#fff;">
+      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
         <span>Physics Enemies</span>
-        <label class="toggle">
-          <input type="checkbox" id="physEnemies" checked />
-          <div class="track"></div>
-          <div class="thumb"></div>
-        </label>
+        <label class="toggle"><input type="checkbox" id="physEnemies" checked /><div class="track"></div><div class="thumb"></div></label>
       </div>
-      <div style="display:flex; align-items:center; gap:10px; color:#fff;">
+      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
         <span>Difficulty</span>
-        <div class="dropdown">
-          <select id="difficultySelect">
-            <option value="easy">Easy</option>
-            <option value="hard" selected>Hard</option>
-          </select>
-        </div>
+        <div class="dropdown"><select id="difficultySelect"><option value="easy">Easy</option><option value="hard" selected>Hard</option></select></div>
       </div>
       <button id="backBtn">Back</button>
     </div>
   </div>
-
   <script>
-    // Canvas setup
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width;
-    const H = canvas.height;
-
-    // Game settings
-    let physPlayer = true;
-    let physEnemies = true;
-    let difficulty = 'hard';
-
-    document.getElementById('physPlayer').onchange = e => physPlayer = e.target.checked;
-    document.getElementById('physEnemies').onchange = e => physEnemies = e.target.checked;
-    document.getElementById('difficultySelect').onchange = e => difficulty = e.target.value;
-
-    // Load images
-    const playerImg = new Image();
-    playerImg.src = '/images/zoople-chaser/zoopleWhite.png';
-    const enemyImg = new Image();
-    enemyImg.src = '/images/zoople-chaser/zooplePurple.png';
-
-    // Player and enemy definitions
-    const player = { x: W/2, y: H/2, r: 15, speed: 4, velX: 0, velY: 0 };
-    let enemies = [];
-    const enemyR = 15;
-    const enemySpeed = 3;
-
-    // Game state
-    let level = 1;
-    const levelTime = 10;
-    let startTime = 0;
-    let running = false;
-
-    // UI elements
-    const menu = document.getElementById('menu');
-    const settingsMenu = document.getElementById('settings');
-    document.getElementById('playBtn').onclick = startGame;
-    document.getElementById('settingsBtn').onclick = () => {
-      menu.style.display = 'none';
-      settingsMenu.style.display = 'flex';
-    };
-    document.getElementById('backBtn').onclick = () => {
-      settingsMenu.style.display = 'none';
-      menu.style.display = 'flex';
-    };
-    document.getElementById('quitBtn').onclick = () => {
-      window.location.href = 'https://dipilo.github.io/other-projects';
-    };
-
-    // Input handling
-    const keys = {};
-    window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-    window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-    // Spawn an enemy away from the player
-    function spawnEnemy(at) {
-      // Reset velocities of existing enemies
-      enemies.forEach(e => { e.velX = 0; e.velY = 0; });
-
-      let x, y;
-      do {
-        x = Math.random() * (W - 2*enemyR) + enemyR;
-        y = Math.random() * (H - 2*enemyR) + enemyR;
-      } while (Math.hypot(x - player.x, y - player.y) < player.r * 4);
-
-      if (at) {
-        x = at[0] + (Math.random() * 200 - 100);
-        y = at[1] + (Math.random() * 200 - 100);
-        x = Math.max(enemyR, Math.min(W - enemyR, x));
-        y = Math.max(enemyR, Math.min(H - enemyR, y));
-      }
-
-      enemies.push({ x, y, velX: 0, velY: 0, intercept: Math.random() < 0.5 });
-    }
-
-    // Prevent overlapping enemies
-    function separateEnemies() {
-      for (let i = 0; i < enemies.length; i++) {
-        for (let j = i + 1; j < enemies.length; j++) {
-          const a = enemies[i];
-          const b = enemies[j];
-          const dx = b.x - a.x;
-          const dy = b.y - a.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist < 2 * enemyR) {
-            const overlap = 2 * enemyR - dist;
-            const ux = dx / dist;
-            const uy = dy / dist;
-            b.x += ux * overlap / 2;
-            b.y += uy * overlap / 2;
-            a.x -= ux * overlap / 2;
-            a.y -= uy * overlap / 2;
-          }
-        }
-      }
-    }
-
-    // Clamp entity within bounds
-    function clamp(obj) {
-      obj.x = Math.max(obj.r || enemyR, Math.min((obj.r || enemyR) ? W - obj.r : W - enemyR, obj.x));
-      obj.y = Math.max(obj.r || enemyR, Math.min((obj.r || enemyR) ? H - obj.r : H - enemyR, obj.y));
-    }
-
-    // Reset the game
-    function resetGame() {
-      running = false;
-      enemies = [];
-      player.x = W/2;
-      player.y = H/2;
-      player.velX = player.velY = 0;
-      level = 1;
-      menu.style.display = 'flex';
-    }
-
-    // Start or restart
-    function startGame() {
-      resetGame();
-      spawnEnemy();
-      startTime = performance.now();
-      running = true;
-      menu.style.display = 'none';
-      settingsMenu.style.display = 'none';
-    }
-
-    // Update loop
-    function update(dt) {
-      if (!running) return;
-
-      // Player movement
-      let ax = 0, ay = 0;
-      if (keys['w']) ay -= 1;
-      if (keys['s']) ay += 1;
-      if (keys['a']) ax -= 1;
-      if (keys['d']) ax += 1;
-
-      if (physPlayer) {
-        player.velX += ax * player.speed * dt / 16;
-        player.velY += ay * player.speed * dt / 16;
-        player.velX *= 0.9;
-        player.velY *= 0.9;
-        player.x += player.velX;
-        player.y += player.velY;
-      } else {
-        player.x += ax * player.speed;
-        player.y += ay * player.speed;
-      }
-
-      clamp(player);
-
-      // Enemy movement
-      enemies.forEach(e => {
-        let tx = player.x;
-        let ty = player.y;
-
-        // Hard mode interception
-        if (difficulty === 'hard' && e.intercept) {
-          const dx = player.velX;
-          const dy = player.velY;
-          const dist = Math.hypot(player.x - e.x, player.y - e.y);
-          const t = dist / enemySpeed;
-          tx += dx * t;
-          ty += dy * t;
-        }
-
-        if (physEnemies) {
-          e.velX += (tx - e.x) * dt / 16;
-          e.velY += (ty - e.y) * dt / 16;
-          e.velX *= 0.9;
-          e.velY *= 0.9;
-          e.x += e.velX;
-          e.y += e.velY;
-        } else {
-          const dx = tx - e.x;
-          const dy = ty - e.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 0) {
-            e.x += (dx / dist) * enemySpeed;
-            e.y += (dy / dist) * enemySpeed;
-          }
-        }
-
-        clamp(e);
-      });
-
-      separateEnemies();
-
-      // Check collisions
-      if (enemies.some(e => Math.hypot(player.x - e.x, player.y - e.y) < player.r + enemyR)) {
-        resetGame();
-        return;
-      }
-
-      // Level progression
-      const elapsed = (performance.now() - startTime) / 1000;
-      if (elapsed >= levelTime) {
-        const avgX = enemies.reduce((sum, e) => sum + e.x, 0) / enemies.length;
-        const avgY = enemies.reduce((sum, e) => sum + e.y, 0) / enemies.length;
-        level++;
-        // Re-randomize intercept flags
-        enemies.forEach(e => e.intercept = Math.random() < 0.5);
-        spawnEnemy([avgX, avgY]);
-        startTime = performance.now();
-      }
-    }
-
-    // Draw loop
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-
-      // Background timer
-      const elapsed = running ? (performance.now() - startTime) / 1000 : 0;
-      const remaining = Math.max(0, levelTime - Math.floor(elapsed));
-      ctx.fillStyle = '#222';
-      ctx.font = '200px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(remaining, W/2, H/2);
-
-      // Level text
-      ctx.fillStyle = '#fff';
-      ctx.font = '36px sans-serif';
-      ctx.textBaseline = 'top';
-      ctx.fillText(`Level: ${level}`, W/2, 10);
-
-      // Draw player and enemies
-      ctx.drawImage(playerImg, player.x - player.r, player.y - player.r, player.r * 2, player.r * 2);
-      enemies.forEach(e => {
-        ctx.drawImage(enemyImg, e.x - enemyR, e.y - enemyR, enemyR * 2, enemyR * 2);
-      });
-    }
-
-    // Main loop
-    let last = performance.now();
-    function loop() {
-      const now = performance.now();
-      const dt = now - last;
-      update(dt);
-      draw();
-      last = now;
-      requestAnimationFrame(loop);
-    }
-
-    loop();
+    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let physPlayer = false, physEnemies = true, difficulty = 'hard';
+    let paused = false, running = false;
+    document.getElementById('physPlayer').onchange=e=>physPlayer=e.target.checked;
+    document.getElementById('physEnemies').onchange=e=>physEnemies=e.target.checked;
+    document.getElementById('difficultySelect').onchange=e=>difficulty=e.target.value;
+    const playerImg=new Image(), enemyImg=new Image();
+    playerImg.src='/images/zoople-chaser/zoopleWhite.png';
+    enemyImg.src='/images/zoople-chaser/zooplePurple.png';
+    const player={x:W/2,y:H/2,r:15,speed:4,velX:0,velY:0};
+    let enemies=[]; const enemyR=15, enemySpeed=3;
+    let level=1, levelTime=10, startTime=0;
+    const menu=document.getElementById('menu'), settingsMenu=document.getElementById('settings');
+    document.getElementById('playBtn').onclick=()=>{ if(paused){ paused=false;} else startGame(); menu.style.display='none';};
+    document.getElementById('settingsBtn').onclick=_=>{menu.style.display='none';settingsMenu.style.display='flex';};
+    document.getElementById('backBtn').onclick=_=>{settingsMenu.style.display='none';menu.style.display='flex';};
+    document.getElementById('quitBtn').onclick=_=>location.href='https://dipilo.github.io/other-projects';
+    const keys={}; window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true; if(e.key==='Escape'&& running){ paused=!paused; menu.style.display=paused?'flex':'none'; }});
+    window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+    function clamp(o){o.x=Math.max(o.r||enemyR,Math.min((o.r||enemyR)?W-o.r:W-enemyR,o.x));o.y=Math.max(o.r||enemyR,Math.min((o.r||enemyR)?H-o.r:H-enemyR,o.y));}
+    function separate(){for(let i=0;i<enemies.length;i++)for(let j=i+1;j<enemies.length;j++){let a=enemies[i],b=enemies[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d<2*enemyR){let ov=2*enemyR-d,ux=dx/d,uy=dy/d;b.x+=ux*ov/2;b.y+=uy*ov/2;a.x-=ux*ov/2;a.y-=uy*ov/2;}}}
+    function spawnEnemy(at){enemies.forEach(e=>{e.velX=e.velY=0;});let x,y;do{x=Math.random()*(W-2*enemyR)+enemyR;y=Math.random()*(H-2*enemyR)+enemyR;}while(Math.hypot(x-player.x,y-player.y)<player.r*4);if(at){x=at[0]+(Math.random()*200-100);y=at[1]+(Math.random()*200-100);x=Math.max(enemyR,Math.min(W-enemyR,x));y=Math.max(enemyR,Math.min(H-enemyR,y));}enemies.push({x,y,velX:0,velY:0,intercept:Math.random()<0.5});}
+    function reset(){running=false;enemies=[];player.x=W/2;player.y=H/2;player.velX=player.velY=0;level=1;}
+    function startGame(){reset();spawnEnemy();startTime=performance.now();running=true;paused=false;}
+    function update(dt){if(!running||paused)return;let ax=0,ay=0;if(keys['w'])ay--;if(keys['s'])ay++;if(keys['a'])ax--;if(keys['d'])ax++;if(physPlayer){player.velX+=(ax*player.speed)*dt/16;player.velY+=(ay*player.speed)*dt/16;player.velX*=0.9;player.velY*=0.9;player.x+=player.velX;player.y+=player.velY;}else{player.x+=ax*player.speed*dt/16;player.y+=ay*player.speed*dt/16;}clamp(player);enemies.forEach(e=>{let tx=player.x,ty=player.y;if(difficulty==='hard'&&e.intercept){let dist=Math.hypot(player.x-e.x,player.y-e.y),t=dist/enemySpeed;tx+=player.velX*t;ty+=player.velY*t;}if(physEnemies){e.velX+=(tx-e.x)*dt/16;e.velY+=(ty-e.y)*dt/16;e.velX*=0.9;e.velY*=0.9;e.x+=e.velX;e.y+=e.velY;}else{let dx=tx-e.x,dy=ty-e.y,d=Math.hypot(dx,dy);if(d>0){e.x+=(dx/d)*enemySpeed*dt/16;e.y+=(dy/d)*enemySpeed*dt/16;}}clamp(e);});separate();if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+enemyR))reset();let elapsed=(performance.now()-startTime)/1000;if(elapsed>=levelTime){let avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length,avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;level++;enemies.forEach(e=>e.intercept=Math.random()<0.5);spawnEnemy([avgX,avgY]);startTime=performance.now();}}  
+    function draw(){ctx.clearRect(0,0,W,H);let elapsed=running?(performance.now()-startTime)/1000:0,rem=Math.max(0,levelTime-Math.floor(elapsed));ctx.fillStyle='#222';ctx.font='200px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(rem,W/2,H/2);ctx.fillStyle='#fff';ctx.font='36px sans-serif';ctx.textBaseline='top';ctx.fillText('Level: '+level,W/2,10);ctx.drawImage(playerImg,player.x-player.r,player.y-player.r,player.r*2,player.r*2);enemies.forEach(e=>ctx.drawImage(enemyImg,e.x-enemyR,e.y-enemyR,enemyR*2,enemyR*2));}
+    let last=performance.now();(function loop(){let now=performance.now(),dt=now-last;update(dt);draw();last=now;requestAnimationFrame(loop);})();
   </script>
 </body>
 </html>
