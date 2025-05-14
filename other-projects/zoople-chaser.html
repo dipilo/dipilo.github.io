@@ -85,13 +85,12 @@
   const enemyImg  = new Image(); enemyImg.src  = '/images/zoople-chaser/zooplePurple.png';
   const dingSound = new Audio('/sounds/ding.mp3');
 
-  // Physics parameters: high acceleration for quick speeds
-  const ACC_PLAYER_BASE      = 6000;
-  const ACC_ENEMY_BASE       = 4000;
-  const DAMPING_PLAYER       = 0.92;
-  const DAMPING_ENEMY        = 0.92;
-  const SPEED_PLAYER         = 400;
-  const SPEED_ENEMY          = 250;
+  // Physics parameters: use steering for slip and drift
+  const MAX_SPEED_P = 400;
+  const MAX_SPEED_E = 250;
+  const STEER_FORCE_P = 8000;  // steering acceleration
+  const STEER_FORCE_E = 6000;
+  const DAMPING = 0.92;
 
   const player = { x:W/2, y:H/2, r:15, velX:0, velY:0 };
   let enemies = [];
@@ -137,15 +136,7 @@
     if(!running||paused) return;
     const ds = dt/1000;
 
-    // Difficulty scaling
-    const accP = ACC_PLAYER_BASE;
-    const accE = ACC_ENEMY_BASE;
-    const dampP= DAMPING_PLAYER;
-    const dampE= DAMPING_ENEMY;
-    const maxP = SPEED_PLAYER;
-    const maxE = SPEED_ENEMY;
-
-    // PLAYER
+    // PLAYER STEERING
     let ax=0, ay=0;
     if(keys['w']) ay--;
     if(keys['s']) ay++;
@@ -153,54 +144,67 @@
     if(keys['d']) ax++;
     if(mouseDown){ const dx=mouseX-player.x, dy=mouseY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; }}
     if(physPlayer) {
-      player.velX += ax*accP*ds;
-      player.velY += ay*accP*ds;
-      const pv = Math.hypot(player.velX, player.velY);
-      if(pv > maxP) { player.velX = player.velX/pv*maxP; player.velY = player.velY/pv*maxP; }
-      player.velX *= dampP;
-      player.velY *= dampP;
+      // desired velocity
+      const dvx = ax*MAX_SPEED_P - player.velX;
+      const dvy = ay*MAX_SPEED_P - player.velY;
+      // steering force limited
+      const dvmag = Math.hypot(dvx,dvy);
+      const maxForce = STEER_FORCE_P*ds;
+      const sx = dvmag>maxForce ? dvx/dvmag*maxForce : dvx;
+      const sy = dvmag>maxForce ? dvy/dvmag*maxForce : dvy;
+      player.velX += sx;
+      player.velY += sy;
+      player.velX *= DAMPING;
+      player.velY *= DAMPING;
       player.x += player.velX*ds;
       player.y += player.velY*ds;
     } else {
-      player.x += ax*maxP*ds;
-      player.y += ay*maxP*ds;
+      player.x += ax*MAX_SPEED_P*ds;
+      player.y += ay*MAX_SPEED_P*ds;
     }
     clamp(player);
 
-    // ENEMIES
-    if(spawnPause > 0) {
+    // ENEMY STEERING
+    if(spawnPause>0) {
       spawnPause -= ds;
     } else {
-      enemies.forEach(e => {
-        // Intercept
+      enemies.forEach(e=>{
+        // compute target with blended intercept
         let tx=player.x, ty=player.y;
         if(difficulty==='Hard' && e.intercept) {
           const leadTime = 0.5;
-          tx += player.velX * leadTime;
-          ty += player.velY * leadTime;
+          const ix = player.x + player.velX*leadTime;
+          const iy = player.y + player.velY*leadTime;
+          // blend 50% towards intercept point
+          tx = (tx + ix)*0.5;
+          ty = (ty + iy)*0.5;
         }
-        const dx=tx-e.x, dy=ty-e.y;
+        const dx = tx - e.x, dy = ty - e.y;
         const d = Math.hypot(dx,dy);
         const ux = d>0 ? dx/d : 0;
         const uy = d>0 ? dy/d : 0;
         if(physEnemies) {
-          e.velX += ux*accE*ds;
-          e.velY += uy*accE*ds;
-          const ev = Math.hypot(e.velX,e.velY);
-          if(ev > maxE) { e.velX=e.velX/ev*maxE; e.velY=e.velY/ev*maxE; }
-          e.velX *= dampE;
-          e.velY *= dampE;
+          const dvx = ux*MAX_SPEED_E - e.velX;
+          const dvy = uy*MAX_SPEED_E - e.velY;
+          const dvmag = Math.hypot(dvx,dvy);
+          const maxForceE = STEER_FORCE_E*ds;
+          const sx = dvmag>maxForceE ? dvx/dvmag*maxForceE : dvx;
+          const sy = dvmagic>maxForceE ? dvy/dvmag*maxForceE : dvy;
+          e.velX += sx;
+          e.velY += sy;
+          e.velX *= DAMPING;
+          e.velY *= DAMPING;
           e.x += e.velX*ds;
           e.y += e.velY*ds;
         } else {
-          e.x += ux*SPEED_ENEMY*ds;
-          e.y += uy*SPEED_ENEMY*ds;
+          e.x += ux*MAX_SPEED_E*ds;
+          e.y += uy*MAX_SPEED_E*ds;
         }
         clamp(e);
       });
       separate();
       if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
-      const elapsed = (performance.now()-pauseOffset - levelStartTime)/1000;
+      const elapsed = (performance.now()-pauseOffset-levelStartTime)/1000;
       if(elapsed>=levelDuration) {
         const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
         const avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
