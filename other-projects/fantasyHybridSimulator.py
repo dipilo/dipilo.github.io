@@ -1311,9 +1311,9 @@ def breed_from_saved(parent1_name, parent2_name):
         print("Miscarriage: Offspring species could not be determined after several attempts.")
         return None
 
-    # 2. Simulate stats for that species
-    top_expr = top_expression(offspring_geno["top"])
-    mid_expr = mid_expression(offspring_geno["mid"])
+    # 2. Simulate full stats for that species (includes senses, diet, magic, size, etc.)
+    top_expr    = top_expression(offspring_geno["top"])
+    mid_expr    = mid_expression(offspring_geno["mid"])
     bottom_expr = bottom_expression(offspring_geno["bottom"])
     sim_stats, sim_mutations = generate_individual_stats(species, top_expr, mid_expr, bottom_expr)
 
@@ -1411,12 +1411,19 @@ def breed_from_saved(parent1_name, parent2_name):
     if "Venom" in sim_mutations:
         combined_mutations["Venom"] = sim_mutations["Venom"]
 
-    # 9. Build & save the offspring record
+    for key, value in sim_stats.items():
+        if key not in final_stats:
+            final_stats[key] = value
+            # carry over any mutation note
+            if key in sim_mutations:
+                combined_mutations[key] = sim_mutations[key]
+
+    # 9. Build & save the offspring record with the truly complete statblock
     offspring = {
         "name": generate_unique_name(species_variant),
         "genotype": offspring_geno,
         "species": species_variant,
-        "stats": final_stats,
+        "stats": final_stats,     # now contains both core and detailed stats
         "mode": "saved_breed",
         "parents": [parent1_name, parent2_name]
     }
