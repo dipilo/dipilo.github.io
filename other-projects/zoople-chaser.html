@@ -8,7 +8,6 @@
     body { margin:0; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; }
     #gameContainer { position:relative; width:800px; height:600px; }
     #gameCanvas { background:#111; display:block; }
-
     .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:3; }
     #settings { display:none; z-index:4; }
     button { padding:12px 24px; font-size:20px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; transition:background .2s; }
@@ -49,56 +48,46 @@
   </div>
 
   <script>
-  // -- Setup canvas and state
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
 
-  // Settings defaults
   let physPlayer   = false;
   let physEnemies  = true;
   let difficulty   = 'Hard';
   let paused       = false;
   let running      = false;
-
-  // Pause movement for enemies when spawning
   let spawnPause   = 0;
 
-  // UI bindings
   document.getElementById('physPlayer').onchange   = e => physPlayer  = e.target.checked;
   document.getElementById('physEnemies').onchange  = e => physEnemies = e.target.checked;
   document.getElementById('difficultySelect').onchange = e => difficulty = e.target.value;
-  document.getElementById('playBtn').onclick = () => { paused = false; startGame(); document.getElementById('menu').style.display='none'; };
+  document.getElementById('playBtn').onclick = () => { paused = false; startGame(); toggle('menu', false); };
   document.getElementById('settingsBtn').onclick = () => { toggle('menu', false); toggle('settings', true); };
   document.getElementById('backBtn').onclick = () => { toggle('settings', false); toggle('menu', true); };
   document.getElementById('quitBtn').onclick = () => window.location.href = 'https://dipilo.github.io/other-projects';
 
-  function toggle(id, show) {
-    document.getElementById(id).style.display = show ? 'flex' : 'none';
-  }
+  function toggle(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
 
-  // Load resources
   const playerImg = new Image(); playerImg.src = '/images/zoople-chaser/zoopleWhite.png';
   const enemyImg  = new Image(); enemyImg.src  = '/images/zoople-chaser/zooplePurple.png';
   const dingSound = new Audio('/sounds/ding.mp3');
 
-  // Physics constants (equalized acceleration)
-  const ACC_PLAYER = 800;  // px/s^2
-  const ACC_ENEMY  = ACC_PLAYER;
+  const ACC_PLAYER = 800;
+  const ACC_ENEMY  = 800;
   const DAMPING    = 0.7;
-  const SPEED_PLAYER = 400; // px/s non-physics
+  const SPEED_PLAYER = 400;
   const SPEED_ENEMY  = 250;
+  const MAX_VEL_ENEMY = SPEED_ENEMY;
 
-  // Entities
   const player = { x:W/2, y:H/2, r:15, velX:0, velY:0 };
   let enemies = [];
   const ER = 15;
 
   let level = 1;
-  const levelDuration = 10; // seconds
+  const levelDuration = 10;
   let levelStartTime = 0;
 
-  // Input & mouse
   const keys = {};
   let mouseDown = false, mouseX=0, mouseY=0;
   window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if(e.key==='Escape'&&running){ paused=!paused; toggle('menu', paused); }});
@@ -108,11 +97,9 @@
   canvas.addEventListener('mousemove', e=>updateMouse(e));
   function updateMouse(e) { const r=canvas.getBoundingClientRect(); mouseX=e.clientX-r.left; mouseY=e.clientY-r.top; }
 
-  // Utility
   function clamp(o) { o.x = Math.max(o.r||ER, Math.min(W-(o.r||ER), o.x)); o.y = Math.max(o.r||ER, Math.min(H-(o.r||ER), o.y)); }
   function separate() { for(let i=0;i<enemies.length;i++) for(let j=i+1;j<enemies.length;j++){ const a=enemies[i], b=enemies[j]; const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy); if(d<2*ER){ const overlap=2*ER-d, ux=dx/d, uy=dy/d; a.x-=ux*overlap/2; a.y-=uy*overlap/2; b.x+=ux*overlap/2; b.y+=uy*overlap/2; } }}
 
-  // Spawn logic: reset enemy velocities, pause only enemies for 0.2s, play ding
   function spawnEnemy(at) {
     spawnPause = 0.2;
     enemies.forEach(e=>{ e.velX=0; e.velY=0; });
@@ -132,7 +119,7 @@
   function update(dt) {
     if(!running||paused) return;
     const ds=dt/1000;
-    // Player movement (physics or direct)
+    // Player
     let ax=0, ay=0;
     if(keys['w']) ay--;
     if(keys['s']) ay++;
@@ -143,38 +130,46 @@
     else { player.x+=ax*SPEED_PLAYER*ds; player.y+=ay*SPEED_PLAYER*ds; }
     clamp(player);
 
-    // Enemy movement (paused briefly after spawn)
-    if(spawnPause>0) {
-      spawnPause -= ds;
-    } else {
+    // Enemies
+    if(spawnPause>0) { spawnPause-=ds; }
+    else {
       enemies.forEach(e=>{
         let tx=player.x, ty=player.y;
         if(difficulty==='Hard'&&e.intercept){ const dist=Math.hypot(player.x-e.x,player.y-e.y); const t=dist/SPEED_ENEMY; tx+=player.velX*t; ty+=player.velY*t; }
-        if(physEnemies){ e.velX+=(tx-e.x)*ACC_ENEMY*ds; e.velY+=(ty-e.y)*ACC_ENEMY*ds; e.velX*=DAMPING; e.velY*=DAMPING; e.x+=e.velX*ds; e.y+=e.velY*ds; }
-        else { const dx=tx-e.x, dy=ty-e.y, d=Math.hypot(dx,dy); if(d>0){ e.x+=(dx/d)*SPEED_ENEMY*ds; e.y+=(dy/d)*SPEED_ENEMY*ds; }}
+        // acceleration independent of distance
+        const dx=tx-e.x, dy=ty-e.y; const d=Math.hypot(dx,dy);
+        let ux=0, uy=0;
+        if(d>0){ ux=dx/d; uy=dy/d; }
+        if(physEnemies){
+          e.velX+=ux*ACC_ENEMY*ds;
+          e.velY+=uy*ACC_ENEMY*ds;
+          // clamp velocity
+          const vmag=Math.hypot(e.velX,e.velY);
+          if(vmag>MAX_VEL_ENEMY){ e.velX=(e.velX/vmag)*MAX_VEL_ENEMY; e.velY=(e.velY/vmag)*MAX_VEL_ENEMY; }
+          e.velX*=DAMPING;
+          e.velY*=DAMPING;
+          e.x+=e.velX*ds;
+          e.y+=e.velY*ds;
+        } else {
+          if(d>0){ e.x+=ux*SPEED_ENEMY*ds; e.y+=uy*SPEED_ENEMY*ds; }
+        }
         clamp(e);
       });
       separate();
-      // Collision
       if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
-      // Level up & spawn next
       const elapsed=(performance.now()-levelStartTime)/1000;
       if(elapsed>=levelDuration){ const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; level++; enemies.forEach(e=>e.intercept=Math.random()<0.5); spawnEnemy([avgX,avgY]); levelStartTime=performance.now(); }
     }
   }
 
   function draw(){ ctx.clearRect(0,0,W,H); const elapsed=running?(performance.now()-levelStartTime)/1000:0; const rem=Math.max(0,levelDuration-Math.floor(elapsed));
-    // Timer
     ctx.fillStyle='#222'; ctx.font='200px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(rem,W/2,H/2);
-    // Level
     ctx.fillStyle='#fff'; ctx.font='36px sans-serif'; ctx.textBaseline='top'; ctx.fillText(`Level: ${level}`,W/2,10);
-    // Draw sprites
     ctx.drawImage(playerImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
     enemies.forEach(e=>{ ctx.drawImage(enemyImg, e.x-ER, e.y-ER, ER*2, ER*2); });
   }
 
-  let last=performance.now();
-  (function loop(){ const now=performance.now(); const dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
+  let last=performance.now(); (function loop(){ const now=performance.now(); const dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
   </script>
 </body>
 </html>
