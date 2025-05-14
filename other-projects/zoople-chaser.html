@@ -67,7 +67,6 @@
 
   document.getElementById('playBtn').onclick = () => {
     if(running && paused) {
-      // resume
       paused = false;
       pauseOffset += performance.now() - pauseStart;
       toggle('menu', false);
@@ -86,11 +85,11 @@
   const enemyImg  = new Image(); enemyImg.src  = '/images/zoople-chaser/zooplePurple.png';
   const dingSound = new Audio('/sounds/ding.mp3');
 
-  // Physics parameters
-  const ACC_PLAYER_BASE      = 2000;
-  const ACC_ENEMY_BASE       = 1200;
-  const DAMPING_PLAYER       = 0.8;
-  const DAMPING_ENEMY        = 0.85;
+  // Physics parameters: high acceleration for quick speeds
+  const ACC_PLAYER_BASE      = 6000;
+  const ACC_ENEMY_BASE       = 4000;
+  const DAMPING_PLAYER       = 0.92;
+  const DAMPING_ENEMY        = 0.92;
   const SPEED_PLAYER         = 400;
   const SPEED_ENEMY          = 250;
 
@@ -138,15 +137,15 @@
     if(!running||paused) return;
     const ds = dt/1000;
 
-    // Adjust parameters per difficulty
-    const accPlayer = ACC_PLAYER_BASE;
-    const accEnemy  = ACC_ENEMY_BASE * (difficulty==='Hard' ? 1.2 : 0.8);
-    const dampingP  = DAMPING_PLAYER;
-    const dampingE  = DAMPING_ENEMY;
-    const maxP      = SPEED_PLAYER;
-    const maxE      = SPEED_ENEMY * (difficulty==='Hard' ? 1.2 : 0.8);
+    // Difficulty scaling
+    const accP = ACC_PLAYER_BASE;
+    const accE = ACC_ENEMY_BASE;
+    const dampP= DAMPING_PLAYER;
+    const dampE= DAMPING_ENEMY;
+    const maxP = SPEED_PLAYER;
+    const maxE = SPEED_ENEMY;
 
-    // PLAYER MOVEMENT
+    // PLAYER
     let ax=0, ay=0;
     if(keys['w']) ay--;
     if(keys['s']) ay++;
@@ -154,81 +153,76 @@
     if(keys['d']) ax++;
     if(mouseDown){ const dx=mouseX-player.x, dy=mouseY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; }}
     if(physPlayer) {
-      player.velX += ax*accPlayer*ds;
-      player.velY += ay*accPlayer*ds;
+      player.velX += ax*accP*ds;
+      player.velY += ay*accP*ds;
       const pv = Math.hypot(player.velX, player.velY);
-      if(pv > maxP) {
-        player.velX = (player.velX/pv)*maxP;
-        player.velY = (player.velY/pv)*maxP;
-      }
-      player.velX *= dampingP;
-      player.velY *= dampingP;
+      if(pv > maxP) { player.velX = player.velX/pv*maxP; player.velY = player.velY/pv*maxP; }
+      player.velX *= dampP;
+      player.velY *= dampP;
       player.x += player.velX*ds;
       player.y += player.velY*ds;
     } else {
-      player.x += ax*SPEED_PLAYER*ds;
-      player.y += ay*SPEED_PLAYER*ds;
+      player.x += ax*maxP*ds;
+      player.y += ay*maxP*ds;
     }
     clamp(player);
 
-    // ENEMY MOVEMENT
-    if(spawnPause > 0) { spawnPause -= ds; }
-    else {
+    // ENEMIES
+    if(spawnPause > 0) {
+      spawnPause -= ds;
+    } else {
       enemies.forEach(e => {
+        // Intercept
         let tx=player.x, ty=player.y;
         if(difficulty==='Hard' && e.intercept) {
-          const dist = Math.hypot(player.x-e.x, player.y-e.y);
-          const t = dist / (SPEED_ENEMY * 1.2);
-          tx += player.velX*t; ty += player.velY*t;
+          const leadTime = 0.5;
+          tx += player.velX * leadTime;
+          ty += player.velY * leadTime;
         }
         const dx=tx-e.x, dy=ty-e.y;
-        const d=Math.hypot(dx,dy);
-        let ux=0, uy=0;
-        if(d>0){ ux=dx/d; uy=dy/d; }
+        const d = Math.hypot(dx,dy);
+        const ux = d>0 ? dx/d : 0;
+        const uy = d>0 ? dy/d : 0;
         if(physEnemies) {
-          e.velX += ux*accEnemy*ds;
-          e.velY += uy*accEnemy*ds;
-          const ev = Math.hypot(e.velX, e.velY);
-          if(ev > maxE) {
-            e.velX = (e.velX/ev)*maxE;
-            e.velY = (e.velY/ev)*maxE;
-          }
-          e.velX *= dampingE;
-          e.velY *= dampingE;
+          e.velX += ux*accE*ds;
+          e.velY += uy*accE*ds;
+          const ev = Math.hypot(e.velX,e.velY);
+          if(ev > maxE) { e.velX=e.velX/ev*maxE; e.velY=e.velY/ev*maxE; }
+          e.velX *= dampE;
+          e.velY *= dampE;
           e.x += e.velX*ds;
           e.y += e.velY*ds;
         } else {
-          if(d>0){ e.x += ux*SPEED_ENEMY*ds; e.y += uy*SPEED_ENEMY*ds; }
+          e.x += ux*SPEED_ENEMY*ds;
+          e.y += uy*SPEED_ENEMY*ds;
         }
         clamp(e);
       });
       separate();
       if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
-
-      const elapsed = (performance.now() - pauseOffset - levelStartTime) / 1000;
-      if(elapsed >= levelDuration) {
-        const avgX = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
-        const avgY = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+      const elapsed = (performance.now()-pauseOffset - levelStartTime)/1000;
+      if(elapsed>=levelDuration) {
+        const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+        const avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
         level++;
         enemies.forEach(e=>e.intercept=Math.random()<0.5);
         spawnEnemy([avgX,avgY]);
-        levelStartTime = performance.now() - pauseOffset;
+        levelStartTime=performance.now()-pauseOffset;
       }
     }
   }
 
   function draw(){
     ctx.clearRect(0,0,W,H);
-    const elapsed = running ? (performance.now()-pauseOffset - levelStartTime)/1000 : 0;
-    const rem = Math.max(0, levelDuration - Math.floor(elapsed));
+    const elapsed = running ? (performance.now()-pauseOffset-levelStartTime)/1000 : 0;
+    const rem = Math.max(0,levelDuration-Math.floor(elapsed));
     ctx.fillStyle='#222'; ctx.font='200px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(rem,W/2,H/2);
     ctx.fillStyle='#fff'; ctx.font='36px sans-serif'; ctx.textBaseline='top'; ctx.fillText(`Level: ${level}`,W/2,10);
     ctx.drawImage(playerImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
     enemies.forEach(e=>{ ctx.drawImage(enemyImg, e.x-ER, e.y-ER, ER*2, ER*2); });
   }
 
-  let last = performance.now();
-  (function loop(){ const now = performance.now(); const dt = now - last; update(dt); draw(); last = now; requestAnimationFrame(loop); })();
+  let last=performance.now(); (function loop(){ const now=performance.now(); const dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
   </script>
 </body>
 </html>
