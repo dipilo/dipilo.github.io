@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zoople Chaser</title>
+  <style>
+    body { margin:0; overflow:hidden; background:#000; color:#fff; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; }
+    #gameContainer { position:relative; }
+    #gameCanvas { background:#111; display:block; }
+    .overlay-top { position:absolute; top:10px; width:100%; text-align:center; font-size:36px; font-weight:bold; color:#fff; z-index:2; }
+    .overlay-center { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; z-index:2; }
+    #timerDisplay { font-size:200px; font-weight:bold; color:#222; margin:0; }
+    #menu { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:20px; z-index:3; }
+    #menu button { padding:20px 40px; font-size:24px; cursor:pointer; }
+    #settings { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; z-index:4; }
+  </style>
+</head>
+<body>
+<div id="gameContainer">
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div class="overlay-top" id="levelDisplay">Level: 1</div>
+  <div class="overlay-center" id="timerDisplay">10</div>
+  <div id="menu">
+    <button id="playBtn">Play</button>
+    <button id="settingsBtn">Settings</button>
+    <button id="quitBtn">Quit</button>
+  </div>
+  <div id="settings">
+    <h2>Settings</h2>
+    <!-- Add settings controls here -->
+    <button id="backBtn">Back</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const WIDTH = canvas.width, HEIGHT = canvas.height;
+
+// Load images
+const whiteImg = new Image(); whiteImg.src = '/images/zoople-chaser/zoopleWhite.png';
+const purpleImg = new Image(); purpleImg.src = '/images/zoople-chaser/zooplePurple.png';
+
+// Player
+const player = { x: WIDTH/2, y: HEIGHT/2, r: 15, speed: 5 };
+// Enemies
+const enemies = [];
+const enemyRadius = 15;
+const enemySpeed = 2;
+
+// Level
+let level = 1;
+const levelDuration = 10; // seconds
+let startTime;
+let running = false;
+
+// UI Elements
+const menu = document.getElementById('menu');
+const settingsPanel = document.getElementById('settings');
+const playBtn = document.getElementById('playBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const quitBtn = document.getElementById('quitBtn');
+const backBtn = document.getElementById('backBtn');
+const levelDisplay = document.getElementById('levelDisplay');
+const timerDisplay = document.getElementById('timerDisplay');
+
+playBtn.onclick = () => startGame();
+settingsBtn.onclick = () => { menu.style.display='none'; settingsPanel.style.display='block'; };
+backBtn.onclick = () => { settingsPanel.style.display='none'; menu.style.display='flex'; };
+quitBtn.onclick = () => window.location.href = 'https://dipilo.github.io/other-projects';
+
+// Input
+const keys = {};
+document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+function spawnEnemy(atPos) {
+  let x = Math.random()*(WIDTH-2*enemyRadius)+enemyRadius;
+  let y = Math.random()*(HEIGHT-2*enemyRadius)+enemyRadius;
+  if (atPos) {
+    x = atPos[0] + (Math.random()*200-100);
+    y = atPos[1] + (Math.random()*200-100);
+    x = Math.max(enemyRadius, Math.min(WIDTH-enemyRadius, x));
+    y = Math.max(enemyRadius, Math.min(HEIGHT-enemyRadius, y));
+  }
+  enemies.push({ x, y });
+}
+
+function separateEnemies() {
+  for (let i=0; i<enemies.length; i++) {
+    for (let j=i+1; j<enemies.length; j++) {
+      const a=enemies[i], b=enemies[j];
+      const dx=b.x-a.x, dy=b.y-a.y;
+      const dist=Math.hypot(dx,dy);
+      if (dist < enemyRadius*2) {
+        const overlap=enemyRadius*2-dist;
+        const ux=dx/dist, uy=dy/dist;
+        a.x -= ux*overlap/2; a.y -= uy*overlap/2;
+        b.x += ux*overlap/2; b.y += uy*overlap/2;
+      }
+    }
+  }
+}
+
+function resetGame() {
+  running=false;
+  level=1; enemies.length=0;
+  player.x=WIDTH/2; player.y=HEIGHT/2;
+  updateUI(0);
+  menu.style.display='flex';
+}
+
+function startGame() {
+  enemies.length=0; spawnEnemy();
+  player.x=WIDTH/2; player.y=HEIGHT/2;
+  level=1;
+  startTime = performance.now();
+  running = true;
+  menu.style.display='none'; settingsPanel.style.display='none';
+}
+
+function updateUI(elapsed) {
+  const remaining = Math.max(0, levelDuration - Math.floor(elapsed/1000));
+  timerDisplay.textContent = remaining;
+  levelDisplay.textContent = `Level: ${level}`;
+}
+
+function update() {
+  if (!running) return;
+  const now = performance.now();
+  const elapsed = now - startTime;
+  // Move player
+  if (keys['w'] && player.y-player.r>0) player.y -= player.speed;
+  if (keys['s'] && player.y+player.r<HEIGHT) player.y += player.speed;
+  if (keys['a'] && player.x-player.r>0) player.x -= player.speed;
+  if (keys['d'] && player.x+player.r<WIDTH) player.x += player.speed;
+  // Move enemies
+  enemies.forEach(e=>{
+    const dx=player.x-e.x, dy=player.y-e.y;
+    const dist=Math.hypot(dx,dy);
+    if(dist>0){ e.x+=(dx/dist)*enemySpeed; e.y+=(dy/dist)*enemySpeed; }
+  });
+  separateEnemies();
+  // Collisions
+  for (let e of enemies) {
+    if (Math.hypot(player.x-e.x, player.y-e.y) < player.r+enemyRadius) {
+      resetGame(); return;
+    }
+  }
+  updateUI(elapsed);
+  if (elapsed >= levelDuration*1000) {
+    const avg = [enemies.reduce((s,e)=>s+e.x,0)/enemies.length,
+                 enemies.reduce((s,e)=>s+e.y,0)/enemies.length];
+    level++;
+    spawnEnemy(avg);
+    startTime = performance.now();
+  }
+}
+
+function draw() {
+  ctx.clearRect(0,0,WIDTH,HEIGHT);
+  ctx.drawImage(whiteImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
+  enemies.forEach(e=>ctx.drawImage(purpleImg, e.x-enemyRadius, e.y-enemyRadius, enemyRadius*2, enemyRadius*2));
+}
+
+function loop() {
+  update(); draw();
+  requestAnimationFrame(loop);
+}
+
+// Start loop when images loaded
+purpleImg.onload = () => whiteImg.onload = () => loop();
+</script>
+</body>
+</html>
