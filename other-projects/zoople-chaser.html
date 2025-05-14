@@ -73,12 +73,14 @@
   const enemyImg  = new Image(); enemyImg.src  = '/images/zoople-chaser/zooplePurple.png';
   const dingSound = new Audio('/sounds/ding.mp3');
 
-  const ACC_PLAYER = 800;
-  const ACC_ENEMY  = 800;
-  const DAMPING    = 0.7;
-  const SPEED_PLAYER = 400;
-  const SPEED_ENEMY  = 250;
-  const MAX_VEL_ENEMY = SPEED_ENEMY;
+  // Increased forces and reduced damping for snappier physics
+  const ACC_PLAYER     = 1200;
+  const ACC_ENEMY      = 1200;
+  const DAMPING        = 0.9;
+  const SPEED_PLAYER   = 400;
+  const SPEED_ENEMY    = 250;
+  const MAX_VEL_PLAYER = SPEED_PLAYER;
+  const MAX_VEL_ENEMY  = SPEED_ENEMY;
 
   const player = { x:W/2, y:H/2, r:15, velX:0, velY:0 };
   let enemies = [];
@@ -105,10 +107,7 @@
     enemies.forEach(e=>{ e.velX=0; e.velY=0; });
     dingSound.play();
     let x,y;
-    do{
-      x=Math.random()*(W-2*ER)+ER;
-      y=Math.random()*(H-2*ER)+ER;
-    } while(Math.hypot(x-player.x,y-player.y)<player.r*4);
+    do{ x=Math.random()*(W-2*ER)+ER; y=Math.random()*(H-2*ER)+ER; } while(Math.hypot(x-player.x,y-player.y)<player.r*4);
     if(at){ x=at[0]+(Math.random()*200-100); y=at[1]+(Math.random()*200-100); x=Math.max(ER,Math.min(W-ER,x)); y=Math.max(ER,Math.min(H-ER,y)); }
     enemies.push({ x,y, velX:0, velY:0, intercept: Math.random()<0.5 });
   }
@@ -118,58 +117,91 @@
 
   function update(dt) {
     if(!running||paused) return;
-    const ds=dt/1000;
-    // Player
+    const ds = dt/1000;
+    // PLAYER
     let ax=0, ay=0;
     if(keys['w']) ay--;
     if(keys['s']) ay++;
     if(keys['a']) ax--;
     if(keys['d']) ax++;
     if(mouseDown){ const dx=mouseX-player.x, dy=mouseY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; }}
-    if(physPlayer){ player.velX+=ax*ACC_PLAYER*ds; player.velY+=ay*ACC_PLAYER*ds; player.velX*=DAMPING; player.velY*=DAMPING; player.x+=player.velX*ds; player.y+=player.velY*ds; }
-    else { player.x+=ax*SPEED_PLAYER*ds; player.y+=ay*SPEED_PLAYER*ds; }
+    if(physPlayer) {
+      player.velX += ax*ACC_PLAYER*ds;
+      player.velY += ay*ACC_PLAYER*ds;
+      // clamp player velocity
+      const pv = Math.hypot(player.velX, player.velY);
+      if(pv > MAX_VEL_PLAYER) {
+        player.velX = (player.velX/pv)*MAX_VEL_PLAYER;
+        player.velY = (player.velY/pv)*MAX_VEL_PLAYER;
+      }
+      player.velX *= DAMPING;
+      player.velY *= DAMPING;
+      player.x += player.velX*ds;
+      player.y += player.velY*ds;
+    } else {
+      player.x += ax*SPEED_PLAYER*ds;
+      player.y += ay*SPEED_PLAYER*ds;
+    }
     clamp(player);
 
-    // Enemies
-    if(spawnPause>0) { spawnPause-=ds; }
-    else {
-      enemies.forEach(e=>{
-        let tx=player.x, ty=player.y;
-        if(difficulty==='Hard'&&e.intercept){ const dist=Math.hypot(player.x-e.x,player.y-e.y); const t=dist/SPEED_ENEMY; tx+=player.velX*t; ty+=player.velY*t; }
-        // acceleration independent of distance
-        const dx=tx-e.x, dy=ty-e.y; const d=Math.hypot(dx,dy);
+    // ENEMIES
+    if(spawnPause > 0) {
+      spawnPause -= ds;
+    } else {
+      enemies.forEach(e => {
+        let tx = player.x, ty = player.y;
+        if(difficulty==='Hard' && e.intercept) {
+          const dist = Math.hypot(player.x-e.x, player.y-e.y);
+          const t = dist/SPEED_ENEMY;
+          tx += player.velX*t; ty += player.velY*t;
+        }
+        const dx = tx-e.x, dy = ty-e.y;
+        const d = Math.hypot(dx,dy);
         let ux=0, uy=0;
-        if(d>0){ ux=dx/d; uy=dy/d; }
-        if(physEnemies){
-          e.velX+=ux*ACC_ENEMY*ds;
-          e.velY+=uy*ACC_ENEMY*ds;
-          // clamp velocity
-          const vmag=Math.hypot(e.velX,e.velY);
-          if(vmag>MAX_VEL_ENEMY){ e.velX=(e.velX/vmag)*MAX_VEL_ENEMY; e.velY=(e.velY/vmag)*MAX_VEL_ENEMY; }
-          e.velX*=DAMPING;
-          e.velY*=DAMPING;
-          e.x+=e.velX*ds;
-          e.y+=e.velY*ds;
+        if(d>0) { ux=dx/d; uy=dy/d; }
+        if(physEnemies) {
+          e.velX += ux*ACC_ENEMY*ds;
+          e.velY += uy*ACC_ENEMY*ds;
+          const ev = Math.hypot(e.velX, e.velY);
+          if(ev > MAX_VEL_ENEMY) {
+            e.velX = (e.velX/ev)*MAX_VEL_ENEMY;
+            e.velY = (e.velY/ev)*MAX_VEL_ENEMY;
+          }
+          e.velX *= DAMPING;
+          e.velY *= DAMPING;
+          e.x += e.velX*ds;
+          e.y += e.velY*ds;
         } else {
-          if(d>0){ e.x+=ux*SPEED_ENEMY*ds; e.y+=uy*SPEED_ENEMY*ds; }
+          if(d>0) { e.x += ux*SPEED_ENEMY*ds; e.y += uy*SPEED_ENEMY*ds; }
         }
         clamp(e);
       });
       separate();
       if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
-      const elapsed=(performance.now()-levelStartTime)/1000;
-      if(elapsed>=levelDuration){ const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; level++; enemies.forEach(e=>e.intercept=Math.random()<0.5); spawnEnemy([avgX,avgY]); levelStartTime=performance.now(); }
+      const elapsed = (performance.now()-levelStartTime)/1000;
+      if(elapsed >= levelDuration) {
+        const avgX = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+        const avgY = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+        level++;
+        enemies.forEach(e=>e.intercept=Math.random()<0.5);
+        spawnEnemy([avgX,avgY]);
+        levelStartTime=performance.now();
+      }
     }
   }
 
-  function draw(){ ctx.clearRect(0,0,W,H); const elapsed=running?(performance.now()-levelStartTime)/1000:0; const rem=Math.max(0,levelDuration-Math.floor(elapsed));
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const elapsed = running ? (performance.now()-levelStartTime)/1000 : 0;
+    const rem = Math.max(0, levelDuration - Math.floor(elapsed));
     ctx.fillStyle='#222'; ctx.font='200px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(rem,W/2,H/2);
     ctx.fillStyle='#fff'; ctx.font='36px sans-serif'; ctx.textBaseline='top'; ctx.fillText(`Level: ${level}`,W/2,10);
     ctx.drawImage(playerImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
     enemies.forEach(e=>{ ctx.drawImage(enemyImg, e.x-ER, e.y-ER, ER*2, ER*2); });
   }
 
-  let last=performance.now(); (function loop(){ const now=performance.now(); const dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
+  let last = performance.now();
+  (function loop(){ const now = performance.now(); const dt = now - last; update(dt); draw(); last = now; requestAnimationFrame(loop); })();
   </script>
 </body>
 </html>
