@@ -13,286 +13,99 @@
     .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:3; }
     #settings { background:rgba(0,0,0,0.8); z-index:4; display:none; }
 
-    /* Button */
-    button { padding:12px 24px; font-size:20px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; transition:background 0.2s, border-color 0.2s; }
+    button { padding:12px 24px; font-size:20px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; transition:background .2s, border-color .2s; }
     button:hover { background:rgba(255,255,255,0.2); border-color:#888; }
-
-    /* Checkbox Toggle */
+    .toggle, .dropdown { display:inline-block; }
+    /* toggle switch */
     .toggle {
-      position: relative;
-      width: 50px;
-      height: 24px;
-      background: #444;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
+      position:relative; width:50px; height:24px; cursor:pointer;
     }
-    .toggle input { display: none; }
-    .toggle .track {
-      position:absolute; inset:0; border-radius:12px; background:#444;
-      transition: background 0.2s;
-    }
-    .toggle .thumb {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 20px;
-      height: 20px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform 0.2s;
-    }
-    .toggle input:checked ~ .track { background: #4caf50; }
-    .toggle input:checked ~ .track + .thumb { transform: translateX(26px); }
-
-    /* Dropdown */
-    .dropdown { position: relative; display: inline-block; }
-    .dropdown select {
-      appearance: none;
-      padding: 10px 40px 10px 16px;
-      font-size:18px;
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border:2px solid #444;
-      border-radius:6px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .dropdown select:hover { background: rgba(255,255,255,0.2); border-color:#888; }
+    .toggle input { display:none; }
+    .toggle .track { position:absolute; inset:0; background:#444; border-radius:12px; transition:background .2s; }
+    .toggle .thumb { position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .2s; }
+    .toggle input:checked + .track { background:#4caf50; }
+    .toggle input:checked + .track + .thumb { transform:translateX(26px); }
+    /* dropdown */
+    .dropdown { position:relative; }
+    .dropdown select { appearance:none; padding:10px 40px 10px 16px; font-size:18px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; transition:background .2s, border-color .2s; }
+    .dropdown select:hover { background:rgba(255,255,255,0.2); border-color:#888; }
     .dropdown select option { background:#444; color:#fff; }
-    .dropdown::after {
-      content: '▾';
-      position: absolute;
-      top:50%; right:12px;
-      transform: translateY(-50%);
-      pointer-events: none;
-      color: #fff;
-    }
+    .dropdown::after { content:'▾'; position:absolute; top:50%; right:12px; transform:translateY(-50%); color:#fff; pointer-events:none; }
   </style>
 </head>
 <body>
   <div id="gameContainer">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
-
     <div id="menu" class="overlay">
       <button id="playBtn">Play</button>
       <button id="settingsBtn">Settings</button>
       <button id="quitBtn">Quit</button>
     </div>
-
     <div id="settings" class="overlay">
       <h2 style="color:#fff; margin:0;">Settings</h2>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="color:#fff;">Enable Physics</span>
-        <label class="toggle">
-          <input type="checkbox" id="physicsToggle" checked />
-          <div class="track"></div>
-          <div class="thumb"></div>
-        </label>
+      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
+        <span>Physics Player</span>
+        <label class="toggle"><input type="checkbox" id="physPlayer" checked/><div class="track"></div><div class="thumb"></div></label>
       </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="color:#fff;">Difficulty:</span>
-        <div class="dropdown">
-          <select id="difficultySelect">
-            <option value="easy">Easy</option>
-            <option value="hard" selected>Hard</option>
-          </select>
-        </div>
+      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
+        <span>Physics Enemies</span>
+        <label class="toggle"><input type="checkbox" id="physEnemies" checked/><div class="track"></div><div class="thumb"></div></label>
+      </div>
+      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
+        <span>Difficulty</span>
+        <div class="dropdown"><select id="difficultySelect"><option value="easy">Easy</option><option value="hard" selected>Hard</option></select></div>
       </div>
       <button id="backBtn">Back</button>
     </div>
   </div>
-
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const WIDTH = canvas.width, HEIGHT = canvas.height;
-
-    // Settings
-    let physicsOn = true;
-    let difficulty = 'hard';
-
-    // Load images
-    const whiteImg = new Image(); whiteImg.src = '/images/zoople-chaser/zoopleWhite.png';
-    const purpleImg = new Image(); purpleImg.src = '/images/zoople-chaser/zooplePurple.png';
-
-    // Player
-    const player = { x: WIDTH/2, y: HEIGHT/2, r: 15, speed: 0.2, velX: 0, velY: 0 };
-    // Enemies
-    const enemies = [];
-    const enemyRadius = 15;
-    const enemySpeed = 0.1;
-
-    // Level
-    let level = 1;
-    const levelDuration = 10;
-    let startTime;
-    let running = false;
-
-    // UI elements
-    const menu = document.getElementById('menu');
-    const settings = document.getElementById('settings');
-    const playBtn = document.getElementById('playBtn');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const quitBtn = document.getElementById('quitBtn');
-    const backBtn = document.getElementById('backBtn');
-    const physToggle = document.getElementById('physicsToggle');
-    const diffSelect = document.getElementById('difficultySelect');
-
-    playBtn.onclick = () => startGame();
-    settingsBtn.onclick = () => { menu.style.display='none'; settings.style.display='flex'; };
-    backBtn.onclick = () => { settings.style.display='none'; menu.style.display='flex'; };
-    quitBtn.onclick = () => window.location.href = 'https://dipilo.github.io/other-projects';
-
-    physToggle.addEventListener('change', () => physicsOn = physToggle.checked);
-    diffSelect.addEventListener('change', () => difficulty = diffSelect.value);
-
-    // Input tracking
-    const keys = {};
-    document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-    document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-    function spawnEnemy(atPos) {
-      let x, y;
-      do {
-        x = Math.random()*(WIDTH-2*enemyRadius) + enemyRadius;
-        y = Math.random()*(HEIGHT-2*enemyRadius) + enemyRadius;
-      } while (Math.hypot(x-player.x, y-player.y) < player.r*4);
-      if (atPos) {
-        x = atPos[0] + (Math.random()*200 - 100);
-        y = atPos[1] + (Math.random()*200 - 100);
-        x = Math.max(enemyRadius, Math.min(WIDTH-enemyRadius, x));
-        y = Math.max(enemyRadius, Math.min(HEIGHT-enemyRadius, y));
-      }
-      enemies.push({ x, y, velX:0, velY:0, intercept: Math.random()<0.5 });
-    }
-
-    function separateEnemies() {
-      for (let i=0; i<enemies.length; i++) {
-        for (let j=i+1; j<enemies.length; j++) {
-          const a = enemies[i], b = enemies[j];
-          const dx = b.x - a.x, dy = b.y - a.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist < enemyRadius*2) {
-            const overlap = enemyRadius*2 - dist;
-            const ux = dx/dist, uy = dy/dist;
-            b.x += ux*overlap/2; b.y += uy*overlap/2;
-            a.x -= ux*overlap/2; a.y -= uy*overlap/2;
-          }
-        }
-      }
-    }
-
-    function resetGame() {
-      running = false;
-      level = 1;
-      enemies.length = 0;
-      player.x = WIDTH/2; player.y = HEIGHT/2;
-      player.velX = player.velY = 0;
-      menu.style.display = 'flex';
-    }
-
-    function startGame() {
-      enemies.length = 0;
-      spawnEnemy();
-      player.x = WIDTH/2; player.y = HEIGHT/2;
-      player.velX = player.velY = 0;
-      level = 1;
-      startTime = performance.now();
-      running = true;
-      menu.style.display = 'none';
-      settings.style.display = 'none';
-    }
-
-    function drawBackground(elapsed) {
-      const secs = Math.floor(elapsed/1000);
-      const remaining = Math.max(0, levelDuration - secs);
-      ctx.fillStyle = '#222';
-      ctx.font = '200px sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(remaining, WIDTH/2, HEIGHT/2);
-      ctx.fillStyle = '#fff';
-      ctx.font = '36px sans-serif';
-      ctx.textBaseline = 'top';
-      ctx.fillText(`Level: ${level}`, WIDTH/2, 10);
-    }
-
-    function update() {
-      if (!running) return;
-      const now = performance.now();
-      const elapsed = now - startTime;
-      let ax=0, ay=0;
-      if (keys['w']) ay -= player.speed;
-      if (keys['s']) ay += player.speed;
-      if (keys['a']) ax -= player.speed;
-      if (keys['d']) ax += player.speed;
-      if (physicsOn) {
-        player.velX += ax;
-        player.velY += ay;
-        player.velX *= 0.9;
-        player.velY *= 0.9;
-        player.x += player.velX;
-        player.y += player.velY;
-      } else {
-        player.x += ax*50;
-        player.y += ay*50;
-      }
-      player.x = Math.max(player.r, Math.min(WIDTH-player.r, player.x));
-      player.y = Math.max(player.r, Math.min(HEIGHT-player.r, player.y));
-
-      enemies.forEach(e => {
-        let tx = player.x, ty = player.y;
-        if (difficulty==='hard' && e.intercept) {
-          tx += player.velX*50;
-          ty += player.velY*50;
-        }
-        if (physicsOn) {
-          e.velX += (tx-e.x)*enemySpeed;
-          e.velY += (ty-e.y)*enemySpeed;
-          e.velX *= 0.9;
-          e.velY *= 0.9;
-          e.x += e.velX;
-          e.y += e.velY;
-        } else {
-          const dx = tx-e.x, dy = ty-e.y;
-          const d = Math.hypot(dx,dy);
-          if (d>0) {
-            e.x += (dx/d)*enemySpeed*50;
-            e.y += (dy/d)*enemySpeed*50;
-          }
-        }
-        e.x = Math.max(enemyRadius, Math.min(WIDTH-enemyRadius, e.x));
-        e.y = Math.max(enemyRadius, Math.min(HEIGHT-enemyRadius, e.y));
-      });
-
-      separateEnemies();
-      for (let e of enemies) {
-        if (Math.hypot(player.x-e.x, player.y-e.y) < player.r+enemyRadius) {
-          resetGame(); return;
-        }
-      }
-      if (elapsed >= levelDuration*1000) {
-        const avgX = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
-        const avgY = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
-        level++;
-        spawnEnemy([avgX,avgY]);
-        startTime = performance.now();
-      }
-    }
-
-    function draw() {
-      ctx.clearRect(0,0,WIDTH,HEIGHT);
-      const elapsed = running ? (performance.now()-startTime) : 0;
-      drawBackground(elapsed);
-      ctx.drawImage(whiteImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
-      enemies.forEach(e => ctx.drawImage(purpleImg, e.x-enemyRadius, e.y-enemyRadius, enemyRadius*2, enemyRadius*2));
-    }
-
-    (function loop() {
-      update();
-      draw();
-      requestAnimationFrame(loop);
-    })();
-  </script>
+<script>
+const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+const {width:W, height:H} = canvas;
+// Settings
+let physPlayer=true, physEnemies=true, difficulty='hard';
+document.getElementById('physPlayer').onchange=e=>physPlayer=e.target.checked;
+document.getElementById('physEnemies').onchange=e=>physEnemies=e.target.checked;
+document.getElementById('difficultySelect').onchange=e=>difficulty=e.target.value;
+// Load sprites
+const playerImg=new Image(), enemyImg=new Image();
+playerImg.src='/images/zoople-chaser/zoopleWhite.png';
+enemyImg.src='/images/zoople-chaser/zooplePurple.png';
+// Entities
+overlayLabels=['Level','Timer'];
+const player={x:W/2,y:H/2,r:15,speed:4,velX:0,velY:0};
+let enemies=[];
+const enemyR=15; const eSpeed=3;
+// Game state
+let level=1, levelTime=10, startTime=0, running=false, freezeTime=0;
+// UI
+const menu=document.getElementById('menu'), settings=document.getElementById('settings');
+document.getElementById('playBtn').onclick=start;
+document.getElementById('settingsBtn').onclick=_=>{menu.style.display='none';settings.style.display='flex';};
+document.getElementById('backBtn').onclick=_=>{settings.style.display='none';menu.style.display='flex';};
+document.getElementById('quitBtn').onclick=_=>location.href='https://dipilo.github.io/other-projects';
+// Input
+const keys={};window.addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+function spawnEnemy(at){let x,y;do{x=Math.random()*(W-2*enemyR)+enemyR; y=Math.random()*(H-2*enemyR)+enemyR;}while(Math.hypot(x-player.x,y-player.y)<player.r*3);
+ if(at){x=at[0]+(Math.random()*200-100);y=at[1]+(Math.random()*200-100); x=Math.max(enemyR,Math.min(W-enemyR,x)); y=Math.max(enemyR,Math.min(H-enemyR,y));}
+ enemies.push({x,y,velX:0,velY:0,intercept:Math.random()<0.5}); freezeTime=1000;
+}
+function clamp(o){o.x=Math.max(o.r||enemyR,Math.min((o.r||enemyR)?W-o.r:W-enemyR,o.x)); o.y=Math.max(o.r||enemyR,Math.min((o.r||enemyR)?H-o.r:H-enemyR,o.y));}
+function separate(){for(let i=0;i<enemies.length;i++)for(let j=i+1;j<enemies.length;j++){let a=enemies[i],b=enemies[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d<2*enemyR){let ov=2*enemyR-d,ux=dx/d,uy=dy/d; b.x+=ux*ov/2; b.y+=uy*ov/2; a.x-=ux*ov/2; a.y-=uy*ov/2;}}}
+function reset(){running=false;enemies=[];player.x=W/2;player.y=H/2;player.velX=player.velY=0;level=1;menu.style.display='flex';}
+function start(){reset();spawnEnemy();startTime=performance.now();running=true;menu.style.display='none';settings.style.display='none';}
+function update(dt){if(!running)return; if(freezeTime>0){freezeTime-=dt; if(freezeTime<=0)startTime=performance.now(); return;} let ax=0,ay=0; if(keys['w'])ay--; if(keys['s'])ay++; if(keys['a'])ax--; if(keys['d'])ax++;
+ if(physPlayer){player.velX+=(ax*player.speed)*dt/16;player.velY+=(ay*player.speed)*dt/16;player.velX*=0.9;player.velY*=0.9;player.x+=player.velX;player.y+=player.velY;}else{player.x+=ax*player.speed;player.y+=ay*player.speed;} clamp(player);
+ enemies.forEach(e=>{let tx=player.x,ty=player.y; if(difficulty==='hard'&&e.intercept){let dx=player.velX,dy=player.velY; let dist=Math.hypot(player.x-e.x,player.y-e.y); let t=dist/eSpeed; tx+=dx*t; ty+=dy*t;} if(physEnemies){e.velX+=(tx-e.x)*dt/16; e.velY+=(ty-e.y)*dt/16; e.velX*=0.9; e.velY*=0.9; e.x+=e.velX; e.y+=e.velY;} else{let dx=tx-e.x,dy=ty-e.y,d=Math.hypot(dx,dy);if(d>0){e.x+=(dx/d)*eSpeed; e.y+=(dy/d)*eSpeed;}} clamp(e);}); separate(); // collision
+ if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+enemyR))return reset(); // level
+ let elapsed=(performance.now()-startTime); if(elapsed>=levelTime*1000){let avg=[enemies.reduce((s,e)=>s+e.x,0)/enemies.length, enemies.reduce((s,e)=>s+e.y,0)/enemies.length]; level++; enemies.forEach(e=>e.intercept=Math.random()<0.5); spawnEnemy(avg);} }
+function draw(){ctx.clearRect(0,0,W,H); let elapsed=running?performance.now()-startTime:0; // background
+ ctx.fillStyle='#222';ctx.font='200px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(Math.max(0,levelTime-Math.floor(elapsed/1000)),W/2,H/2);
+ ctx.fillStyle='#fff';ctx.font='36px sans-serif';ctx.textBaseline='top';ctx.fillText('Level: '+level,W/2,10);
+ // entities
+ ctx.drawImage(playerImg,player.x-player.r,player.y-player.r,player.r*2,player.r*2);
+ enemies.forEach(e=>ctx.drawImage(enemyImg,e.x-enemyR,e.y-enemyR,enemyR*2,enemyR*2)); }
+let last=performance.now();(function loop(){let now=performance.now(),dt=now-last;update(dt);draw();last=now;requestAnimationFrame(loop);})();
+</script>
 </body>
 </html>
