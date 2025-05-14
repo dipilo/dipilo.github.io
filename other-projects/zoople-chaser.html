@@ -58,11 +58,24 @@
   let paused       = false;
   let running      = false;
   let spawnPause   = 0;
+  let pauseStart   = 0;
+  let pauseOffset  = 0;
 
   document.getElementById('physPlayer').onchange   = e => physPlayer  = e.target.checked;
   document.getElementById('physEnemies').onchange  = e => physEnemies = e.target.checked;
   document.getElementById('difficultySelect').onchange = e => difficulty = e.target.value;
-  document.getElementById('playBtn').onclick = () => { paused = false; startGame(); toggle('menu', false); };
+
+  document.getElementById('playBtn').onclick = () => {
+    if(running && paused) {
+      // resume
+      paused = false;
+      pauseOffset += performance.now() - pauseStart;
+      toggle('menu', false);
+    } else {
+      startGame();
+      toggle('menu', false);
+    }
+  };
   document.getElementById('settingsBtn').onclick = () => { toggle('menu', false); toggle('settings', true); };
   document.getElementById('backBtn').onclick = () => { toggle('settings', false); toggle('menu', true); };
   document.getElementById('quitBtn').onclick = () => window.location.href = 'https://dipilo.github.io/other-projects';
@@ -73,14 +86,13 @@
   const enemyImg  = new Image(); enemyImg.src  = '/images/zoople-chaser/zooplePurple.png';
   const dingSound = new Audio('/sounds/ding.mp3');
 
-  // Increased forces and reduced damping for snappier physics
-  const ACC_PLAYER     = 1200;
-  const ACC_ENEMY      = 1200;
-  const DAMPING        = 0.9;
-  const SPEED_PLAYER   = 400;
-  const SPEED_ENEMY    = 250;
-  const MAX_VEL_PLAYER = SPEED_PLAYER;
-  const MAX_VEL_ENEMY  = SPEED_ENEMY;
+  // Physics parameters
+  const ACC_PLAYER_BASE      = 2000;
+  const ACC_ENEMY_BASE       = 1200;
+  const DAMPING_PLAYER       = 0.8;
+  const DAMPING_ENEMY        = 0.85;
+  const SPEED_PLAYER         = 400;
+  const SPEED_ENEMY          = 250;
 
   const player = { x:W/2, y:H/2, r:15, velX:0, velY:0 };
   let enemies = [];
@@ -92,10 +104,17 @@
 
   const keys = {};
   let mouseDown = false, mouseX=0, mouseY=0;
-  window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if(e.key==='Escape'&&running){ paused=!paused; toggle('menu', paused); }});
+  window.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+    if(e.key==='Escape' && running) {
+      paused = !paused;
+      if(paused) pauseStart = performance.now();
+      toggle('menu', paused);
+    }
+  });
   window.addEventListener('keyup',   e => keys[e.key.toLowerCase()] = false);
   canvas.addEventListener('mousedown', e=>{ if(e.button===0){ mouseDown=true; updateMouse(e); }});
-  window.addEventListener('mouseup',   ()=>mouseDown=false);
+  window.addEventListener('mouseup',  ()=>mouseDown=false);
   canvas.addEventListener('mousemove', e=>updateMouse(e));
   function updateMouse(e) { const r=canvas.getBoundingClientRect(); mouseX=e.clientX-r.left; mouseY=e.clientY-r.top; }
 
@@ -112,13 +131,22 @@
     enemies.push({ x,y, velX:0, velY:0, intercept: Math.random()<0.5 });
   }
 
-  function resetGame(){ running=false; enemies=[]; player.x=W/2; player.y=H/2; player.velX=0; player.velY=0; level=1; toggle('menu', true); }
+  function resetGame(){ running=false; enemies=[]; player.x=W/2; player.y=H/2; player.velX=0; player.velY=0; level=1; pauseOffset=0; toggle('menu', true); }
   function startGame(){ resetGame(); spawnEnemy(); levelStartTime=performance.now(); running=true; paused=false; }
 
   function update(dt) {
     if(!running||paused) return;
     const ds = dt/1000;
-    // PLAYER
+
+    // Adjust parameters per difficulty
+    const accPlayer = ACC_PLAYER_BASE;
+    const accEnemy  = ACC_ENEMY_BASE * (difficulty==='Hard' ? 1.2 : 0.8);
+    const dampingP  = DAMPING_PLAYER;
+    const dampingE  = DAMPING_ENEMY;
+    const maxP      = SPEED_PLAYER;
+    const maxE      = SPEED_ENEMY * (difficulty==='Hard' ? 1.2 : 0.8);
+
+    // PLAYER MOVEMENT
     let ax=0, ay=0;
     if(keys['w']) ay--;
     if(keys['s']) ay++;
@@ -126,16 +154,15 @@
     if(keys['d']) ax++;
     if(mouseDown){ const dx=mouseX-player.x, dy=mouseY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; }}
     if(physPlayer) {
-      player.velX += ax*ACC_PLAYER*ds;
-      player.velY += ay*ACC_PLAYER*ds;
-      // clamp player velocity
+      player.velX += ax*accPlayer*ds;
+      player.velY += ay*accPlayer*ds;
       const pv = Math.hypot(player.velX, player.velY);
-      if(pv > MAX_VEL_PLAYER) {
-        player.velX = (player.velX/pv)*MAX_VEL_PLAYER;
-        player.velY = (player.velY/pv)*MAX_VEL_PLAYER;
+      if(pv > maxP) {
+        player.velX = (player.velX/pv)*maxP;
+        player.velY = (player.velY/pv)*maxP;
       }
-      player.velX *= DAMPING;
-      player.velY *= DAMPING;
+      player.velX *= dampingP;
+      player.velY *= dampingP;
       player.x += player.velX*ds;
       player.y += player.velY*ds;
     } else {
@@ -144,55 +171,55 @@
     }
     clamp(player);
 
-    // ENEMIES
-    if(spawnPause > 0) {
-      spawnPause -= ds;
-    } else {
+    // ENEMY MOVEMENT
+    if(spawnPause > 0) { spawnPause -= ds; }
+    else {
       enemies.forEach(e => {
-        let tx = player.x, ty = player.y;
+        let tx=player.x, ty=player.y;
         if(difficulty==='Hard' && e.intercept) {
           const dist = Math.hypot(player.x-e.x, player.y-e.y);
-          const t = dist/SPEED_ENEMY;
+          const t = dist / (SPEED_ENEMY * 1.2);
           tx += player.velX*t; ty += player.velY*t;
         }
-        const dx = tx-e.x, dy = ty-e.y;
-        const d = Math.hypot(dx,dy);
+        const dx=tx-e.x, dy=ty-e.y;
+        const d=Math.hypot(dx,dy);
         let ux=0, uy=0;
-        if(d>0) { ux=dx/d; uy=dy/d; }
+        if(d>0){ ux=dx/d; uy=dy/d; }
         if(physEnemies) {
-          e.velX += ux*ACC_ENEMY*ds;
-          e.velY += uy*ACC_ENEMY*ds;
+          e.velX += ux*accEnemy*ds;
+          e.velY += uy*accEnemy*ds;
           const ev = Math.hypot(e.velX, e.velY);
-          if(ev > MAX_VEL_ENEMY) {
-            e.velX = (e.velX/ev)*MAX_VEL_ENEMY;
-            e.velY = (e.velY/ev)*MAX_VEL_ENEMY;
+          if(ev > maxE) {
+            e.velX = (e.velX/ev)*maxE;
+            e.velY = (e.velY/ev)*maxE;
           }
-          e.velX *= DAMPING;
-          e.velY *= DAMPING;
+          e.velX *= dampingE;
+          e.velY *= dampingE;
           e.x += e.velX*ds;
           e.y += e.velY*ds;
         } else {
-          if(d>0) { e.x += ux*SPEED_ENEMY*ds; e.y += uy*SPEED_ENEMY*ds; }
+          if(d>0){ e.x += ux*SPEED_ENEMY*ds; e.y += uy*SPEED_ENEMY*ds; }
         }
         clamp(e);
       });
       separate();
       if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
-      const elapsed = (performance.now()-levelStartTime)/1000;
+
+      const elapsed = (performance.now() - pauseOffset - levelStartTime) / 1000;
       if(elapsed >= levelDuration) {
         const avgX = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
         const avgY = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
         level++;
         enemies.forEach(e=>e.intercept=Math.random()<0.5);
         spawnEnemy([avgX,avgY]);
-        levelStartTime=performance.now();
+        levelStartTime = performance.now() - pauseOffset;
       }
     }
   }
 
   function draw(){
     ctx.clearRect(0,0,W,H);
-    const elapsed = running ? (performance.now()-levelStartTime)/1000 : 0;
+    const elapsed = running ? (performance.now()-pauseOffset - levelStartTime)/1000 : 0;
     const rem = Math.max(0, levelDuration - Math.floor(elapsed));
     ctx.fillStyle='#222'; ctx.font='200px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(rem,W/2,H/2);
     ctx.fillStyle='#fff'; ctx.font='36px sans-serif'; ctx.textBaseline='top'; ctx.fillText(`Level: ${level}`,W/2,10);
