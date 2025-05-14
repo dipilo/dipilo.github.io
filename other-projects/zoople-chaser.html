@@ -85,12 +85,13 @@
   const enemyImg  = new Image(); enemyImg.src  = '/images/zoople-chaser/zooplePurple.png';
   const dingSound = new Audio('/sounds/ding.mp3');
 
-  // Physics parameters: use steering for slip and drift
+  // Steering physics parameters
   const MAX_SPEED_P = 400;
   const MAX_SPEED_E = 250;
-  const STEER_FORCE_P = 8000;  // steering acceleration
+  const STEER_FORCE_P = 8000;
   const STEER_FORCE_E = 6000;
   const DAMPING = 0.92;
+  const INTERCEPT_CONE = Math.cos(Math.PI / 6); // 30° cone
 
   const player = { x:W/2, y:H/2, r:15, velX:0, velY:0 };
   let enemies = [];
@@ -110,10 +111,10 @@
       toggle('menu', paused);
     }
   });
-  window.addEventListener('keyup',   e => keys[e.key.toLowerCase()] = false);
-  canvas.addEventListener('mousedown', e=>{ if(e.button===0){ mouseDown=true; updateMouse(e); }});
-  window.addEventListener('mouseup',  ()=>mouseDown=false);
-  canvas.addEventListener('mousemove', e=>updateMouse(e));
+  window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+  canvas.addEventListener('mousedown', e => { if(e.button===0){ mouseDown=true; updateMouse(e); }});
+  window.addEventListener('mouseup', () => mouseDown=false);
+  canvas.addEventListener('mousemove', e => updateMouse(e));
   function updateMouse(e) { const r=canvas.getBoundingClientRect(); mouseX=e.clientX-r.left; mouseY=e.clientY-r.top; }
 
   function clamp(o) { o.x = Math.max(o.r||ER, Math.min(W-(o.r||ER), o.x)); o.y = Math.max(o.r||ER, Math.min(H-(o.r||ER), o.y)); }
@@ -144,89 +145,84 @@
     if(keys['d']) ax++;
     if(mouseDown){ const dx=mouseX-player.x, dy=mouseY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; }}
     if(physPlayer) {
-      // desired velocity
       const dvx = ax*MAX_SPEED_P - player.velX;
       const dvy = ay*MAX_SPEED_P - player.velY;
-      // steering force limited
-      const dvmag = Math.hypot(dvx,dvy);
-      const maxForce = STEER_FORCE_P*ds;
-      const sx = dvmag>maxForce ? dvx/dvmag*maxForce : dvx;
-      const sy = dvmag>maxForce ? dvy/dvmag*maxForce : dvy;
-      player.velX += sx;
-      player.velY += sy;
-      player.velX *= DAMPING;
-      player.velY *= DAMPING;
-      player.x += player.velX*ds;
-      player.y += player.velY*ds;
-    } else {
-      player.x += ax*MAX_SPEED_P*ds;
-      player.y += ay*MAX_SPEED_P*ds;
-    }
+      const dvm = Math.hypot(dvx,dvy);
+      const maxF = STEER_FORCE_P*ds;
+      const sx = dvm>maxF ? dvx/dvm*maxF : dvx;
+      const sy = dvm>maxF ? dvy/dvm*maxF : dvy;
+      player.velX += sx; player.velY += sy;
+      player.velX *= DAMPING; player.velY *= DAMPING;
+      player.x += player.velX*ds; player.y += player.velY*ds;
+    } else { player.x += ax*MAX_SPEED_P*ds; player.y += ay*MAX_SPEED_P*ds; }
     clamp(player);
 
     // ENEMY STEERING
-    if(spawnPause>0) {
-      spawnPause -= ds;
-    } else {
-      enemies.forEach(e=>{
-        // compute target with blended intercept
-        let tx=player.x, ty=player.y;
-        if(difficulty==='Hard' && e.intercept) {
-          const leadTime = 0.5;
-          const ix = player.x + player.velX*leadTime;
-          const iy = player.y + player.velY*leadTime;
-          // blend 50% towards intercept point
-          tx = (tx + ix)*0.5;
-          ty = (ty + iy)*0.5;
-        }
-        const dx = tx - e.x, dy = ty - e.y;
-        const d = Math.hypot(dx,dy);
-        const ux = d>0 ? dx/d : 0;
-        const uy = d>0 ? dy/d : 0;
-        if(physEnemies) {
-          const dvx = ux*MAX_SPEED_E - e.velX;
-          const dvy = uy*MAX_SPEED_E - e.velY;
-          const dvmag = Math.hypot(dvx,dvy);
-          const maxForceE = STEER_FORCE_E*ds;
-          const sx = dvmag>maxForceE ? dvx/dvmag*maxForceE : dvx;
-          const sy = dvmagic>maxForceE ? dvy/dvmag*maxForceE : dvy;
-          e.velX += sx;
-          e.velY += sy;
-          e.velX *= DAMPING;
-          e.velY *= DAMPING;
-          e.x += e.velX*ds;
-          e.y += e.velY*ds;
+    if(spawnPause>0) spawnPause -= ds;
+    else enemies.forEach(e=>{
+      // Determine target: intercept or direct
+      let tx = player.x, ty = player.y;
+      if(difficulty==='Hard' && e.intercept) {
+        // compute intercept point
+        const leadTime = 0.5;
+        const ix = player.x + player.velX*leadTime;
+        const iy = player.y + player.velY*leadTime;
+        const distDirect = Math.hypot(player.x - e.x, player.y - e.y);
+        const distIntercept = Math.hypot(ix - e.x, iy - e.y);
+        // check cone facing or closer
+        const ux_e = (player.x - e.x)/distDirect;
+        const uy_e = (player.y - e.y)/distDirect;
+        const pv = Math.hypot(player.velX, player.velY);
+        const upx = pv>0 ? player.velX/pv : 0;
+        const upy = pv>0 ? player.velY/pv : 0;
+        const dot = ux_e*upx + uy_e*upy;
+        if(distDirect < distIntercept || dot > INTERCEPT_CONE) {
+          // go direct
         } else {
-          e.x += ux*MAX_SPEED_E*ds;
-          e.y += uy*MAX_SPEED_E*ds;
+          // blend offset
+          tx = (player.x + ix)*0.5; ty = (player.y + iy)*0.5;
         }
-        clamp(e);
-      });
-      separate();
-      if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
-      const elapsed = (performance.now()-pauseOffset-levelStartTime)/1000;
-      if(elapsed>=levelDuration) {
-        const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
-        const avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
-        level++;
-        enemies.forEach(e=>e.intercept=Math.random()<0.5);
-        spawnEnemy([avgX,avgY]);
-        levelStartTime=performance.now()-pauseOffset;
       }
+      const dx = tx - e.x, dy = ty - e.y;
+      const d = Math.hypot(dx,dy);
+      const ux = d>0 ? dx/d : 0;
+      const uy = d>0 ? dy/d : 0;
+      if(physEnemies) {
+        const dvx = ux*MAX_SPEED_E - e.velX;
+        const dvy = uy*MAX_SPEED_E - e.velY;
+        const dvm = Math.hypot(dvx,dvy);
+        const maxF = STEER_FORCE_E*ds;
+        const sx = dvm>maxF ? dvx/dvm*maxF : dvx;
+        const sy = dvm>maxF ? dvy/dvm*maxF : dvy;
+        e.velX += sx; e.velY += sy;
+        e.velX *= DAMPING; e.velY *= DAMPING;
+        e.x += e.velX*ds; e.y += e.velY*ds;
+      } else { e.x += ux*MAX_SPEED_E*ds; e.y += uy*MAX_SPEED_E*ds; }
+      clamp(e);
+    });
+    separate();
+    if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
+
+    const elapsed = (performance.now() - pauseOffset - levelStartTime)/1000;
+    if(elapsed >= levelDuration) {
+      const avgX = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+      const avgY = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+      level++; enemies.forEach(e=>e.intercept=Math.random()<0.5); spawnEnemy([avgX,avgY]); levelStartTime = performance.now() - pauseOffset;
     }
   }
 
   function draw(){
     ctx.clearRect(0,0,W,H);
     const elapsed = running ? (performance.now()-pauseOffset-levelStartTime)/1000 : 0;
-    const rem = Math.max(0,levelDuration-Math.floor(elapsed));
+    const rem = Math.max(0, levelDuration - Math.floor(elapsed));
     ctx.fillStyle='#222'; ctx.font='200px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(rem,W/2,H/2);
     ctx.fillStyle='#fff'; ctx.font='36px sans-serif'; ctx.textBaseline='top'; ctx.fillText(`Level: ${level}`,W/2,10);
     ctx.drawImage(playerImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
     enemies.forEach(e=>{ ctx.drawImage(enemyImg, e.x-ER, e.y-ER, ER*2, ER*2); });
   }
 
-  let last=performance.now(); (function loop(){ const now=performance.now(); const dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
+  let last=performance.now();
+  (function loop(){ const now=performance.now(); const dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
   </script>
 </body>
 </html>
