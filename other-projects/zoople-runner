@@ -27,7 +27,8 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const WIDTH = canvas.width, HEIGHT = canvas.height;
 
-// Load images\ const whiteImg = new Image(); whiteImg.src = '/images/zoople-chaser/zoopleWhite.png';
+// Load images\ 
+const whiteImg = new Image(); whiteImg.src = '/images/zoople-chaser/zoopleWhite.png';
 const purpleImg = new Image(); purpleImg.src = '/images/zoople-chaser/zooplePurple.png';
 
 // Player
