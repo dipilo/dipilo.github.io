@@ -1342,9 +1342,14 @@ def breed_from_saved(parent1_name, parent2_name):
     #    sim_stats["Thaumacyst Capacity"] is "current/max"
     cur_max = sim_stats["Thaumacyst Capacity"].split("/")
     current, maximum = float(cur_max[0]), float(cur_max[1])
+
+    # require at least 20% above the “pure average” baseline
+    MAGIC_THRESHOLD_MULTIPLIER = 1.2
+
     has_high_magic = (
-        sim_stats["Thaumagen Production Rate"] > avg_thaumagen or
-        maximum > avg_thaumacyst
+        sim_stats["Thaumagen Production Rate"] > avg_thaumagen * MAGIC_THRESHOLD_MULTIPLIER
+        or
+        maximum > avg_thaumacyst * MAGIC_THRESHOLD_MULTIPLIER
     )
 
     # 6. Helpers for variant checks
