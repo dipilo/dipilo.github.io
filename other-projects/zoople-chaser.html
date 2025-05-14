@@ -10,26 +10,18 @@
     #gameContainer { position:relative; width:800px; height:600px; }
     #gameCanvas { background:#111; display:block; }
 
-    /* Level & Timer overlays */
-    .overlay-top { position:absolute; top:10px; width:100%; text-align:center; font-size:36px; font-weight:bold; color:#fff; z-index:2; }
-    .overlay-center { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; z-index:2; }
-    #timerDisplay { font-size:200px; font-weight:bold; color:#222; margin:0; }
-
     /* Menu & buttons */
     #menu { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:3; }
-    #menu button { padding:16px 32px; font-size:24px; font-weight:bold; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:8px; cursor:pointer; transition:background 0.2s, border-color 0.2s; }
-    #menu button:hover { background:rgba(255,255,255,0.2); border-color:#888; }
+    #menu button, #settings button { padding:16px 32px; font-size:24px; font-weight:bold; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:8px; cursor:pointer; transition:background 0.2s, border-color 0.2s; }
+    #menu button:hover, #settings button:hover { background:rgba(255,255,255,0.2); border-color:#888; }
 
     /* Settings panel */
-    #settings { display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); color:#fff; z-index:4; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    #settings button { margin-top:20px; padding:10px 20px; font-size:18px; }
+    #settings { display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); color:#fff; z-index:4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
   </style>
 </head>
 <body>
 <div id="gameContainer">
   <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div class="overlay-top" id="levelDisplay">Level: 1</div>
-  <div class="overlay-center" id="timerDisplay">10</div>
   <div id="menu">
     <button id="playBtn">Play</button>
     <button id="settingsBtn">Settings</button>
@@ -51,11 +43,11 @@ const whiteImg = new Image(); whiteImg.src = '/images/zoople-chaser/zoopleWhite.
 const purpleImg = new Image(); purpleImg.src = '/images/zoople-chaser/zooplePurple.png';
 
 // Player
-const player = { x: WIDTH/2, y: HEIGHT/2, r: 15, speed: 5 };
+const player = { x: WIDTH/2, y: HEIGHT/2, r: 15, speed: 4 };
 // Enemies
 const enemies = [];
 const enemyRadius = 15;
-const enemySpeed = 2;
+const enemySpeed = 3;
 
 // Level
 let level = 1;
@@ -70,8 +62,6 @@ const playBtn = document.getElementById('playBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const quitBtn = document.getElementById('quitBtn');
 const backBtn = document.getElementById('backBtn');
-const levelDisplay = document.getElementById('levelDisplay');
-const timerDisplay = document.getElementById('timerDisplay');
 
 playBtn.onclick = () => startGame();
 settingsBtn.onclick = () => { menu.style.display='none'; settingsPanel.style.display='flex'; };
@@ -115,7 +105,6 @@ function resetGame() {
   running=false;
   level=1; enemies.length=0;
   player.x=WIDTH/2; player.y=HEIGHT/2;
-  updateUI(0);
   menu.style.display='flex';
 }
 
@@ -128,11 +117,19 @@ function startGame() {
   menu.style.display='none'; settingsPanel.style.display='none';
 }
 
-function updateUI(elapsed) {
+function drawBackground(elapsed) {
+  // Draw timer
   const secs = Math.floor(elapsed/1000);
   const remaining = Math.max(0, levelDuration - secs);
-  timerDisplay.textContent = remaining;
-  levelDisplay.textContent = `Level: ${level}`;
+  ctx.fillStyle = '#222';
+  ctx.font = '200px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(remaining, WIDTH/2, HEIGHT/2);
+  // Draw level
+  ctx.fillStyle = '#fff';
+  ctx.font = '36px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText(`Level: ${level}`, WIDTH/2, 10);
 }
 
 function update() {
@@ -157,7 +154,7 @@ function update() {
       resetGame(); return;
     }
   }
-  updateUI(elapsed);
+  // Level complete
   if (elapsed >= levelDuration*1000) {
     const avg = [enemies.reduce((s,e)=>s+e.x,0)/enemies.length,
                  enemies.reduce((s,e)=>s+e.y,0)/enemies.length];
@@ -169,6 +166,9 @@ function update() {
 
 function draw() {
   ctx.clearRect(0,0,WIDTH,HEIGHT);
+  const elapsed = running ? (performance.now()-startTime) : 0;
+  drawBackground(elapsed);
+  // Draw player & enemies
   ctx.drawImage(whiteImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
   enemies.forEach(e=>ctx.drawImage(purpleImg, e.x-enemyRadius, e.y-enemyRadius, enemyRadius*2, enemyRadius*2));
 }
