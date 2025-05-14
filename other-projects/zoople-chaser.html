@@ -68,8 +68,8 @@
     const enemyImg  = new Image(); enemyImg.src  = '/images/zoople-chaser/zooplePurple.png';
 
     // Speeds in pixels per second
-    const PLAYER_BASE_SPEED = 200;
-    const ENEMY_BASE_SPEED  = 150;
+    const PLAYER_BASE_SPEED = 300;
+    const ENEMY_BASE_SPEED  = 200;
 
     const player = { x: W/2, y: H/2, r: 15, velX: 0, velY: 0 };
     let enemies = [];
@@ -95,9 +95,7 @@
       settingsMenu.style.display = 'none';
       menu.style.display = 'flex';
     };
-    document.getElementById('quitBtn').onclick = () => {
-      window.location.href = 'https://dipilo.github.io/other-projects';
-    };
+    document.getElementById('quitBtn').onclick = () => window.location.href = 'https://dipilo.github.io/other-projects';
 
     const keys = {};
     window.addEventListener('keydown', e => {
@@ -133,18 +131,22 @@
     }
 
     function spawnEnemy(at) {
+      // Stop enemy movement briefly
       enemies.forEach(e => { e.velX = 0; e.velY = 0; });
+
       let x, y;
       do {
         x = Math.random() * (W - 2*enemyR) + enemyR;
         y = Math.random() * (H - 2*enemyR) + enemyR;
       } while (Math.hypot(x - player.x, y - player.y) < player.r * 4);
+
       if (at) {
         x = at[0] + (Math.random() * 200 - 100);
         y = at[1] + (Math.random() * 200 - 100);
         x = Math.max(enemyR, Math.min(W - enemyR, x));
         y = Math.max(enemyR, Math.min(H - enemyR, y));
       }
+
       enemies.push({ x, y, velX: 0, velY: 0, intercept: Math.random() < 0.5 });
     }
 
@@ -180,8 +182,8 @@
       if (physPlayer) {
         player.velX += ax * PLAYER_BASE_SPEED * delta;
         player.velY += ay * PLAYER_BASE_SPEED * delta;
-        player.velX *= 0.8;
-        player.velY *= 0.8;
+        player.velX *= 0.7;
+        player.velY *= 0.7;
         player.x += player.velX * delta;
         player.y += player.velY * delta;
       } else {
@@ -202,8 +204,8 @@
         if (physEnemies) {
           e.velX += (tx - e.x) * delta;
           e.velY += (ty - e.y) * delta;
-          e.velX *= 0.8;
-          e.velY *= 0.8;
+          e.velX *= 0.7;
+          e.velY *= 0.7;
           e.x += e.velX * delta;
           e.y += e.velY * delta;
         } else {
