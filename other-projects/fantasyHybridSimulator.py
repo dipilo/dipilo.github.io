@@ -1504,16 +1504,19 @@ class HybridCLI:
             else:
                 arg1, arg2 = parts[1].lower(), parts[2].lower()
 
-                # — Saved‐hybrid branch —
+                # — Saved-hybrid branch —
                 if self.SAVE_MODE and arg1 in self.saved_hybrids and arg2 in self.saved_hybrids:
-                    # Try up to 10 times, with full variant & stat logic inside breed_from_saved()
+                    # Make breed_from_saved use our in-memory store
+                    global saved_hybrids
+                    saved_hybrids = self.saved_hybrids
+
                     result = breed_from_saved(arg1, arg2)
                     if result is None:
                         output += "Miscarriage: could not determine offspring species after 10 attempts.\n"
                         return output
 
                     offspring, mutations = result
-                    # Store into this session
+                    # Store back into session memory
                     self.saved_hybrids[offspring["name"].lower()] = offspring
 
                     output += "\n--- BREEDING RESULT (from saved hybrids) ---\n"
@@ -1533,8 +1536,9 @@ class HybridCLI:
                         if stat in mutations:
                             output += f"                <-- {mutations[stat]}\n"
 
-                # === Known-species branch ===
+                # — Known-species branch remains unchanged —
                 else:
+                    # … your existing cross_breed_random + stats + variant logic …
                     try:
                         MAX_ATTEMPTS = 10
                         for _ in range(MAX_ATTEMPTS):
@@ -1542,7 +1546,7 @@ class HybridCLI:
                             if result["phenotype"] is not None:
                                 break
                         else:
-                            output += "Miscarriage: could not determine offspring species.\n"
+                            output += "Miscarriage: Offspring species could not be determined after several attempts.\n"
                             return output
                     except ValueError as e:
                         output += f"Error: {e}\n"
