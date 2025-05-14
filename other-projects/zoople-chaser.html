@@ -2,183 +2,178 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zoople Chaser</title>
   <style>
     /* Base & centering */
-    body { margin:0; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; }
-    #gameContainer { position:relative; width:800px; height:600px; }
-    #gameCanvas { background:#111; display:block; }
+    body { margin: 0; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+    #gameContainer { position: relative; width: 800px; height: 600px; }
+    #gameCanvas { background: #111; display: block; }
 
     /* Menu & buttons */
-    #menu { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:3; }
-    #menu button, #settings button { padding:16px 32px; font-size:24px; font-weight:bold; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:8px; cursor:pointer; transition:background 0.2s, border-color 0.2s; }
-    #menu button:hover, #settings button:hover { background:rgba(255,255,255,0.2); border-color:#888; }
+    #menu { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: rgba(0,0,0,0.7); z-index: 3; }
+    #menu button, #settings button { padding: 16px 32px; font-size: 24px; font-weight: bold; background: rgba(255,255,255,0.1); color: #fff; border: 2px solid #444; border-radius: 8px; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+    #menu button:hover, #settings button:hover { background: rgba(255,255,255,0.2); border-color: #888; }
 
     /* Settings panel */
-    #settings { display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); color:#fff; z-index:4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+    #settings { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.8); color: #fff; z-index: 4; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
   </style>
 </head>
 <body>
-<div id="gameContainer">
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div id="menu">
-    <button id="playBtn">Play</button>
-    <button id="settingsBtn">Settings</button>
-    <button id="quitBtn">Quit</button>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="menu">
+      <button id="playBtn">Play</button>
+      <button id="settingsBtn">Settings</button>
+      <button id="quitBtn">Quit</button>
+    </div>
+    <div id="settings">
+      <h2>Settings</h2>
+      <!-- Add settings controls here -->
+      <button id="backBtn">Back</button>
+    </div>
   </div>
-  <div id="settings">
-    <h2>Settings</h2>
-    <!-- Add settings controls here -->
-    <button id="backBtn">Back</button>
-  </div>
-</div>
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const WIDTH = canvas.width, HEIGHT = canvas.height;
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const WIDTH = canvas.width, HEIGHT = canvas.height;
 
-// Load images
-const whiteImg = new Image(); whiteImg.src = '/images/zoople-chaser/zoopleWhite.png';
-const purpleImg = new Image(); purpleImg.src = '/images/zoople-chaser/zooplePurple.png';
+    // Load images
+    const whiteImg = new Image(); whiteImg.src = '/images/zoople-chaser/zoopleWhite.png';
+    const purpleImg = new Image(); purpleImg.src = '/images/zoople-chaser/zooplePurple.png';
 
-// Player
-const player = { x: WIDTH/2, y: HEIGHT/2, r: 15, speed: 4 };
-// Enemies
-const enemies = [];
-const enemyRadius = 15;
-const enemySpeed = 3;
+    // Player
+    const player = { x: WIDTH/2, y: HEIGHT/2, r: 15, speed: 4 };
+    // Enemies
+    const enemies = [];
+    const enemyRadius = 15;
+    const enemySpeed = 3;
 
-// Level
-let level = 1;
-const levelDuration = 10; // seconds
-let startTime;
-let running = false;
+    // Level
+    let level = 1;
+    const levelDuration = 10; // seconds
+    let startTime;
+    let running = false;
 
-// UI Elements
-const menu = document.getElementById('menu');
-const settingsPanel = document.getElementById('settings');
-const playBtn = document.getElementById('playBtn');
-const settingsBtn = document.getElementById('settingsBtn');
-const quitBtn = document.getElementById('quitBtn');
-const backBtn = document.getElementById('backBtn');
+    // UI Elements
+    const menu = document.getElementById('menu');
+    const settingsPanel = document.getElementById('settings');
+    const playBtn = document.getElementById('playBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const quitBtn = document.getElementById('quitBtn');
+    const backBtn = document.getElementById('backBtn');
 
-playBtn.onclick = () => startGame();
-settingsBtn.onclick = () => { menu.style.display='none'; settingsPanel.style.display='flex'; };
-backBtn.onclick = () => { settingsPanel.style.display='none'; menu.style.display='flex'; };
-quitBtn.onclick = () => window.location.href = 'https://dipilo.github.io/other-projects';
+    playBtn.onclick = () => startGame();
+    settingsBtn.onclick = () => { menu.style.display = 'none'; settingsPanel.style.display = 'flex'; };
+    backBtn.onclick = () => { settingsPanel.style.display = 'none'; menu.style.display = 'flex'; };
+    quitBtn.onclick = () => window.location.href = 'https://dipilo.github.io/other-projects';
 
-// Input
-const keys = {};
-document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+    // Input
+    const keys = {};
+    document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+    document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-function spawnEnemy(atPos) {
-  let x = Math.random()*(WIDTH-2*enemyRadius)+enemyRadius;
-  let y = Math.random()*(HEIGHT-2*enemyRadius)+enemyRadius;
-  if (atPos) {
-    x = atPos[0] + (Math.random()*200-100);
-    y = atPos[1] + (Math.random()*200-100);
-    x = Math.max(enemyRadius, Math.min(WIDTH-enemyRadius, x));
-    y = Math.max(enemyRadius, Math.min(HEIGHT-enemyRadius, y));
-  }
-  enemies.push({ x, y });
-}
+    function spawnEnemy(atPos) {
+      let x = Math.random() * (WIDTH - 2 * enemyRadius) + enemyRadius;
+      let y = Math.random() * (HEIGHT - 2 * enemyRadius) + enemyRadius;
+      if (atPos) {
+        x = atPos[0] + (Math.random() * 200 - 100);
+        y = atPos[1] + (Math.random() * 200 - 100);
+        x = Math.max(enemyRadius, Math.min(WIDTH - enemyRadius, x));
+        y = Math.max(enemyRadius, Math.min(HEIGHT - enemyRadius, y));
+      }
+      enemies.push({ x, y });
+    }
 
-function separateEnemies() {
-  for (let i=0; i<enemies.length; i++) {
-    for (let j=i+1; j<enemies.length; j++) {
-      const a=enemies[i], b=enemies[j];
-      const dx=b.x-a.x, dy=b.y-a.y;
-      const dist=Math.hypot(dx,dy);
-      if (dist < enemyRadius*2) {
-        const overlap=enemyRadius*2-dist;
-        const ux=dx/dist, uy=dy/dist;
-        a.x -= ux*overlap/2; a.y -= uy*overlap/2;
-        b.x += ux*overlap/2; b.y += uy*overlap/2;
+    function separateEnemies() {
+      for (let i = 0; i < enemies.length; i++) {
+        for (let j = i + 1; j < enemies.length; j++) {
+          const a = enemies[i], b = enemies[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < enemyRadius * 2) {
+            const overlap = enemyRadius * 2 - dist;
+            const ux = dx / dist, uy = dy / dist;
+            a.x -= ux * overlap / 2; a.y -= uy * overlap / 2;
+            b.x += ux * overlap / 2; b.y += uy * overlap / 2;
+          }
+        }
       }
     }
-  }
-}
 
-function resetGame() {
-  running=false;
-  level=1; enemies.length=0;
-  player.x=WIDTH/2; player.y=HEIGHT/2;
-  menu.style.display='flex';
-}
-
-function startGame() {
-  enemies.length=0; spawnEnemy();
-  player.x=WIDTH/2; player.y=HEIGHT/2;
-  level=1;
-  startTime = performance.now();
-  running = true;
-  menu.style.display='none'; settingsPanel.style.display='none';
-}
-
-function drawBackground(elapsed) {
-  // Draw timer
-  const secs = Math.floor(elapsed/1000);
-  const remaining = Math.max(0, levelDuration - secs);
-  ctx.fillStyle = '#222';
-  ctx.font = '200px sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(remaining, WIDTH/2, HEIGHT/2);
-  // Draw level
-  ctx.fillStyle = '#fff';
-  ctx.font = '36px sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.fillText(`Level: ${level}`, WIDTH/2, 10);
-}
-
-function update() {
-  if (!running) return;
-  const now = performance.now();
-  const elapsed = now - startTime;
-  // Move player
-  if (keys['w'] && player.y-player.r>0) player.y -= player.speed;
-  if (keys['s'] && player.y+player.r<HEIGHT) player.y += player.speed;
-  if (keys['a'] && player.x-player.r>0) player.x -= player.speed;
-  if (keys['d'] && player.x+player.r<WIDTH) player.x += player.speed;
-  // Move enemies
-  enemies.forEach(e=>{
-    const dx=player.x-e.x, dy=player.y-e.y;
-    const dist=Math.hypot(dx,dy);
-    if(dist>0){ e.x+=(dx/dist)*enemySpeed; e.y+=(dy/dist)*enemySpeed; }
-  });
-  separateEnemies();
-  // Collisions
-  for (let e of enemies) {
-    if (Math.hypot(player.x-e.x, player.y-e.y) < player.r+enemyRadius) {
-      resetGame(); return;
+    function resetGame() {
+      running = false;
+      level = 1; enemies.length = 0;
+      player.x = WIDTH/2; player.y = HEIGHT/2;
+      menu.style.display = 'flex';
     }
-  }
-  // Level complete
-  if (elapsed >= levelDuration*1000) {
-    const avg = [enemies.reduce((s,e)=>s+e.x,0)/enemies.length,
-                 enemies.reduce((s,e)=>s+e.y,0)/enemies.length];
-    level++;
-    spawnEnemy(avg);
-    startTime = performance.now();
-  }
-}
 
-function draw() {
-  ctx.clearRect(0,0,WIDTH,HEIGHT);
-  const elapsed = running ? (performance.now()-startTime) : 0;
-  drawBackground(elapsed);
-  // Draw player & enemies
-  ctx.drawImage(whiteImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
-  enemies.forEach(e=>ctx.drawImage(purpleImg, e.x-enemyRadius, e.y-enemyRadius, enemyRadius*2, enemyRadius*2));
-}
+    function startGame() {
+      enemies.length = 0; spawnEnemy();
+      player.x = WIDTH/2; player.y = HEIGHT/2;
+      level = 1;
+      startTime = performance.now();
+      running = true;
+      menu.style.display = 'none'; settingsPanel.style.display = 'none';
+    }
 
-function loop() {
-  update(); draw();
-  requestAnimationFrame(loop);
-}
+    function drawBackground(elapsed) {
+      // timer
+      const secs = Math.floor(elapsed / 1000);
+      const remaining = Math.max(0, levelDuration - secs);
+      ctx.fillStyle = '#222';
+      ctx.font = '200px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(remaining, WIDTH/2, HEIGHT/2);
+      // level
+      ctx.fillStyle = '#fff';
+      ctx.font = '36px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(`Level: ${level}`, WIDTH/2, 10);
+    }
 
-purpleImg.onload = () => whiteImg.onload = () => loop();
-</script>
+    function update() {
+      if (!running) return;
+      const now = performance.now();
+      const elapsed = now - startTime;
+      // player movement
+      if (keys['w'] && player.y - player.r > 0) player.y -= player.speed;
+      if (keys['s'] && player.y + player.r < HEIGHT) player.y += player.speed;
+      if (keys['a'] && player.x - player.r > 0) player.x -= player.speed;
+      if (keys['d'] && player.x + player.r < WIDTH) player.x += player.speed;
+      // enemies
+      enemies.forEach(e => {
+        const dx = player.x - e.x, dy = player.y - e.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0) { e.x += (dx/dist) * enemySpeed; e.y += (dy/dist) * enemySpeed; }
+      });
+      separateEnemies();
+      // collision
+      for (let e of enemies) {
+        if (Math.hypot(player.x - e.x, player.y - e.y) < player.r + enemyRadius) {
+          resetGame(); return;
+        }
+      }
+      // level up
+      if (elapsed >= levelDuration * 1000) {
+        const avg = [enemies.reduce((s,e)=>s+e.x,0)/enemies.length,
+                     enemies.reduce((s,e)=>s+e.y,0)/enemies.length];
+        level++; spawnEnemy(avg); startTime = performance.now();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      const elapsed = running ? (performance.now() - startTime) : 0;
+      drawBackground(elapsed);
+      // zooples
+      ctx.drawImage(whiteImg, player.
+x - player.r, player.y - player.r, player.r*2, player.r*2);
+      enemies.forEach(e => ctx.drawImage(purpleImg, e.x - enemyRadius, e.y - enemyRadius, enemyRadius*2, enemyRadius*2));
+    }
+
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    loop();
+  </script>
 </body>
 </html>
