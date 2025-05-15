@@ -98,7 +98,32 @@
     window.addEventListener('resize',check);check();
 
     function clamp(o){o.x=Math.max(o.r||ER,Math.min(W-(o.r||ER),o.x));o.y=Math.max(o.r||ER,Math.min(H-(o.r||ER),o.y));}
-    function separate(arr,ds){arr.forEach((a,i)=>arr.forEach((b,j)=>{if(i!==j){const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);if(d<SEP_R){const push=(SEP_R-d)/d*SEP_F*ds;a.velX+=dx/d*push;a.velY+=dy/d*push;}}}));}
+    function separate(arr, ds) {
+    // Velocity-based repulsion
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = i + 1; j < arr.length; j++) {
+        const a = arr[i], b = arr[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.hypot(dx, dy);
+        const minDist = (a.r || ER) + (b.r || ER);
+        if (dist > 0 && dist < minDist) {
+          // positional separation
+          const overlap = (minDist - dist) / 2;
+          const ux = dx / dist, uy = dy / dist;
+          a.x += ux * overlap;
+          a.y += uy * overlap;
+          b.x -= ux * overlap;
+          b.y -= uy * overlap;
+          // velocity repulsion
+          const push = (minDist - dist) / dist * SEP_F * ds;
+          a.velX += ux * push;
+          a.velY += uy * push;
+          b.velX -= ux * push;
+          b.velY -= uy * push;
+        }
+      }
+    }
+  }
 
     function spawn(at){spawnPause=0.2;enemies.forEach(e=>{e.velX=0;e.velY=0;});ding.play();let x,y;do{x=Math.random()*(W-2*ER)+ER;y=Math.random()*(H-2*ER)+ER;}while(Math.hypot(x-player.x,y-player.y)<player.r*4);if(at){x=at[0]+(Math.random()*200-100);y=at[1]+(Math.random()*200-100);x=Math.max(ER,Math.min(W-ER,x));y=Math.max(ER,Math.min(H-ER,y));}enemies.push({x,y,velX:0,velY:0,mass:MASS.enemy,intercept:Math.random()<0.5});}
     function reset(){running=false;enemies=[];player.x=W/2;player.y=H/2;player.velX=0;player.velY=0;level=1;pauseOffset=0;menu.style.display='flex';}
