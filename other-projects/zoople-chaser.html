@@ -5,26 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Zoople Chaser</title>
   <style>
-    html, body { margin:0; padding:0; background:#000; width:100%; height:100%; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    html, body { margin:0; padding:0; background:#000; width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; }
     #gameContainer { position:relative; width:800px; height:600px; max-width:calc(100vw-40px); max-height:calc(100vh-40px); margin:20px; background:#000; box-shadow:0 0 10px rgba(0,0,0,0.5); }
     #gameCanvas { position:absolute; top:0; left:0; width:100%; height:100%; background:#111; }
-    .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:10; pointer-events:auto; }
+    .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:10; }
     #settings { display:none; }
     #pauseBtn { position:absolute; top:10px; right:10px; padding:4px 8px; font-size:14px; background:rgba(255,255,255,0.2); border:none; border-radius:4px; color:#fff; cursor:pointer; z-index:15; }
     #mobilePause { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); color:#fff; font-size:24px; z-index:5; pointer-events:none; }
     button { padding:12px 24px; font-size:20px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; }
     button:hover { background:rgba(255,255,255,0.2); }
-    .dropdown { position:relative; }
     .dropdown select { appearance:none; padding:10px 40px 10px 16px; font-size:18px; background:#444; color:#fff; border:2px solid #666; border-radius:6px; }
-    .dropdown::after { content:'▾'; position:absolute; top:50%; right:12px; transform:translateY(-50%); color:#fff; pointer-events:none; }
+    .dropdown::after { content:'▾'; position:absolute; top:50%; right:12px; transform:translateY(-50%); color:#fff; }
     .toggle { position:relative; width:50px; height:24px; display:inline-block; }
     .toggle input { display:none; }
     .track { position:absolute; inset:0; background:#444; border-radius:12px; }
     .thumb { position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .2s; }
     .toggle input:checked + .track { background:#4caf50; }
     .toggle input:checked + .track + .thumb { transform:translateX(26px); }
-    #joystick { position:absolute; width:100px; height:100px; border:2px solid #fff; border-radius:50%; display:none; z-index:8; pointer-events:none; }
-    #stick { position:absolute; width:40px; height:40px; background:rgba(255,255,255,0.5); border-radius:50%; left:30px; top:30px; pointer-events:none; }
+    #joystick { position:absolute; width:100px; height:100px; border:2px solid #fff; border-radius:50%; display:none; z-index:8; }
+    #stick { position:absolute; width:40px; height:40px; background:rgba(255,255,255,0.5); border-radius:50%; left:30px; top:30px; }
   </style>
 </head>
 <body>
@@ -38,198 +37,98 @@
     </div>
     <div id="settings" class="overlay">
       <h2 style="color:#fff; margin:0;">Settings</h2>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;"><span>Physics Player</span>
-        <label class="toggle"><input type="checkbox" id="physPlayer"><div class="track"></div><div class="thumb"></div></label>
-      </div>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;"><span>Physics Enemies</span>
-        <label class="toggle"><input type="checkbox" id="physEnemies" checked><div class="track"></div><div class="thumb"></div></label>
-      </div>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;"><span>Difficulty</span>
-        <div class="dropdown"><select id="difficultySelect"><option value="Easy">Easy</option><option value="Hard" selected>Hard</option></select></div>
-      </div>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;"><span>Control Mode</span>
-        <div class="dropdown"><select id="controlModeSelect"><option value="touch">Follow Finger</option><option value="joystick">Dynamic Joystick</option></select></div>
-      </div>
+      <div style="color:#fff; display:flex; gap:10px; align-items:center;"><span>Physics Player</span><label class="toggle"><input type="checkbox" id="physPlayer"><div class="track"></div><div class="thumb"></div></label></div>
+      <div style="color:#fff; display:flex; gap:10px; align-items:center;"><span>Physics Enemies</span><label class="toggle"><input type="checkbox" id="physEnemies" checked><div class="track"></div><div class="thumb"></div></label></div>
+      <div style="color:#fff; display:flex; gap:10px; align-items:center;"><span>Difficulty</span><div class="dropdown"><select id="difficultySelect"><option value="Easy">Easy</option><option value="Hard" selected>Hard</option></select></div></div>
+      <div style="color:#fff; display:flex; gap:10px; align-items:center;"><span>Control Mode</span><div class="dropdown"><select id="controlModeSelect"><option value="touch">Follow Finger</option><option value="joystick">Dynamic Joystick</option></select></div></div>
       <button id="backBtn">Back</button>
     </div>
     <div id="mobilePause"><p>Portrait paused. Rotate to landscape.</p></div>
     <div id="joystick"><div id="stick"></div></div>
   </div>
   <script>
-    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
+    const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+    const W=canvas.width,H=canvas.height;
+    let physPlayer=false, physEnemies=true, difficulty='Hard', controlMode='touch';
+    let running=false,paused=false,spawnPause=0,pauseStart=0,pauseOffset=0;
+    const isMobile=/Mobi|Android/i.test(navigator.userAgent);
+    // Physics
+    const MASS={player:2,enemy:1},MU=0.1,G=500;
+    const MAXS={player:400,enemy:250};
+    const STEER={player:1e6,enemy:1e6};
+    const INTERCEPT_CONE=Math.cos(Math.PI/6);
+    const SEP_R=40,SEP_F=20000;
 
-    // Settings state
-    let physPlayer = false;
-    let physEnemies = true;
-    let difficulty = 'Hard';
-    let controlMode = 'touch';
-    let running = false, paused = false, spawnPause = 0, pauseStart = 0, pauseOffset = 0;
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    const imgP=new Image();imgP.src='/images/zoople-chaser/zoopleWhite.png';
+    const imgE=new Image();imgE.src='/images/zoople-chaser/zooplePurple.png';
+    const ding=new Audio('/sounds/ding.mp3');
 
-    // Physics constants
-    const MASS = { player: 2, enemy: 1 };
-    const MU_FLOOR = 0.1;
-    const G = 500;
-    const MAX_SPEED = { player: 400, enemy: 250 };
-    const STEER_FORCE = { player: 20000, enemy: 15000 };
-    const DAMPING = 0.7;
-    const INTERCEPT_CONE = Math.cos(Math.PI/6);
-    const SEP_RADIUS = 40;
-    const SEP_FORCE = 20000;
+    const player={x:W/2,y:H/2,r:15,velX:0,velY:0,mass:MASS.player};
+    let enemies=[];const ER=15;let level=1,levelDuration=10,levelStartTime=0;
 
-    // Assets
-    const playerImg = new Image(); playerImg.src = '/images/zoople-chaser/zoopleWhite.png';
-    const enemyImg  = new Image(); enemyImg.src = '/images/zoople-chaser/zooplePurple.png';
-    const dingSound = new Audio('/sounds/ding.mp3');
+    // UI
+    document.getElementById('physPlayer').onchange=e=>physPlayer=e.target.checked;
+    document.getElementById('physEnemies').onchange=e=>physEnemies=e.target.checked;
+    document.getElementById('difficultySelect').onchange=e=>difficulty=e.target.value;
+    document.getElementById('controlModeSelect').onchange=e=>controlMode=e.target.value;
 
-    // Entities
-    const player = { x: W/2, y: H/2, r: 15, velX: 0, velY: 0, mass: MASS.player };
-    let enemies = [];
-    const ER = 15;
-    let level = 1, levelDuration = 10, levelStartTime = 0;
+    // Pause
+    document.getElementById('pauseBtn').onclick=_=>{if(running){paused=!paused;menu.style.display=paused?'flex':'none';if(paused)pauseStart=performance.now();}};
+    window.addEventListener('keydown',e=>{if(e.key==='Escape'&&running){paused=!paused;menu.style.display=paused?'flex':'none';if(paused)pauseStart=performance.now();}});
 
-    // UI Bindings
-    document.getElementById('physPlayer').onchange = e => physPlayer = e.target.checked;
-    document.getElementById('physEnemies').onchange= e => physEnemies = e.target.checked;
-    document.getElementById('difficultySelect').onchange = e => difficulty = e.target.value;
-    document.getElementById('controlModeSelect').onchange = e => controlMode = e.target.value;
+    // Menu
+    const menu=document.getElementById('menu'),settings=document.getElementById('settings');
+    document.getElementById('playBtn').onclick=_=>{if(running&&paused){paused=false;pauseOffset+=performance.now()-pauseStart;menu.style.display='none';}else{start();menu.style.display='none';}};
+    document.getElementById('settingsBtn').onclick=_=>{settings.style.display='flex';menu.style.display='none';};
+    document.getElementById('backBtn').onclick=_=>{settings.style.display='none';menu.style.display='flex';};
+    document.getElementById('quitBtn').onclick=_=>location='https://dipilo.github.io/other-projects';
 
-    // Pause controls
-    document.getElementById('pauseBtn').onclick = () => {
-      if(running){ paused = !paused; document.getElementById('menu').style.display = paused ? 'flex' : 'none'; if(paused) pauseStart = performance.now(); }
-    };
-    window.addEventListener('keydown', e => {
-      if(e.key === 'Escape' && running){ paused = !paused; document.getElementById('menu').style.display = paused ? 'flex' : 'none'; if(paused) pauseStart = performance.now(); }
-    });
+    // Input
+    const keys={};window.addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
+    window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+    let md=false,mx=0,my=0;
+    canvas.addEventListener('mousedown',e=>{md=true;track(e);});window.addEventListener('mouseup',_=>md=false);
+    canvas.addEventListener('mousemove',track);
+    function track(e){const r=canvas.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;}
+    let ta=false,tx=0,ty=0;const joy=document.getElementById('joystick'),stick=document.getElementById('stick');let jx=0,jy=0;
+    canvas.addEventListener('touchstart',e=>{if(isMobile){const t=e.touches[0],r=canvas.getBoundingClientRect();ta=true;tx=t.clientX-r.left;ty=t.clientY-r.top;if(controlMode==='joystick'){jx=tx;jy=ty;joy.style.left=`${jx-50}px`;joy.style.top=`${jy-50}px`;joy.style.display='block';}}});
+    canvas.addEventListener('touchmove',e=>{if(isMobile&&ta){const t=e.touches[0],r=canvas.getBoundingClientRect();tx=t.clientX-r.left;ty=t.clientY-r.top;if(controlMode==='joystick'){const dx=tx-jx,dy=ty-jy,d=Math.hypot(dx,dy),ux=d?dx/d:0,uy=d?dy/d:0,len=Math.min(d,50);stick.style.left=`${50+ux*len-20}px`;stick.style.top=`${50+uy*len-20}px`;}}});
+    canvas.addEventListener('touchend',_=>{ta=false;joy.style.display='none';});
+    function check(){const ov=document.getElementById('mobilePause');if(isMobile&&innerHeight>innerWidth){ov.style.display='flex';paused=true;menu.style.display='flex';}else ov.style.display='none';}
+    window.addEventListener('resize',check);check();
 
-    // Menu buttons
-    document.getElementById('playBtn').onclick = () => {
-      if(running && paused){ paused = false; pauseOffset += performance.now() - pauseStart; document.getElementById('menu').style.display = 'none'; }
-      else { startGame(); document.getElementById('menu').style.display = 'none'; }
-    };
-    document.getElementById('settingsBtn').onclick = () => { document.getElementById('settings').style.display = 'flex'; document.getElementById('menu').style.display = 'none'; };
-    document.getElementById('backBtn').onclick     = () => { document.getElementById('settings').style.display = 'none'; document.getElementById('menu').style.display = 'flex'; };
-    document.getElementById('quitBtn').onclick    = () => window.location.href = 'https://dipilo.github.io/other-projects';
+    function clamp(o){o.x=Math.max(o.r||ER,Math.min(W-(o.r||ER),o.x));o.y=Math.max(o.r||ER,Math.min(H-(o.r||ER),o.y));}
+    function separate(arr,ds){arr.forEach((a,i)=>arr.forEach((b,j)=>{if(i!==j){const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);if(d<SEP_R){const push=(SEP_R-d)/d*SEP_F*ds;a.velX+=dx/d*push;a.velY+=dy/d*push;}}}));}
 
-    // Input tracking
-    const keys = {};
-    window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-    window.addEventListener('keyup',   e => keys[e.key.toLowerCase()] = false);
+    function spawn(at){spawnPause=0.2;enemies.forEach(e=>{e.velX=0;e.velY=0;});ding.play();let x,y;do{x=Math.random()*(W-2*ER)+ER;y=Math.random()*(H-2*ER)+ER;}while(Math.hypot(x-player.x,y-player.y)<player.r*4);if(at){x=at[0]+(Math.random()*200-100);y=at[1]+(Math.random()*200-100);x=Math.max(ER,Math.min(W-ER,x));y=Math.max(ER,Math.min(H-ER,y));}enemies.push({x,y,velX:0,velY:0,mass:MASS.enemy,intercept:Math.random()<0.5});}
+    function reset(){running=false;enemies=[];player.x=W/2;player.y=H/2;player.velX=0;player.velY=0;level=1;pauseOffset=0;menu.style.display='flex';}
+    function start(){reset();spawn();levelStartTime=performance.now();running=true;paused=false;}
 
-    let mouseDown = false, mouseX = 0, mouseY = 0;
-    canvas.addEventListener('mousedown', e => { mouseDown = true; trackMouse(e); });
-    window.addEventListener('mouseup', () => mouseDown = false);
-    canvas.addEventListener('mousemove', trackMouse);
-    function trackMouse(e){ const r=canvas.getBoundingClientRect(); mouseX = e.clientX - r.left; mouseY = e.clientY - r.top; }
-
-    // Touch controls
-    let touchActive = false, touchX = 0, touchY = 0;
-    const joystick = document.getElementById('joystick'), stick = document.getElementById('stick');
-    let joyCX = 0, joyCY = 0;
-    canvas.addEventListener('touchstart', e => {
-      if(isMobile){ const t=e.touches[0], r=canvas.getBoundingClientRect(); touchActive=true; touchX=t.clientX-r.left; touchY=t.clientY-r.top;
-        if(controlMode==='joystick'){ joyCX=touchX; joyCY=touchY; joystick.style.left=`${joyCX-50}px`; joystick.style.top=`${joyCY-50}px`; joystick.style.display='block'; }
-      }
-    });
-    canvas.addEventListener('touchmove', e => {
-      if(isMobile&&touchActive){ const t=e.touches[0], r=canvas.getBoundingClientRect(); touchX=t.clientX-r.left; touchY=t.clientY-r.top;
-        if(controlMode==='joystick'){ const dx=touchX-joyCX, dy=touchY-joyCY, d=Math.hypot(dx,dy), ux=d?dx/d:0, uy=d?dy/d:0, len=Math.min(d,50); stick.style.left=`${50+ux*len-20}px`; stick.style.top=`${50+uy*len-20}px`; }
-      }
-    });
-    canvas.addEventListener('touchend', () => { touchActive=false; joystick.style.display='none'; });
-
-    function checkPortrait(){ const ov=document.getElementById('mobilePause'); if(isMobile&&window.innerHeight>window.innerWidth){ ov.style.display='flex'; paused=true; document.getElementById('menu').style.display='flex'; } else ov.style.display='none'; }
-    window.addEventListener('resize', checkPortrait); checkPortrait();
-
-    // Helpers
-    function clamp(o){ o.x=Math.max(o.r||ER,Math.min(W-(o.r||ER),o.x)); o.y=Math.max(o.r||ER,Math.min(H-(o.r||ER),o.y)); }
-    function separate(arr, ds){ arr.forEach((a,i)=>arr.forEach((b,j)=>{ if(i!==j){ const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy); if(d<SEP_RADIUS&&d>0){ const push=(SEP_RADIUS-d)/d*SEP_FORCE*ds; a.velX+=dx/d*push; a.velY+=dy/d*push; } }})); }
-
-    // Spawn/reset/start
-    function spawnEnemy(at){ spawnPause=0.2; enemies.forEach(e=>{e.velX=0;e.velY=0;}); dingSound.play(); let x,y; do{ x=Math.random()*(W-2*ER)+ER; y=Math.random()*(H-2*ER)+ER; } while(Math.hypot(x-player.x,y-player.y)<player.r*4); if(at){ x=at[0]+(Math.random()*200-100); y=at[1]+(Math.random()*200-100); x=Math.max(ER,Math.min(W-ER,x)); y=Math.max(ER,Math.min(H-ER,y)); } enemies.push({x,y,velX:0,velY:0,mass:MASS.enemy,intercept:Math.random()<0.5}); }
-    function resetGame(){ running=false; enemies=[]; player.x=W/2; player.y=H/2; player.velX=0; player.velY=0; level=1; pauseOffset=0; document.getElementById('menu').style.display='flex'; }
-    function startGame(){ resetGame(); spawnEnemy(); levelStartTime=performance.now(); running=true; paused=false; document.getElementById('menu').style.display='none'; }
-
-    // Main loop
-    function update(dt){ if(!running||paused) return; const ds=dt/1000;
-      const applyFriction = physPlayer || physEnemies;
-      // Input
-      let ax=0, ay=0;
-      if(controlMode==='joystick' && touchActive){ const dx=(touchX-joyCX)/50, dy=(touchY-joyCY)/50, mag=Math.hypot(dx,dy); if(mag>1){ ax=dx/mag; ay=dy/mag; } else { ax=dx; ay=dy; } }
-      else if(controlMode==='touch' && touchActive){ const dx=touchX-player.x, dy=touchY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; }}
-      else { if(keys['w'])ay--; if(keys['s'])ay++; if(keys['a'])ax--; if(keys['d'])ax++; if(mouseDown){ const dx=mouseX-player.x, dy=mouseY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; } }}
-
+    function update(dt){if(!running||paused)return;const ds=dt/1000;const apply = physPlayer||physEnemies;let ax=0,ay=0; if(controlMode==='joystick'&&ta){const dx=(tx-jx)/50,dy=(ty-jy)/50,mag=Math.hypot(dx,dy);if(mag>1){ax=dx/mag;ay=dy/mag;}else{ax=dx;ay=dy;}}else if(controlMode==='touch'&&ta){const dx=tx-player.x,dy=ty-player.y,d=Math.hypot(dx,dy);if(d>0){ax=dx/d;ay=dy/d;}}else{if(keys['w'])ay--;if(keys['s'])ay++;if(keys['a'])ax--;if(keys['d'])ax++;if(md){const dx=mx-player.x,dy=my-player.y,d=Math.hypot(dx,dy);if(d>0){ax=dx/d;ay=dy/d;}}} 
       // Player physics
       if(physPlayer){
-        // Steering force
-        const dvx = ax*MAX_SPEED.player - player.velX;
-        const dvy = ay*MAX_SPEED.player - player.velY;
-        const dvm = Math.hypot(dvx,dvy);
-        const maxF = STEER_FORCE.player * ds;
-        const sx = dvm>maxF ? dvx/dvm*maxF : dvx;
-        const sy = dvm>maxF ? dvy/dvm*maxF : dvy;
-        // Net forces
-        let fx = sx, fy = sy;
-        if(applyFriction){ const vmag = Math.hypot(player.velX,player.velY); if(vmag>0){ const ff = MU_FLOOR*G*player.mass*ds; fx -= player.velX/vmag*ff; fy -= player.velY/vmag*ff; }}
-        // Acceleration
-        player.velX += fx/player.mass;
-        player.velY += fy/player.mass;
-        // Damping
-        player.velX *= DAMPING;
-        player.velY *= DAMPING;
-        // Integrate
-        player.x += player.velX * ds;
-        player.y += player.velY * ds;
-      } else {
-        player.x += ax * MAX_SPEED.player * ds;
-        player.y += ay * MAX_SPEED.player * ds;
-      }
+        const dvx=ax*MAXS.player-player.velX,dvy=ay*MAXS.player-player.velY;
+        const dvm=Math.hypot(dvx,dvy),mf=STEER.player*ds;
+        const sx=dvm>mf?dvx/dvm*mf:dvx,sy=dvm>mf?dvy/dvm*mf:dvy;
+        let fx=sx,fy=sy;
+        if(apply){const v=Math.hypot(player.velX,player.velY);if(v>0){const f=MU*G*player.mass*ds;fx-=player.velX/v*f;fy-=player.velY/v*f;}}
+        player.velX+=fx/player.mass;player.velY+=fy/player.mass;
+        const vmag=Math.hypot(player.velX,player.velY);if(vmag>MAXS.player){player.velX=player.velX/vmag*MAXS.player;player.velY=player.velY/vmag*MAXS.player;}
+        player.x+=player.velX*ds;player.y+=player.velY*ds;
+      } else {player.x+=ax*MAXS.player*ds;player.y+=ay*MAXS.player*ds;}
       clamp(player);
-
       // Enemy physics
-      if(spawnPause>0) spawnPause -= ds;
-      else enemies.forEach(e=>{
-        // Target
-        let tx = player.x, ty = player.y;
-        if(difficulty==='Hard' && e.intercept){ const lt=0.5; const ix=player.x+player.velX*lt, iy=player.y+player.velY*lt; const distD=Math.hypot(player.x-e.x,player.y-e.y), distI=Math.hypot(ix-e.x,iy-e.y); const ux_e=distD?(player.x-e.x)/distD:0, uy_e=distD?(player.y-e.y)/distD:0; const pv=Math.hypot(player.velX,player.velY), upx=pv?player.velX/pv:0, upy=pv?player.velY/pv:0; const dot=ux_e*upx+uy_e*upy; if(!(distD<distI||dot>INTERCEPT_CONE)){ tx=(player.x+ix)/2; ty=(player.y+iy)/2; }}
-        const dx=tx-e.x, dy=ty-e.y, d=Math.hypot(dx,dy), ux=d?dx/d:0, uy=d?dy/d:0;
-        if(physEnemies){ const dvx=ux*MAX_SPEED.enemy - e.velX, dvy=uy*MAX_SPEED.enemy - e.velY; const dvm=Math.hypot(dvx,dvy); const maxF=STEER_FORCE.enemy*ds; const sx=dvm>maxF?dvx/dvm*maxF:dvx; const sy=dvm>maxF?dvy/dvm*maxF:dvy;
-          let fx=sx, fy=sy;
-          if(applyFriction){ const vmag=Math.hypot(e.velX,e.velY); if(vmag>0){ const ff=MU_FLOOR*G*e.mass*ds; fx -= e.velX/vmag*ff; fy -= e.velY/vmag*ff; }}
-          e.velX += fx/e.mass; e.velY += fy/e.mass;
-          e.velX *= DAMPING; e.velY *= DAMPING;
-          e.x += e.velX*ds; e.y += e.velY*ds;
-        } else {
-          e.x += ux * MAX_SPEED.enemy * ds;
-          e.y += uy * MAX_SPEED.enemy * ds;
-        }
-        clamp(e);
-      });
-      separate(enemies, ds);
-
-      // Collision
-      if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
-
-      // Level up
-      const elapsed = (performance.now()-pauseOffset-levelStartTime)/1000;
-      if(elapsed>=levelDuration){ const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; level++; enemies.forEach(e=>e.intercept=Math.random()<0.5); spawnEnemy([avgX,avgY]); levelStartTime=performance.now()-pauseOffset; }
+      if(spawnPause>0)spawnPause-=ds;else enemies.forEach(e=>{
+        let tx2=player.x,ty2=player.y;
+        if(difficulty==='Hard'&&e.intercept){const lt=0.5,ix=player.x+player.velX*lt,iy=player.y+player.velY*lt;const dD=Math.hypot(player.x-e.x,player.y-e.y),dI=Math.hypot(ix-e.x,iy-e.y);const uxe=dD?(player.x-e.x)/dD:0,uye=dD?(player.y-e.y)/dD:0;const pv=Math.hypot(player.velX,player.velY),upx=pv?player.velX/pv:0,upy=pv?player.velY/pv:0;const dot=uxe*upx+uye*upy;if(!(dD<dI||dot>INTERCEPT_CONE)){tx2=(player.x+ix)/2;ty2=(player.y+iy)/2;}}
+        const dx2=tx2-e.x,dy2=ty2-e.y,d2=Math.hypot(dx2,dy2),ux2=d2?dx2/d2:0,uy2=d2?dy2/d2:0;
+        if(physEnemies){const dvx2=ux2*MAXS.enemy-e.velX,dvy2=uy2*MAXS.enemy-e.velY;const dvm2=Math.hypot(dvx2,dvy2),mf2=STEER.enemy*ds;const sx2=dvm2>mf2?dvx2/dvm2*mf2:dvx2,sy2=dvm2>mf2?dvy2/dvm2*mf2:dvy2;let fx2=sx2,fy2=sy2; if(apply){const v2=Math.hypot(e.velX,e.velY);if(v2>0){const f2=MU*G*e.mass*ds;fx2-=e.velX/v2*f2;fy2-=e.velY/v2*f2;}}e.velX+=fx2/e.mass;e.velY+=fy2/e.mass;const v2=Math.hypot(e.velX,e.velY);if(v2>MAXS.enemy){e.velX=e.velX/v2*MAXS.enemy;e.velY=e.velY/v2*MAXS.enemy;}e.x+=e.velX*ds;e.y+=e.velY*ds;}else{e.x+=ux2*MAXS.enemy*ds;e.y+=uy2*MAXS.enemy*ds;}clamp(e);
+      });separate(enemies,ds);
+      if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER))reset();
+      const el=(performance.now()-pauseOffset-levelStartTime)/1000;if(el>=levelDuration){const aX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length,aY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;level++;enemies.forEach(e=>e.intercept=Math.random()<0.5);spawn([aX,aY]);levelStartTime=performance.now()-pauseOffset;}
     }
-
-    function draw(){
-      ctx.clearRect(0,0,W,H);
-      const elapsed = running?(performance.now()-pauseOffset-levelStartTime)/1000:0;
-      const rem = Math.max(0, levelDuration-Math.floor(elapsed));
-      ctx.fillStyle='#222'; ctx.font='200px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(rem, W/2, H/2);
-      ctx.fillStyle='#fff'; ctx.font='36px sans-serif'; ctx.textBaseline='top';
-      ctx.fillText(`Level: ${level}`, W/2, 10);
-      ctx.drawImage(playerImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
-      enemies.forEach(e=>{ ctx.drawImage(enemyImg, e.x-ER, e.y-ER, ER*2, ER*2); });
-    }
-
-    // Start Loop
-    let last=performance.now(); (function loop(){ const now=performance.now(), dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
+    function draw(){ctx.clearRect(0,0,W,H);const el=running?(performance.now()-pauseOffset-levelStartTime)/1000:0;const rem=Math.max(0,levelDuration-Math.floor(el));ctx.fillStyle='#222';ctx.font='200px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(rem,W/2,H/2);ctx.fillStyle='#fff';ctx.font='36px sans-serif';ctx.textBaseline='top';ctx.fillText(`Level: ${level}`,W/2,10);ctx.drawImage(imgP,player.x-player.r,player.y-player.r,player.r*2,player.r*2);enemies.forEach(e=>{ctx.drawImage(imgE,e.x-ER,e.y-ER,ER*2,ER*2);});}
+    let last=performance.now();(function loop(){const now=performance.now(),dt=now-last;update(dt);draw();last=now;requestAnimationFrame(loop);})();
   </script>
 </body>
 </html>
