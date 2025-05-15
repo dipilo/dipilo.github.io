@@ -5,189 +5,148 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Zoople Chaser</title>
   <style>
-    html, body {
-      margin: 0; padding: 0; background: #000;
-      width: 100%; height: 100%; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-    #gameContainer {
-      position: relative;
-      width: 800px; height: 600px;
-      background: #000;
-      transform-origin: top left;
-    }
-    #gameCanvas {
-      position: absolute;
-      top: 0; left: 0;
-      width: 800px; height: 600px;
-      background: #111;
-    }
-    .overlay {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 20px; background: rgba(0,0,0,0.7);
-      z-index: 10;
-    }
-    #settings { display: none; }
-    #pauseBtn {
-      position: absolute; top: 10px; right: 10px;
-      padding: 4px 8px; font-size: 14px;
-      background: rgba(255,255,255,0.2); border: none;
-      border-radius: 4px; color: #fff; cursor: pointer;
-      z-index: 15;
-    }
-    #mobilePause {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.5); color: #fff; font-size: 24px;
-      z-index: 5;
-    }
-    button {
-      padding: 12px 24px; font-size: 20px;
-      background: rgba(255,255,255,0.1); color: #fff;
-      border: 2px solid #444; border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover { background: rgba(255,255,255,0.2); }
-    .dropdown { position: relative; }
-    .dropdown select {
-      appearance: none; padding: 10px 40px 10px 16px;
-      font-size: 18px; background: #444; color: #fff;
-      border: 2px solid #666; border-radius: 6px;
-    }
-    .dropdown::after {
-      content: '▾'; position: absolute; top: 50%; right: 12px;
-      transform: translateY(-50%); color: #fff;
-    }
-    .toggle { position: relative; width: 50px; height: 24px; display: inline-block; }
-    .toggle input { display: none; }
-    .track { position: absolute; inset: 0; background: #444; border-radius: 12px; }
-    .thumb { position: absolute; top:2px; left:2px; width:20px; height:20px;
-      background:#fff; border-radius:50%; transition: transform .2s;
-    }
-    .toggle input:checked + .track { background: #4caf50; }
-    .toggle input:checked + .track + .thumb { transform: translateX(26px); }
-    #joystick { position: absolute; width:100px; height:100px;
-      border:2px solid #fff; border-radius:50%; display:none;
-      z-index:8;
-    }
-    #stick { position: absolute; width:40px; height:40px;
-      background: rgba(255,255,255,0.5); border-radius:50%;
-      left:30px; top:30px;
-    }
+    html, body { margin:0; padding:0; background:#000; width:100%; height:100%; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    #gameContainer { position:relative; width:800px; height:600px; }
+    #gameCanvas { position:absolute; top:0; left:0; width:800px; height:600px; background:#111; }
+    .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; background:rgba(0,0,0,0.7); z-index:10; }
+    #settings { display:none; }
+    #pauseBtn { position:absolute; top:10px; right:10px; padding:4px 8px; font-size:14px; background:rgba(255,255,255,0.2); border:none; border-radius:4px; color:#fff; cursor:pointer; z-index:15; }
+    #mobilePause { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); color:#fff; font-size:24px; z-index:5; pointer-events:none; }
+    button { padding:12px 24px; font-size:20px; background:rgba(255,255,255,0.1); color:#fff; border:2px solid #444; border-radius:6px; cursor:pointer; }
+    button:hover { background:rgba(255,255,255,0.2); }
+    .dropdown { position:relative; }
+    .dropdown select { appearance:none; padding:10px 40px 10px 16px; font-size:18px; background:#444; color:#fff; border:2px solid #666; border-radius:6px; }
+    .dropdown::after { content:'▾'; position:absolute; top:50%; right:12px; transform:translateY(-50%); color:#fff; }
+    .toggle { position:relative; width:50px; height:24px; display:inline-block; }
+    .toggle input { display:none; }
+    .track { position:absolute; inset:0; background:#444; border-radius:12px; }
+    .thumb { position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .2s; }
+    .toggle input:checked + .track { background:#4caf50; }
+    .toggle input:checked + .track + .thumb { transform:translateX(26px); }
+    #joystick { position:absolute; width:100px; height:100px; border:2px solid #fff; border-radius:50%; display:none; z-index:8; }
+    #stick { position:absolute; width:40px; height:40px; background:rgba(255,255,255,0.5); border-radius:50%; left:30px; top:30px; }
   </style>
 </head>
 <body>
-  <div id="gameContainer">
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <button id="pauseBtn">Pause</button>
-    <div id="menu" class="overlay">
-      <button id="playBtn">Play</button>
-      <button id="settingsBtn">Settings</button>
-      <button id="quitBtn">Quit</button>
-    </div>
-    <div id="settings" class="overlay">
-      <h2 style="color:#fff; margin:0;">Settings</h2>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
-        <span>Physics Player</span>
-        <label class="toggle"><input type="checkbox" id="physPlayer"><div class="track"></div><div class="thumb"></div></label>
-      </div>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
-        <span>Physics Enemies</span>
-        <label class="toggle"><input type="checkbox" id="physEnemies" checked><div class="track"></div><div class="thumb"></div></label>
-      </div>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
-        <span>Difficulty</span>
-        <div class="dropdown"><select id="difficultySelect"><option value="Easy">Easy</option><option value="Hard" selected>Hard</option></select></div>
-      </div>
-      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
-        <span>Control Mode</span>
-        <div class="dropdown"><select id="controlModeSelect"><option value="touch">Follow Finger</option><option value="joystick">Dynamic Joystick</option></select></div>
-      </div>
-      <button id="backBtn">Back</button>
-    </div>
-    <div id="mobilePause"><p>Portrait paused. Rotate to landscape.</p></div>
-    <div id="joystick"><div id="stick"></div></div>
+  <div id="gameContainer"></div>
+  <canvas id="gameCanvas"></canvas>
+  <button id="pauseBtn">Pause</button>
+  <div id="menu" class="overlay">
+    <button id="playBtn">Play</button>
+    <button id="settingsBtn">Settings</button>
+    <button id="quitBtn">Quit</button>
   </div>
+  <div id="settings" class="overlay">
+    <h2 style="color:#fff;margin:0;">Settings</h2>
+    <div style="color:#fff;display:flex;align-items:center;gap:10px;"><span>Physics Player</span><label class="toggle"><input type="checkbox" id="physPlayer"><div class="track"></div><div class="thumb"></div></label></div>
+    <div style="color:#fff;display:flex;align-items:center;gap:10px;"><span>Physics Enemies</span><label class="toggle"><input type="checkbox" id="physEnemies" checked><div class="track"></div><div class="thumb"></div></label></div>
+    <div style="color:#fff;display:flex;align-items:center;gap:10px;"><span>Difficulty</span><div class="dropdown"><select id="difficultySelect"><option value="Easy">Easy</option><option value="Hard" selected>Hard</option></select></div></div>
+    <div style="color:#fff;display:flex;align-items:center;gap:10px;"><span>Control Mode</span><div class="dropdown"><select id="controlModeSelect"><option value="touch">Follow Finger</option><option value="joystick">Dynamic Joystick</option></select></div></div>
+    <button id="backBtn">Back</button>
+  </div>
+  <div id="mobilePause"><p>Portrait mode paused. Rotate to landscape.</p></div>
+  <div id="joystick"><div id="stick"></div></div>
   <script>
-  const container=document.getElementById('gameContainer');
-  const canvas=document.getElementById('gameCanvas'), ctx=canvas.getContext('2d');
-  const W=800, H=600;
-  function resizeScale(){ const s=Math.min(window.innerWidth/800, window.innerHeight/600); container.style.transform=`scale(${s})`; }
-  window.addEventListener('resize', resizeScale); resizeScale();
+  const container = document.getElementById('gameContainer');
+  const canvas = document.getElementById('gameCanvas');
+  canvas.width = 800; canvas.height = 600;
+  const ctx = canvas.getContext('2d');
+  // scale container to fit viewport while preserving aspect
+  function scale() { const scale = Math.min(window.innerWidth/800, window.innerHeight/600); container.style.transform = `scale(${scale})`; canvas.style.transform = `scale(${scale})`; }
+  window.addEventListener('resize', scale); scale();
 
   let physPlayer=false, physEnemies=true, difficulty='Hard', controlMode='touch';
   let running=false, paused=false, spawnPause=0, pauseStart=0, pauseOffset=0;
-  const isMobile=/Mobi|Android/i.test(navigator.userAgent);
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
-  document.getElementById('physPlayer').checked=false;
-  document.getElementById('physEnemies').checked=true;
-  document.getElementById('difficultySelect').value='Hard';
-
-  const pauseBtn=document.getElementById('pauseBtn');
-  pauseBtn.onclick=()=>{ if(running){ paused=!paused; document.getElementById('menu').style.display=paused?'flex':'none'; if(paused) pauseStart=performance.now(); }};
-
-  window.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&running){ paused=!paused; document.getElementById('menu').style.display=paused?'flex':'none'; if(paused) pauseStart=performance.now(); }
-  });
+  const pauseBtn = document.getElementById('pauseBtn');
+  pauseBtn.onclick = () => { if(running){ paused = !paused; document.getElementById('menu').style.display = paused ? 'flex' : 'none'; if(paused) pauseStart = performance.now(); }};
 
   let touchActive=false, touchX=0, touchY=0;
-  const joystick=document.getElementById('joystick'), stick=document.getElementById('stick');
+  const joystick = document.getElementById('joystick'), stick = document.getElementById('stick');
   let joyCX=0, joyCY=0;
 
-  document.getElementById('physPlayer').onchange=e=>physPlayer=e.target.checked;
-  document.getElementById('physEnemies').onchange=e=>physEnemies=e.target.checked;
-  document.getElementById('difficultySelect').onchange=e=>difficulty=e.target.value;
-  document.getElementById('controlModeSelect').onchange=e=>controlMode=e.target.value;
+  document.getElementById('physPlayer').checked = false;
+  document.getElementById('physEnemies').checked = true;
+  document.getElementById('difficultySelect').value = 'Hard';
 
-  document.getElementById('playBtn').onclick=()=>{ if(running&&paused){ paused=false; pauseOffset+=performance.now()-pauseStart; document.getElementById('menu').style.display='none';} else { startGame(); document.getElementById('menu').style.display='none'; }};
-  document.getElementById('settingsBtn').onclick=()=>{ document.getElementById('settings').style.display='flex'; document.getElementById('menu').style.display='none';};
-  document.getElementById('backBtn').onclick=()=>{ document.getElementById('settings').style.display='none'; document.getElementById('menu').style.display='flex';};
-  document.getElementById('quitBtn').onclick=()=>location='https://dipilo.github.io/other-projects';
+  document.getElementById('physPlayer').onchange = e => physPlayer = e.target.checked;
+  document.getElementById('physEnemies').onchange = e => physEnemies = e.target.checked;
+  document.getElementById('difficultySelect').onchange = e => difficulty = e.target.value;
+  document.getElementById('controlModeSelect').onchange = e => controlMode = e.target.value;
 
-  const playerImg=new Image(); playerImg.src='/images/zoople-chaser/zoopleWhite.png';
-  const enemyImg=new Image(); enemyImg.src='/images/zoople-chaser/zooplePurple.png';
-  const ding=new Audio('/sounds/ding.mp3');
+  document.getElementById('playBtn').onclick = () => {
+    if(running && paused){ paused = false; pauseOffset += performance.now() - pauseStart; document.getElementById('menu').style.display='none'; }
+    else { startGame(); document.getElementById('menu').style.display='none'; }
+  };
+  document.getElementById('settingsBtn').onclick = () => { document.getElementById('settings').style.display='flex'; document.getElementById('menu').style.display='none'; };
+  document.getElementById('backBtn').onclick = () => { document.getElementById('settings').style.display='none'; document.getElementById('menu').style.display='flex'; };
+  document.getElementById('quitBtn').onclick = () => location = 'https://dipilo.github.io/other-projects';
 
-  const MAX_P=400, MAX_E=250;
-  const STEER_P=20000, STEER_E=15000;
-  const DAMP=0.7, ICONE=Math.cos(Math.PI/6);
-  const SEP_R=40, SEP_F=20000;
+  const playerImg = new Image(); playerImg.src = '/images/zoople-chaser/zoopleWhite.png';
+  const enemyImg = new Image(); enemyImg.src = '/images/zoople-chaser/zooplePurple.png';
+  const dingSound = new Audio('/sounds/ding.mp3');
 
-  const player={x:W/2,y:H/2,r:15,velX:0,velY:0}; let enemies=[]; const ER=15;
+  const MAX_SPEED=400, MAX_SPEED_E=250;
+  const STEER_FORCE=20000, STEER_FORCE_E=15000;
+  const DAMPING=0.7, INTERCEPT_CONE=Math.cos(Math.PI/6);
+  const SEP_RADIUS=40, SEP_FORCE=20000;
+
+  const player = {x:400, y:300, r:15, velX:0, velY:0};
+  let enemies = [];
+  const ER=15;
   let level=1, levelDuration=10, levelStartTime=0;
 
-  const keys={}; window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});
-  window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+  const keys = {};
+  window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if(e.key==='Escape'){ pauseBtn.onclick(); }});
+  window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
-  let md=false,mx=0,my=0; canvas.addEventListener('mousedown',e=>{md=true;updateMouse(e);}); window.addEventListener('mouseup',()=>md=false);
-  canvas.addEventListener('mousemove',updateMouse);
-  function updateMouse(e){const r=canvas.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;}
+  let md=false, mx=0, my=0;
+  canvas.addEventListener('mousedown', e=>{ md=true; uM(e); }); window.addEventListener('mouseup', ()=>md=false);
+  canvas.addEventListener('mousemove', uM);
+  function uM(e){ const r=canvas.getBoundingClientRect(); mx=e.clientX-r.left; my=e.clientY-r.top; }
 
-  canvas.addEventListener('touchstart',e=>{if(!isMobile)return;const t=e.touches[0];const r=canvas.getBoundingClientRect();touchActive=true;touchX=t.clientX-r.left;touchY=t.clientY-r.top;if(controlMode==='joystick'){joyCX=touchX;joyCY=touchY;joystick.style.left=`${joyCX-50}px`;joystick.style.top=`${joyCY-50}px`;joystick.style.display='block';}});
-  canvas.addEventListener('touchmove',e=>{if(!isMobile||!touchActive)return;const t=e.touches[0];const r=canvas.getBoundingClientRect();touchX=t.clientX-r.left;touchY=t.clientY-r.top;if(controlMode==='joystick'){const dx=touchX-joyCX,dy=touchY-joyCY,d=Math.hypot(dx,dy),ux=d?dx/d:0,uy=d?dy/d:0,len=Math.min(d,50);stick.style.left=`${50+ux*len-20}px`;stick.style.top=`${50+uy*len-20}px`;}});
-  canvas.addEventListener('touchend',()=>{touchActive=false;joystick.style.display='none';});
+  canvas.addEventListener('touchstart', e=>{ if(!isMobile) return; const t=e.touches[0], r=canvas.getBoundingClientRect(); touchActive=true; touchX=t.clientX-r.left; touchY=t.clientY-r.top; if(controlMode==='joystick'){ joyCX=touchX; joyCY=touchY; joystick.style.left=`${joyCX-50}px`; joystick.style.top=`${joyCY-50}px`; joystick.style.display='block'; }});
+  canvas.addEventListener('touchmove', e=>{ if(!isMobile||!touchActive) return; const t=e.touches[0], r=canvas.getBoundingClientRect(); touchX=t.clientX-r.left; touchY=t.clientY-r.top; if(controlMode==='joystick'){ const dx=touchX-joyCX, dy=touchY-joyCY, d=Math.hypot(dx,dy), ux=d?dx/d:0, uy=d?dy/d:0, len=Math.min(d,50); stick.style.left=`${50+ux*len-20}px`; stick.style.top=`${50+uy*len-20}px`; }});
+  canvas.addEventListener('touchend', ()=>{ touchActive=false; joystick.style.display='none'; });
 
-  function checkPortrait(){const ov=document.getElementById('mobilePause');if(isMobile&&window.innerHeight>window.innerWidth){ov.style.display='flex';paused=true;document.getElementById('menu').style.display='flex';} else ov.style.display='none';}
-  window.addEventListener('resize',checkPortrait); checkPortrait();
+  function checkPortrait(){ const ov=document.getElementById('mobilePause'); if(isMobile && window.innerHeight>window.innerWidth){ ov.style.display='flex'; paused=true; document.getElementById('menu').style.display='flex'; } else ov.style.display='none'; }
+  window.addEventListener('resize', checkPortrait); checkPortrait();
 
-  function clamp(o){o.x=Math.max(o.r||ER,Math.min(W-(o.r||ER),o.x));o.y=Math.max(o.r||ER,Math.min(H-(o.r||ER),o.y));}
-  function separate(arr,ds){arr.forEach((a,i)=>arr.forEach((b,j)=>{if(i!==j){const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);if(d<SEP_R&&d>0){const push=(SEP_R-d)/d*SEP_F*ds;a.velX+=dx/d*push;a.velY+=dy/d*push;}}}));}
+  function clamp(o){ o.x=Math.max(o.r||ER, Math.min(800 - (o.r||ER), o.x)); o.y=Math.max(o.r||ER, Math.min(600 - (o.r||ER), o.y)); }
+  function separate(arr, ds){ arr.forEach((a,i)=> arr.forEach((b,j)=>{ if(i!==j){ const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy); if(d<SEP_RADIUS&&d>0){ const push=(SEP_RADIUS-d)/d*SEP_FORCE*ds; a.velX+=dx/d*push; a.velY+=dy/d*push; } }})); }
 
-  function spawnEnemy(at){spawnPause=0.2;enemies.forEach(e=>{e.velX=0;e.velY=0;});ding.play();let x,y;do{x=Math.random()*(W-2*ER)+ER;y=Math.random()*(H-2*ER)+ER;}while(Math.hypot(x-player.x,y-player.y)<player.r*4);if(at){x=at[0]+(Math.random()*200-100);y=at[1]+(Math.random()*200-100);x=Math.max(ER,Math.min(W-ER,x));y=Math.max(ER,Math.min(H-ER,y));}enemies.push({x,y,velX:0,velY:0,intercept:Math.random()<0.5});}
-  function resetGame(){running=false;enemies=[];player.x=W/2;player.y=H/2;player.velX=0;player.velY=0;level=1;pauseOffset=0;document.getElementById('menu').style.display='flex';}
-  function startGame(){resetGame();spawnEnemy();levelStartTime=performance.now();running=true;paused=false;document.getElementById('menu').style.display='none';}
+  function spawnEnemy(at){ spawnPause=0.2; enemies.forEach(e=>{e.velX=0; e.velY=0;}); dingSound.play(); let x,y; do{ x=Math.random()*(800-2*ER)+ER; y=Math.random()*(600-2*ER)+ER; }while(Math.hypot(x-player.x,y-player.y)<player.r*4); if(at){ x=at[0]+(Math.random()*200-100); y=at[1]+(Math.random()*200-100); x=Math.max(ER,Math.min(800-ER,x)); y=Math.max(ER,Math.min(600-ER,y)); } enemies.push({x,y,velX:0,velY:0,intercept:Math.random()<0.5}); }
+  function resetGame(){ running=false; enemies=[]; player.x=400; player.y=300; player.velX=0; player.velY=0; level=1; pauseOffset=0; document.getElementById('menu').style.display='flex'; }
+  function startGame(){ resetGame(); spawnEnemy(); levelStartTime=performance.now(); running=true; paused=false; document.getElementById('menu').style.display='none'; }
 
-  function update(dt){if(!running||paused)return;const ds=dt/1000;let ax=0,ay=0; if(controlMode==='joystick'&&touchActive){const dx=(touchX-joyCX)/50,dy=(touchY-joyCY)/50;ax=dx;ay=dy;} else if(controlMode==='touch'&&touchActive){const dx=touchX-player.x,dy=touchY-player.y,d=Math.hypot(dx,dy);if(d>0){ax=dx/d;ay=dy/d;}} else {if(keys['w'])ay--;if(keys['s'])ay++;if(keys['a'])ax--;if(keys['d'])ax++;if(md){const dx=mx-player.x,dy=my-player.y,d=Math.hypot(dx,dy);if(d>0){ax=dx/d;ay=dy/d;}}}if(physPlayer){const dvx=ax*MAX_P-player.velX,dvy=ay*MAX_P-player.velY;player.velX+=dvx*ds;player.velY+=dvy*ds;player.velX*=DAMP;player.velY*=DAMP;} else {player.velX=ax*MAX_P;player.velY=ay*MAX_P;}player.x+=player.velX*ds;player.y+=player.velY*ds;clamp(player);
-    if(spawnPause>0)spawnPause-=ds;else{enemies.forEach(e=>{let tx=player.x,ty=player.y;if(difficulty==='Hard'&&e.intercept){const lt=0.5,ix=player.x+player.velX*lt,iy=player.y+player.velY*lt,distD=Math.hypot(player.x-e.x,player.y-e.y),distI=Math.hypot(ix-e.x,iy-e.y),ux_e=distD?(player.x-e.x)/distD:0,uy_e=distD?(player.y-e.y)/distD:0,pv=Math.hypot(player.velX,player.velY),upx=pv?player.velX/pv:0,upy=pv?player.velY/pv:0,dot=ux_e*upx+uy_e*upy;if(!(distD<distI||dot>ICONE)){tx=(player.x+ix)/2;ty=(player.y+iy)/2;}}const dx=tx-e.x,dy=ty-e.y;const d=Math.hypot(dx,dy);const ux=d?dx/d:0,uy=d?dy/d:0; if(physEnemies){const dvx=ux*MAX_E-e.velX,dvy=uy*MAX_E-e.velY; e.velX+=dvx*ds; e.velY+=dvy*ds; e.velX*=DAMP; e.velY*=DAMP;} else {e.velX=ux*MAX_E; e.velY=uy*MAX_E;} e.x+=e.velX*ds; e.y+=e.velY*ds; clamp(e);}); separate(enemies,ds);}
+  function update(dt){ if(!running||paused) return; const ds=dt/1000; let ax=0, ay=0;
+    if(controlMode==='joystick' && touchActive){ const dx=(touchX-joyCX)/50, dy=(touchY-joyCY)/50; const mag=Math.hypot(dx,dy); if(mag>1){ ax=dx/mag; ay=dy/mag; } else{ ax=dx; ay=dy;} }
+    else if(controlMode==='touch' && touchActive){ const dx=touchX-player.x, dy=touchY-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; } }
+    else { if(keys['w']) ay--; if(keys['s']) ay++; if(keys['a']) ax--; if(keys['d']) ax++; if(md){ const dx=mx-player.x, dy=my-player.y, d=Math.hypot(dx,dy); if(d>0){ ax=dx/d; ay=dy/d; } } }
+    if(physPlayer){ const dvx=ax*MAX_SPEED-player.velX, dvy=ay*MAX_SPEED-player.velY, dvm=Math.hypot(dvx,dvy), maxF=STEER_FORCE*ds; const sx=dvm>maxF?dvx/dvm*maxF:dvx, sy=dvm>maxF?dvy/dvm*maxF:dvy; player.velX+=sx; player.velY+=sy; player.velX*=DAMPING; player.velY*=DAMPING; player.x+=player.velX*ds; player.y+=player.velY*ds; }
+    else { player.x+=ax*MAX_SPEED*ds; player.y+=ay*MAX_SPEED*ds; }
+    clamp(player);
+
+    // always separate
+    enemies.forEach(e=>{ // steering
+      let tx=player.x, ty=player.y;
+      if(difficulty==='Hard' && e.intercept){ const lt=0.5, ix=player.x+player.velX*lt, iy=player.y+player.velY*lt; const distD=Math.hypot(player.x-e.x,player.y-e.y), distI=Math.hypot(ix-e.x,iy-e.y); const ux_e=distD?(player.x-e.x)/distD:0, uy_e=distD?(player.y-e.y)/distD:0; const pv=Math.hypot(player.velX,player.velY), upx=pv?player.velX/pv:0, upy=pv?player.velY/pv:0; const dot=ux_e*upx+uy_e*upy; if(!(distD<distI||dot>INTERCEPT_CONE)){ tx=(player.x+ix)/2; ty=(player.y+iy)/2; } }
+      const dx=tx-e.x, dy=ty-e.y, d=Math.hypot(dx,dy), ux=d?dx/d:0, uy=d?dy/d:0;
+      if(physEnemies){ const dvx=ux*MAX_SPEED_E-e.velX, dvy=uy*MAX_SPEED_E-e.velY, dvm=Math.hypot(dvx,dvy), maxF=STEER_FORCE_E*ds; const sx=dvm>maxF?dvx/dvm*maxF:dvx, sy=dvm>maxF?dvy/dvm*maxF:dvy; e.velX+=sx; e.velY+=sy; e.velX*=DAMPING; e.velY*=DAMPING; e.x+=e.velX*ds; e.y+=e.velY*ds; }
+      else { e.x+=ux*MAX_SPEED_E*ds; e.y+=uy*MAX_SPEED_E*ds; }
+      clamp(e);
+    });
+    separate(enemies, ds);
+
     if(enemies.some(e=>Math.hypot(player.x-e.x,player.y-e.y)<player.r+ER)) resetGame();
     const elapsed=(performance.now()-pauseOffset-levelStartTime)/1000;
-    if(elapsed>=levelDuration){const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length,avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;level++;enemies.forEach(e=>e.intercept=Math.random()<0.5);spawnEnemy([avgX,avgY]);levelStartTime=performance.now()-pauseOffset;}
+    if(elapsed>=levelDuration){ const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length, avgY=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; level++; enemies.forEach(e=>e.intercept=Math.random()<0.5); spawnEnemy([avgX,avgY]); levelStartTime=performance.now()-pauseOffset; }
   }
 
-  function draw(){ctx.clearRect(0,0,W,H);const elapsed=running?(performance.now()-pauseOffset-levelStartTime)/1000:0;const rem=Math.max(0,levelDuration-Math.floor(elapsed));ctx.fillStyle='#222';ctx.font='200px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(rem,W/2,H/2);ctx.fillStyle='#fff';ctx.font='36px sans-serif';ctx.textBaseline='top';ctx.fillText(`Level: ${level}`,W/2,10);ctx.drawImage(playerImg,player.x-player.r,player.y-player.r,player.r*2,player.r*2);enemies.forEach(e=>ctx.drawImage(enemyImg,e.x-ER,e.y-ER,ER*2,ER*2));}
-  let last=performance.now();(function loop(){const now=performance.now(),dt=now-last;update(dt);draw();last=now;requestAnimationFrame(loop);})();
+  function draw(){ ctx.clearRect(0,0,W,H); const elapsed=running?(performance.now()-pauseOffset-levelStartTime)/1000:0; const rem=Math.max(0, levelDuration-Math.floor(elapsed)); ctx.fillStyle='#222'; ctx.font='200px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(rem,400,300); ctx.fillStyle='#fff'; ctx.font='36px sans-serif'; ctx.textBaseline='top'; ctx.fillText(`Level: ${level}`,400,10); ctx.drawImage(playerImg,player.x-15,player.y-15,30,30); enemies.forEach(e=>{ ctx.drawImage(enemyImg,e.x-15,e.y-15,30,30); }); }
+
+  let last=performance.now(); (function loop(){ const now=performance.now(), dt=now-last; update(dt); draw(); last=now; requestAnimationFrame(loop); })();
   </script>
 </body>
 </html>
