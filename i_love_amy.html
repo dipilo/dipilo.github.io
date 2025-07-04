@@ -98,53 +98,60 @@
     }
   </style>
   <script>
-    // chapters: name, folder, and total page count
+    // chapters: title, folder, and total page count
     const chapters = [
-      { name: "Chapter 1", folder: "/I Love Amy/Chapter 1/", count: 23 },
-      { name: "Chapter 2", folder: "/I Love Amy/Chapter 2/", count: 30 },
-      { name: "Chapter 3", folder: "/I Love Amy/Chapter 3/", count: 23 },
-      { name: "Chapter 4", folder: "/I Love Amy/Chapter 4/", count: 33 },
-      { name: "Chapter 5", folder: "/I Love Amy/Chapter 5/", count: 39 },
-      { name: "Chapter 6", folder: "/I Love Amy/Chapter 6/", count: 64 },
-      { name: "Chapter 7", folder: "/I Love Amy/Chapter 7/", count: 62 },
-      { name: "Chapter 8", folder: "/I Love Amy/Chapter 8/", count: 65 },
-      { name: "Chapter 9", folder: "/I Love Amy/Chapter 9/", count: 67 },
-      { name: "Chapter 10", folder: "/I Love Amy/Chapter 10/", count: 59 },
-      { name: "Chapter 11", folder: "/I Love Amy/Chapter 11/", count: 58 },
-      { name: "Chapter 12", folder: "/I Love Amy/Chapter 12/", count: 61 },
-      { name: "Chapter 13", folder: "/I Love Amy/Chapter 13/", count: 62 },
-      { name: "Chapter 14", folder: "/I Love Amy/Chapter 14/", count: 63 },
-      { name: "Chapter 15", folder: "/I Love Amy/Chapter 15/", count: 64 },
-      { name: "Chapter 16", folder: "/I Love Amy/Chapter 16/", count: 65 },
-      { name: "Chapter 17", folder: "/I Love Amy/Chapter 17/", count: 66 },
-      { name: "Chapter 18", folder: "/I Love Amy/Chapter 18/", count: 67 }
+      { title: "Bibi's First Friend",    folder: "/I Love Amy/Chapter 1/",  count: 23 },
+      { title: "Amy",                    folder: "/I Love Amy/Chapter 2/",  count: 30 },
+      { title: "Operation: Meat Pie",    folder: "/I Love Amy/Chapter 3/",  count: 23 },
+      { title: "The Prom (1)",           folder: "/I Love Amy/Chapter 4/",  count: 33 },
+      { title: "The Prom (2)",           folder: "/I Love Amy/Chapter 5/",  count: 39 },
+      { title: "A Present",              folder: "/I Love Amy/Chapter 6/",  count: 64 },
+      { title: "Cut Ties with Her",      folder: "/I Love Amy/Chapter 7/",  count: 62 },
+      { title: "Again",                  folder: "/I Love Amy/Chapter 8/",  count: 65 },
+      { title: "Nightmare",              folder: "/I Love Amy/Chapter 9/",  count: 67 },
+      { title: "Sleepless Night",        folder: "/I Love Amy/Chapter 10/", count: 59 },
+      { title: "Date (1)",               folder: "/I Love Amy/Chapter 11/", count: 58 },
+      { title: "Date (2)",               folder: "/I Love Amy/Chapter 12/", count: 67 },
+      { title: "Amy Gets Kidnapped?!",   folder: "/I Love Amy/Chapter 13/", count: 58 },
+      { title: "The Reden Family (1)",   folder: "/I Love Amy/Chapter 14/", count: 58 },
+      { title: "The Reden Family (2)",   folder: "/I Love Amy/Chapter 15/", count: 59 },
+      { title: "The Reden Family (3)",   folder: "/I Love Amy/Chapter 16/", count: 59 },
+      { title: "Camilla's Day",          folder: "/I Love Amy/Chapter 17/", count: 58 },
+      { title: "I Hate Parties (1)",     folder: "/I Love Amy/Chapter 18/", count: 22 }
     ];
 
-      function getCurrentChapter() {
+    function getCurrentChapter() {
       const hash = window.location.hash.slice(1).toLowerCase();
-      const idx  = chapters.findIndex(c =>
-        c.name.replace(/\s/g, '').toLowerCase() === hash
+      const idx  = chapters.findIndex((_, i) =>
+        `chapter${i+1}` === hash
       );
       return idx < 0 ? 0 : idx;
     }
 
     function renderChapter(idx) {
+      const chap = chapters[idx];
       const container = document.getElementById('amy-images');
       container.innerHTML = '';
-      const chap = chapters[idx];
 
+      // Load all pages
       for (let i = 0; i < chap.count; i++) {
         const img = document.createElement('img');
         img.className = 'amy-image';
-        img.alt = `${chap.name} Page ${i + 1}`;
+        img.alt = `Chapter ${idx+1}: ${chap.title} — Page ${i + 1}`;
         img.src = `${chap.folder}${String(i).padStart(3, '0')}.jpg`;
         container.appendChild(img);
       }
 
-      document.getElementById('chapter-title').textContent = chap.name;
+      // Update title header
+      document.getElementById('chapter-title').textContent =
+        `Chapter ${idx+1}: ${chap.title}`;
+
+      // Sync selects
       ['chapter-select','chapter-select-bottom'].forEach(id =>
         document.getElementById(id).value = idx
       );
+
+      // Enable/disable nav buttons
       ['prev-chapter','prev-chapter-bottom'].forEach(id =>
         document.getElementById(id).disabled = idx === 0
       );
@@ -158,32 +165,38 @@
     window.addEventListener('DOMContentLoaded', () => {
       const topSel    = document.getElementById('chapter-select');
       const bottomSel = document.getElementById('chapter-select-bottom');
+
+      // Populate dropdowns with "Chapter N: Title"
       chapters.forEach((c, i) => {
-        topSel.add(new Option(c.name, i));
-        bottomSel.add(new Option(c.name, i));
+        const label = `Chapter ${i+1}: ${c.title}`;
+        topSel.add(new Option(label, i));
+        bottomSel.add(new Option(label, i));
       });
 
+      // Change handlers
       topSel.addEventListener('change', e => {
-        window.location.hash = chapters[e.target.value].name.replace(/\s/g, '');
-        renderChapter(+e.target.value);
+        window.location.hash = `chapter${e.target.valueAsNumber+1}`;
+        renderChapter(e.target.valueAsNumber);
       });
       bottomSel.addEventListener('change', e => {
-        window.location.hash = chapters[e.target.value].name.replace(/\s/g, '');
-        renderChapter(+e.target.value);
+        window.location.hash = `chapter${e.target.valueAsNumber+1}`;
+        renderChapter(e.target.valueAsNumber);
       });
 
+      // Arrow buttons
       ['prev-chapter','next-chapter','prev-chapter-bottom','next-chapter-bottom']
         .forEach(id => {
           document.getElementById(id).addEventListener('click', () => {
             const cur = getCurrentChapter();
             const nxt = id.includes('prev') ? cur - 1 : cur + 1;
             if (nxt >= 0 && nxt < chapters.length) {
-              window.location.hash = chapters[nxt].name.replace(/\s/g, '');
+              window.location.hash = `chapter${nxt+1}`;
               renderChapter(nxt);
             }
           });
         });
 
+      // Initial render
       renderChapter(getCurrentChapter());
       window.addEventListener('hashchange', () =>
         renderChapter(getCurrentChapter())
