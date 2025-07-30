@@ -104,7 +104,8 @@ MATURATION_AGE_SPECIES = {
     "lion": 3,
     "ipotane": 16,
     "dragon": 100,
-    "tengu": 15
+    "tengu": 15,
+    "unicorn": 3
 }
 
 LIFESPAN_SPECIES = {
@@ -131,7 +132,8 @@ LIFESPAN_SPECIES = {
     "lion": 15,
     "ipotane": 80,
     "dragon": 1000,
-    "tengu": 200
+    "tengu": 200,
+    "unicorn": 1000
 }
 # Growth Rate will be computed as: Growth Rate = Size / Maturation Age
 
@@ -311,7 +313,7 @@ known_species = {
     ("Ho", "Hu", "Hu"): "ipotane",
     ("Dr", "Dr", "Dr"): "dragon",
     ("Bi", "Bi", "Hu"): "tengu",
-    ("Ho", "Bi", "Ho"): "pegasus"
+    ("Go", "Ho", "Li"): "unicorn"
 }
 
 def count_alleles(gene_index):
@@ -636,61 +638,6 @@ MAGIC_STATS_PER_ALLELE = {
     "Dr": {"Thaumagen": 25, "Thaumacyst": 300}
 }
 
-MATURATION_AGE_SPECIES = {
-    "human": 18,
-    "centaur": 15,
-    "mermaid": 20,
-    "horse": 4,
-    "hippocampus": 2,
-    "fish": 1,
-    "satyr/faun": 12,
-    "naga": 20,
-    "minotaur": 12,
-    "harpy": 10,
-    "griffin": 8,
-    "chimera": 5,
-    "cockatrice/basilisk": 4,
-    "hippogriff": 6,
-    "manticore": 8,
-    "pegasus": 4,
-    "goat": 2,
-    "snake": 2,
-    "bull": 3,
-    "bird": 1,
-    "lion": 3,
-    "ipotane": 16,
-    "dragon": 100,
-    "tengu": 15
-}
-
-LIFESPAN_SPECIES = {
-    "human": 80,
-    "centaur": 100,
-    "mermaid": 200,
-    "horse": 25,
-    "hippocampus": 30,
-    "fish": 5,
-    "satyr/faun": 100,
-    "naga": 200,
-    "minotaur": 50,
-    "harpy": 40,
-    "griffin": 80,
-    "chimera": 20,
-    "cockatrice/basilisk": 30,
-    "hippogriff": 60,
-    "manticore": 40,
-    "pegasus": 30,
-    "goat": 15,
-    "snake": 20,
-    "bull": 20,
-    "bird": 5,
-    "lion": 15,
-    "ipotane": 80,
-    "dragon": 1000,
-    "tengu": 200
-}
-# Growth Rate will be computed as: Growth Rate = Size / Maturation Age
-
 ######################################
 # ADD DIET MAPPING FOR EACH ALLELE
 ######################################
@@ -723,10 +670,7 @@ DEFAULT_STAT_SOURCES = {
     "Venom": ["top"],
     "Fire Breathing": ["top"],
     "Gestation Period": ["bottom"],
-    "Litter Size": ["bottom"],
-    "Maturation Age": ["bottom"],
-    "Lifespan": ["bottom"],
-    "Growth Rate": ["bottom"]
+    "Litter Size": ["bottom"]
 }
 
 SPECIES_STAT_SOURCES = {
@@ -751,10 +695,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "minotaur": DEFAULT_STAT_SOURCES,
     "harpy": {
@@ -771,10 +712,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "griffin": {
         "IQ": ["top"],
@@ -790,10 +728,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "chimera": {
         "IQ": ["top", "mid", "bottom"],
@@ -809,10 +744,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "cockatrice/basilisk": {
         "IQ": ["top"],
@@ -828,10 +760,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "hippogriff": {
         "IQ": ["top"],
@@ -847,10 +776,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "manticore": {
         "IQ": ["top"],
@@ -866,10 +792,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["bottom"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "pegasus": {
         "IQ": ["top"],
@@ -885,10 +808,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "goat": DEFAULT_STAT_SOURCES,
     "snake": DEFAULT_STAT_SOURCES,
@@ -907,10 +827,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "lion": DEFAULT_STAT_SOURCES,
     "ipotane": {
@@ -927,10 +844,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "dragon": {
         "IQ": ["top"],
@@ -946,10 +860,7 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
     "tengu": {
         "IQ": ["bottom"],
@@ -965,29 +876,23 @@ SPECIES_STAT_SOURCES = {
         "Venom": ["top"],
         "Fire Breathing": ["top"],
         "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Litter Size": ["bottom"]
     },
-    "pegasus": {
+    "unicorn": {
         "IQ": ["top"],
         "EQ": ["top"],
-        "Dexterity": ["top"],
-        "Strength": ["top"],
-        "Land Speed": ["bottom"],
-        "Swim Speed": ["bottom"],
-        "Jump Height": ["bottom"],
-        "Flight Speed": ["mid"],
-        "Climbing": ["bottom"],
+        "Dexterity": ["mid"],
+        "Strength": ["mid"],
+        "Land Speed": ["mid"],
+        "Swim Speed": ["mid"],
+        "Jump Height": ["mid"],
+        "Flight Speed": [],
+        "Climbing": ["mid"],
         "Bite": ["top"],
         "Venom": ["top"],
         "Fire Breathing": ["top"],
-        "Gestation Period": ["bottom"],
-        "Litter Size": ["bottom"],
-        "Maturation Age": ["bottom"],
-        "Lifespan": ["bottom"],
-        "Growth Rate": ["bottom"]
+        "Gestation Period": ["mid"],
+        "Litter Size": ["mid"]
     }
 }
 
@@ -1355,6 +1260,7 @@ def breed_from_saved(parent1_name, parent2_name):
     # 6. Helpers for variant checks
     is_human_allele = (top_expr == "Hu")
     is_horse_head = (top_expr == "Ho")
+    is_not_unicorn = (species != "unicorn")
     is_not_manticore = (species != "manticore")
     is_giant = (sim_stats["Size"] >= 2.5 * base_size)
     is_small = (sim_stats["Size"] <= 0.5 * base_size)
@@ -1387,6 +1293,7 @@ def breed_from_saved(parent1_name, parent2_name):
 
     elif is_horse_head and has_high_magic:
         variant_prefix = "Unicorn "
+        sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 40.0, 3)
 
     species_variant = variant_prefix + species
 
