@@ -1260,6 +1260,7 @@ def breed_from_saved(parent1_name, parent2_name):
     # 6. Helpers for variant checks
     is_human_allele = (top_expr == "Hu")
     is_horse_head = (top_expr == "Ho")
+    is_unicorn = (species == "unicorn")
     is_not_unicorn = (species != "unicorn")
     is_not_manticore = (species != "manticore")
     is_giant = (sim_stats["Size"] >= 2.5 * base_size)
@@ -1291,7 +1292,13 @@ def breed_from_saved(parent1_name, parent2_name):
         variant_prefix = "Dwarven "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 4.0, 3)
 
-    elif is_horse_head and has_high_magic:
+    elif is_unicorn:
+        sim_stats["Thaumagen Production Rate"] = round(
+            sim_stats["Thaumagen Production Rate"] * 3, 3
+        )
+        sim_stats["Thaumacyst Capacity"] = round(sim_stats["Thaumacyst Capacity"] * 2, 3)
+
+    elif is_horse_head and has_high_magic and is_not_unicorn:
         variant_prefix = "Unicorn "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 40.0, 3)
 
