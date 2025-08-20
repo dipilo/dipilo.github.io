@@ -189,15 +189,51 @@
       window.scrollTo(0, 0);
     }
 
-    // Preload every chapter's images into browser cache
-    function preloadAllChapters() {
-      chapters.forEach(chap => {
-        for (let i = 0; i < chap.count; i++) {
-          const img = new Image();
-          img.src = `${chap.folder}${String(i).padStart(3, '0')}.jpg`;
-        }
-      });
+    // Preload images for the current chapter first, then load others as needed
+    function preloadChapterImages(chap) {
+    const imageQueue = []; // Array to hold images for preload
+    const container = document.getElementById('amy-images');
+    
+    for (let i = 0; i < chap.count; i++) {
+        const img = new Image();
+        img.src = `${chap.folder}${String(i).padStart(3, '0')}.jpg`;
+        imageQueue.push(img);
+
+        img.onload = () => {
+        console.log(`Preloaded image: ${img.src}`);
+        };
+
+        img.onerror = () => {
+        console.error(`Failed to preload image: ${img.src}`);
+        };
     }
+
+    // Load images immediately for the current chapter
+    renderChapterImages(imageQueue);
+    }
+
+    // Render images in numeric order (for the current chapter)
+    function renderChapterImages(imageQueue) {
+    const container = document.getElementById('amy-images');
+    container.innerHTML = '';  // Clear the previous chapter's images
+
+    imageQueue.forEach((img) => {
+        const imgElement = document.createElement('img');
+        imgElement.className = 'amy-image';
+        imgElement.src = img.src;
+        container.appendChild(imgElement);
+    });
+    }
+
+    // Load images dynamically as the user scrolls
+    function onScroll() {
+    const container = document.getElementById('amy-images');
+    if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
+        // You can load more images if needed here
+    }
+    }
+
+    window.addEventListener('scroll', onScroll);
 
     window.addEventListener('DOMContentLoaded', () => {
       const topSel    = document.getElementById('chapter-select');
@@ -280,7 +316,7 @@
       </div>
     </div>
   </main>
-  <footer>
+    <footer>
     <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
   </footer>
 </body>
