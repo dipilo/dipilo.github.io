@@ -209,7 +209,19 @@
         const img = document.createElement('img');
         img.className = 'amy-image';
         img.alt = `Page ${i + 1}`;
-        img.src = `${chapterFolder}${String(i).padStart(3, '0')}.jpg`; // Ensure image path matches your folder structure
+        
+        // Update the image source path to match the folder structure
+        img.src = `/comics${chapterFolder}${String(i).padStart(3, '0')}.jpg`; // Correct image path here
+        
+        // If image path is correct and image exists, append it
+        img.onload = function() {
+          console.log(`Loaded image: ${img.src}`);
+        };
+        
+        img.onerror = function() {
+          console.error(`Failed to load image: ${img.src}`);
+        };
+
         imageContainer.appendChild(img);
       }
 
