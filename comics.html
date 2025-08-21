@@ -79,13 +79,93 @@
       cursor: not-allowed;
       opacity: 0.6;
     }
+    .chapter-select {
+      font-size: 1.1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 2px solid #7B1FA2;
+      color: #7B1FA2;
+      background: #F3E5F5;
+      font-weight: bold;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .chapter-select:focus {
+      border: 2px solid #4A148C;
+    }
+    #amy-images {
+      overflow-x: hidden;  /* Prevent horizontal scrolling */
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .amy-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .back-arrow-btn {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 1000;
+      background: #F3E5F5;
+      color: #7B1FA2;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      user-select: none;
+      line-height: 1;
+      padding: 0;
+      text-align: center;
+      vertical-align: center;
+      font-family: inherit;
+      opacity: 1;
+      visibility: visible;
+    }
+    .back-arrow-btn.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    @media (max-width: 800px) {
+      .amy-container {
+        max-width: 98vw;
+        padding: 1rem 0.25rem;
+      }
+      .chapter-nav {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .back-arrow-btn {
+        top: 8px;
+        left: 8px;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Back arrow button, hidden by default -->
+  <button id="back-arrow-btn" class="back-arrow-btn hide" title="Back">
+    &#8592;
+  </button>
   <main>
     <div class="amy-container">
-      <div class="amy-title">Comics Library</div>
+      <div id="main-title" class="amy-title">Comics Library</div>
+      <div id="chapter-nav-top"></div>
       <div id="comic-list" class="comic-list"></div>
+      <div id="chapter-nav-bottom"></div>
     </div>
   </main>
   <script>
@@ -146,91 +226,159 @@
       ]
     };
 
-    // Function to render the list of comics
+    // Helper to create navigation UI (arrows + dropdown)
+    function createChapterNav(comicTitle, chapters, currentIndex) {
+      const nav = document.createElement('div');
+      nav.className = 'chapter-nav';
+
+      // Prev button
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'chapter-arrow';
+      prevBtn.title = 'Previous Chapter';
+      prevBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <polyline points="15 6 9 12 15 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      prevBtn.disabled = currentIndex === 0;
+
+      // Dropdown
+      const select = document.createElement('select');
+      select.className = 'chapter-select';
+      chapters.forEach((chapter, i) => {
+        const opt = new Option(chapter.title, i);
+        select.add(opt);
+      });
+      select.selectedIndex = currentIndex;
+
+      // Next button
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'chapter-arrow';
+      nextBtn.title = 'Next Chapter';
+      nextBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <polyline points="9 6 15 12 9 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      nextBtn.disabled = currentIndex === chapters.length - 1;
+
+      nav.appendChild(prevBtn);
+      nav.appendChild(select);
+      nav.appendChild(nextBtn);
+
+      // Navigation logic
+      prevBtn.onclick = () => {
+        if (select.selectedIndex > 0) {
+          select.selectedIndex -= 1;
+          select.dispatchEvent(new Event('change'));
+        }
+      };
+      nextBtn.onclick = () => {
+        if (select.selectedIndex < chapters.length - 1) {
+          select.selectedIndex += 1;
+          select.dispatchEvent(new Event('change'));
+        }
+      };
+      select.onchange = (e) => {
+        const idx = parseInt(e.target.value, 10);
+        loadChapterImages(comicTitle, idx);
+      };
+
+      return nav;
+    }
+
+    // Helper to show/hide and set back button behavior
+    function showBackButton(onClick) {
+      const btn = document.getElementById('back-arrow-btn');
+      btn.classList.remove('hide');
+      btn.onclick = onClick;
+    }
+    function hideBackButton() {
+      const btn = document.getElementById('back-arrow-btn');
+      btn.classList.add('hide');
+      btn.onclick = null;
+    }
+
     function renderComics() {
+      hideBackButton();
+      document.getElementById('main-title').textContent = 'Comics Library';
+      document.getElementById('chapter-nav-top').innerHTML = '';
+      document.getElementById('chapter-nav-bottom').innerHTML = '';
       const comicListElement = document.getElementById('comic-list');
-      comicListElement.innerHTML = ''; // Clear current list
+      comicListElement.innerHTML = '';
 
       Object.keys(comics).forEach(comicTitle => {
         const comicItem = document.createElement('div');
         comicItem.classList.add('comic-item');
         comicItem.innerHTML = `<strong>${comicTitle}</strong>`;
-
         comicItem.onclick = () => {
-          renderChapters(comicTitle); // Show chapters for the selected comic
+          renderChapters(comicTitle);
         };
-
         comicListElement.appendChild(comicItem);
       });
     }
 
-    // Function to render chapters for a selected comic
     function renderChapters(comicTitle) {
+      showBackButton(renderComics);
+      document.getElementById('main-title').textContent = comicTitle;
+      document.getElementById('chapter-nav-top').innerHTML = '';
+      document.getElementById('chapter-nav-bottom').innerHTML = '';
       const comicListElement = document.getElementById('comic-list');
-      comicListElement.innerHTML = ''; // Clear comic list
+      comicListElement.innerHTML = '';
 
       const chapters = comics[comicTitle];
       const chapterList = document.createElement('div');
       chapterList.classList.add('comic-list');
 
-      chapters.forEach((chapter) => {
+      chapters.forEach((chapter, i) => {
         const chapterItem = document.createElement('div');
         chapterItem.classList.add('comic-item');
         chapterItem.innerHTML = `${chapter.title}`;
-
-        // Load the chapter images when a chapter is clicked
         chapterItem.onclick = () => {
-          loadChapterImages(comicTitle, chapter.folder, chapter.count);
+          loadChapterImages(comicTitle, i);
         };
-
         chapterList.appendChild(chapterItem);
       });
 
       comicListElement.appendChild(chapterList);
     }
 
-    // Function to load and display images for a selected chapter
-    function loadChapterImages(comicTitle, chapterFolder, pageCount) {
+    // Only pass index, not folder/count/title
+    function loadChapterImages(comicTitle, chapterIndex) {
+      showBackButton(() => renderChapters(comicTitle));
+      const chapters = comics[comicTitle];
+      const chapter = chapters[chapterIndex];
+
+      document.getElementById('main-title').textContent = comicTitle;
+      document.getElementById('chapter-nav-top').innerHTML = '';
+      document.getElementById('chapter-nav-bottom').innerHTML = '';
+
+      // Navigation at top and bottom
+      const navTop = document.createElement('div');
+      navTop.appendChild(createChapterNav(comicTitle, chapters, chapterIndex));
+      document.getElementById('chapter-nav-top').appendChild(navTop);
+
+      const navBottom = document.createElement('div');
+      navBottom.appendChild(createChapterNav(comicTitle, chapters, chapterIndex));
+      document.getElementById('chapter-nav-bottom').appendChild(navBottom);
+
+      // Show images
       const comicListElement = document.getElementById('comic-list');
-      comicListElement.innerHTML = ''; // Clear the chapters list
-
-      const chapterTitle = document.createElement('div');
-      chapterTitle.classList.add('amy-title');
-      chapterTitle.innerHTML = `${comicTitle} - ${chapterFolder}`;
-
-      comicListElement.appendChild(chapterTitle);
+      comicListElement.innerHTML = '';
 
       const imageContainer = document.createElement('div');
       imageContainer.classList.add('amy-container');
       imageContainer.id = 'amy-images';
 
-      // Load and display images for the chapter
-      for (let i = 0; i < pageCount; i++) {
+      for (let i = 0; i < chapter.count; i++) {
         const img = document.createElement('img');
         img.className = 'amy-image';
         img.alt = `Page ${i + 1}`;
-        
-        // Update the image source path to match the folder structure
-        img.src = `/comics${chapterFolder}${String(i).padStart(3, '0')}.jpg`; // Correct image path here
-        
-        // If image path is correct and image exists, append it
-        img.onload = function() {
-          console.log(`Loaded image: ${img.src}`);
-        };
-        
-        img.onerror = function() {
-          console.error(`Failed to load image: ${img.src}`);
-        };
-
+        img.src = `/comics${chapter.folder}${String(i).padStart(3, '0')}.jpg`;
         imageContainer.appendChild(img);
       }
 
       comicListElement.appendChild(imageContainer);
     }
 
-    // Initialize the comics list on page load
     window.addEventListener('DOMContentLoaded', () => {
-      renderComics(); // Show the list of comics
+      renderComics();
     });
   </script>
       <footer>
