@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Comics Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body {
+      background-color: #F3E5F5;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    .amy-container {
+      max-width: 700px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(123,31,162,0.08);
+      padding: 2rem 1rem;
+      overflow-y: auto;
+    }
+    .amy-title {
+      text-align: center;
+      color: #7B1FA2;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+    }
+    .comic-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .comic-item {
+      padding: 1rem;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(123,31,162,0.08);
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .comic-item:hover {
+      background-color: #f3e5f5;
+    }
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .chapter-arrow {
+      background: #7B1FA2;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(123,31,162,0.07);
+      user-select: none;
+      line-height: 1;
+      padding: 0;
+      text-align: center;
+      vertical-align: middle;
+      font-family: inherit;
+    }
+    .chapter-arrow:disabled {
+      background: #D1B3E0;
+      color: #fff;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="amy-container">
+      <div class="amy-title">Comics Library</div>
+      <div id="comic-list" class="comic-list"></div>
+    </div>
+  </main>
+  <script>
+    // chapters: title, folder, and total page count
+    const comics = {
+      'I Love Amy' : [
+        { title: "Bibi's First Friend",     folder: "/I Love Amy/Chapter 1/",  count: 23 },
+        { title: "Amy",                     folder: "/I Love Amy/Chapter 2/",  count: 30 },
+        { title: "Operation: Meat Pie",     folder: "/I Love Amy/Chapter 3/",  count: 23 },
+        { title: "The Prom (1)",            folder: "/I Love Amy/Chapter 4/",  count: 33 },
+        { title: "The Prom (2)",            folder: "/I Love Amy/Chapter 5/",  count: 39 },
+        { title: "A Present",               folder: "/I Love Amy/Chapter 6/",  count: 64 },
+        { title: "Cut Ties with Her",       folder: "/I Love Amy/Chapter 7/",  count: 62 },
+        { title: "Again",                   folder: "/I Love Amy/Chapter 8/",  count: 65 },
+        { title: "Nightmare",               folder: "/I Love Amy/Chapter 9/",  count: 67 },
+        { title: "Sleepless Night",         folder: "/I Love Amy/Chapter 10/", count: 59 },
+        { title: "Date (1)",                folder: "/I Love Amy/Chapter 11/", count: 58 },
+        { title: "Date (2)",                folder: "/I Love Amy/Chapter 12/", count: 67 },
+        { title: "Amy Gets Kidnapped?!",    folder: "/I Love Amy/Chapter 13/", count: 58 },
+        { title: "The Reden Family (1)",    folder: "/I Love Amy/Chapter 14/", count: 58 },
+        { title: "The Reden Family (2)",    folder: "/I Love Amy/Chapter 15/", count: 59 },
+        { title: "The Reden Family (3)",    folder: "/I Love Amy/Chapter 16/", count: 59 },
+        { title: "Camilla's Day",           folder: "/I Love Amy/Chapter 17/", count: 58 },
+        { title: "I Hate Parties (1)",      folder: "/I Love Amy/Chapter 18/", count: 22 },
+        { title: "I Hate Parties (2)",      folder: "/I Love Amy/Chapter 19/", count: 17 },
+        { title: "One and The Same (1)",    folder: "/I Love Amy/Chapter 20/", count: 61 },
+        { title: "One and The Same (2)",    folder: "/I Love Amy/Chapter 21/", count: 57 },
+        { title: "Their Daily Lives",       folder: "/I Love Amy/Chapter 22/", count: 57 },
+        { title: "Do-Nothing Day",          folder: "/I Love Amy/Chapter 23/", count: 56 },
+        { title: "The Amusement Park (1)",  folder: "/I Love Amy/Chapter 24/", count: 56 },
+        { title: "The Amusement Park (2)",  folder: "/I Love Amy/Chapter 25/", count: 58 },
+        { title: "Camilla and Amy (1)",     folder: "/I Love Amy/Chapter 26/", count: 62 },
+        { title: "Camilla and Amy (2)",     folder: "/I Love Amy/Chapter 27/", count: 57 },
+        { title: "Camilla and Amy (3)",     folder: "/I Love Amy/Chapter 28/", count: 63 },
+        { title: "Camilla and Amy (4)",     folder: "/I Love Amy/Chapter 29/", count: 63 },
+        { title: "Camilla and Amy (5)",     folder: "/I Love Amy/Chapter 30/", count: 64 },
+        { title: "The Calm Before The Storm", folder: "/I Love Amy/Chapter 31/", count: 64 },
+        { title: "Backstage Notes",         folder: "/I Love Amy/Chapter 32/", count: 26 },
+        { title: "To Kill A Peter",         folder: "/I Love Amy/Chapter 33/", count: 59 },
+        { title: "Cookie Jar (1)",          folder: "/I Love Amy/Chapter 34/", count: 59 },
+        { title: "Cookie Jar (2)",          folder: "/I Love Amy/Chapter 35/", count: 62 },
+        { title: "Cookie Jar (3)",          folder: "/I Love Amy/Chapter 36/", count: 36 },
+        { title: "Sleeping With The Enemy", folder: "/I Love Amy/Chapter 37/", count: 20 },
+        { title: "Amy's Dream (1)",         folder: "/I Love Amy/Chapter 38/", count: 56 },
+        { title: "Amy's Dream (2)",         folder: "/I Love Amy/Chapter 39/", count: 23 },
+        { title: "Bibi And Camilla",        folder: "/I Love Amy/Chapter 40/", count: 49 },
+        { title: "Road Movie (1)",          folder: "/I Love Amy/Chapter 41/", count: 60 },
+        { title: "Road Movie (2)",          folder: "/I Love Amy/Chapter 42/", count: 32 },
+        { title: "Prom Night",              folder: "/I Love Amy/Chapter 43/", count: 56 },
+        { title: "Recovery",                folder: "/I Love Amy/Chapter 44/", count: 49 },
+        { title: "Dear Julia",              folder: "/I Love Amy/Chapter 45/", count: 58 }
+      ],
+      'Merry Marbling' : [
+        { title: "Chapter 1", folder: "/Merry Marbling/Chapter 1/", count: 36 },
+        { title: "Chapter 2", folder: "/Merry Marbling/Chapter 2/", count: 22 },
+        { title: "Chapter 3", folder: "/Merry Marbling/Chapter 3/", count: 18 },
+        { title: "Chapter 4", folder: "/Merry Marbling/Chapter 4/", count: 25 }
+      ]
+    };
+
+    // Function to render the list of comics
+    function renderComics() {
+      const comicListElement = document.getElementById('comic-list');
+      comicListElement.innerHTML = ''; // Clear current list
+
+      Object.keys(comics).forEach(comicTitle => {
+        const comicItem = document.createElement('div');
+        comicItem.classList.add('comic-item');
+        comicItem.innerHTML = `<strong>${comicTitle}</strong>`;
+
+        comicItem.onclick = () => {
+          renderChapters(comicTitle); // Show chapters for the selected comic
+        };
+
+        comicListElement.appendChild(comicItem);
+      });
+    }
+
+    // Function to render chapters for a selected comic
+    function renderChapters(comicTitle) {
+      const comicListElement = document.getElementById('comic-list');
+      comicListElement.innerHTML = ''; // Clear comic list
+
+      const chapters = comics[comicTitle];
+      const chapterList = document.createElement('div');
+      chapterList.classList.add('comic-list');
+
+      chapters.forEach((chapter) => {
+        const chapterItem = document.createElement('div');
+        chapterItem.classList.add('comic-item');
+        chapterItem.innerHTML = `${chapter.title}`;
+
+        // Load the chapter images when a chapter is clicked
+        chapterItem.onclick = () => {
+          loadChapterImages(comicTitle, chapter.folder, chapter.count);
+        };
+
+        chapterList.appendChild(chapterItem);
+      });
+
+      comicListElement.appendChild(chapterList);
+    }
+
+    // Function to load and display images for a selected chapter
+    function loadChapterImages(comicTitle, chapterFolder, pageCount) {
+      const comicListElement = document.getElementById('comic-list');
+      comicListElement.innerHTML = ''; // Clear the chapters list
+
+      const chapterTitle = document.createElement('div');
+      chapterTitle.classList.add('amy-title');
+      chapterTitle.innerHTML = `${comicTitle} - ${chapterFolder}`;
+
+      comicListElement.appendChild(chapterTitle);
+
+      const imageContainer = document.createElement('div');
+      imageContainer.classList.add('amy-container');
+      imageContainer.id = 'amy-images';
+
+      // Load and display images for the chapter
+      for (let i = 0; i < pageCount; i++) {
+        const img = document.createElement('img');
+        img.className = 'amy-image';
+        img.alt = `Page ${i + 1}`;
+        img.src = `${chapterFolder}${String(i).padStart(3, '0')}.jpg`; // Ensure image path matches your folder structure
+        imageContainer.appendChild(img);
+      }
+
+      comicListElement.appendChild(imageContainer);
+    }
+
+    // Initialize the comics list on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderComics(); // Show the list of comics
+    });
+  </script>
+      <footer>
+    <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
+  </footer>
+</body>
+</html>
