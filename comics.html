@@ -258,18 +258,18 @@
         { title: "Recovery",                folder: "/I Love Amy/Chapter 44/", count: 49 },
         { title: "Dear Julia",              folder: "/I Love Amy/Chapter 45/", count: 58 },
         { title: "Another Beginning",       folder: "/I Love Amy/Chapter 46/", count: 61 },
-        { title: "Afterword",               folder: "/I Love Amy/Chapter 46-1/", count: 10 },
-        { title: "Twitter Extras (1)",      folder: "/I Love Amy/Chapter 46-2/", count: 13 },
-        { title: "I Love Bibi(1)",          folder: "/I Love Amy/Chapter 46-3/", count: 66 },
-        { title: "I Love Bibi(2)",          folder: "/I Love Amy/Chapter 46-4/", count: 36 },
-        { title: "I Love Bibi(3)",          folder: "/I Love Amy/Chapter 46-5/", count: 61 },
-        { title: "Good Night My Baby",      folder: "/I Love Amy/Chapter 46-6/", count: 48 },
-        { title: "My Stupid Cat (1)",       folder: "/I Love Amy/Chapter 46-7/", count: 47 },
-        { title: "My Stupid Cat (2)",       folder: "/I Love Amy/Chapter 46-8/", count: 49 },
-        { title: "My Stupid Cat (3)",       folder: "/I Love Amy/Chapter 46-9/", count: 54 },
-        { title: "We Became a Family",      folder: "/I Love Amy/Chapter 46-10/", count: 46 },
-        { title: "Ladies Night (1)",        folder: "/I Love Amy/Chapter 46-11/", count: 45 },
-        { title: "Ladies Night (2)",        folder: "/I Love Amy/Chapter 46-12/", count: 47 }
+        { title: "Afterword",               folder: "/I Love Amy/Chapter 46.1/", count: 10 },
+        { title: "Twitter Extras (1)",      folder: "/I Love Amy/Chapter 46.2/", count: 13 },
+        { title: "I Love Bibi(1)",          folder: "/I Love Amy/Chapter 46.3/", count: 66 },
+        { title: "I Love Bibi(2)",          folder: "/I Love Amy/Chapter 46.4/", count: 36 },
+        { title: "I Love Bibi(3)",          folder: "/I Love Amy/Chapter 46.5/", count: 61 },
+        { title: "Good Night My Baby",      folder: "/I Love Amy/Chapter 46.6/", count: 48 },
+        { title: "My Stupid Cat (1)",       folder: "/I Love Amy/Chapter 46.7/", count: 47 },
+        { title: "My Stupid Cat (2)",       folder: "/I Love Amy/Chapter 46.8/", count: 49 },
+        { title: "My Stupid Cat (3)",       folder: "/I Love Amy/Chapter 46.9/", count: 54 },
+        { title: "We Became a Family",      folder: "/I Love Amy/Chapter 46.10/", count: 46 },
+        { title: "Ladies Night (1)",        folder: "/I Love Amy/Chapter 46.11/", count: 45 },
+        { title: "Ladies Night (2)",        folder: "/I Love Amy/Chapter 46.12/", count: 47 }
       ],
       'Merry Marbling' : [
         { title: "Chapter 1", folder: "/Merry Marbling/Chapter 1/", count: 36 },
@@ -349,6 +349,13 @@
       } catch (e) { /* ignore storage errors */ }
     }
 
+    // Helper to extract folder name (last segment of folder path)
+    function folderNameFromPath(folderPath) {
+      if (!folderPath) return '';
+      // remove trailing slash if present and take last segment
+      return folderPath.replace(/\/$/, '').split('/').pop();
+    }
+
     // Helper to create navigation UI (arrows + dropdown + displayed chapter title above)
     function createChapterNav(comicTitle, chapters, currentIndex) {
       const nav = document.createElement('div');
@@ -371,13 +378,13 @@
       titleSpan.className = 'chapter-title';
       titleSpan.textContent = chapters[currentIndex] ? chapters[currentIndex].title : '';
 
-      // Dropdown (shows "Chapter X" labels)
+      // Dropdown (shows actual folder name extracted from chapter.folder)
       const select = document.createElement('select');
       select.className = 'chapter-select';
-      select.setAttribute('aria-label', 'Select chapter file number');
+      select.setAttribute('aria-label', 'Select chapter folder');
       chapters.forEach((chapter, i) => {
-        const label = `Chapter ${i + 1}`;
-        const opt = new Option(label, i);
+        const folderLabel = folderNameFromPath(chapter.folder) || `Chapter ${i + 1}`;
+        const opt = new Option(folderLabel, i);
         select.add(opt);
       });
       select.selectedIndex = currentIndex;
