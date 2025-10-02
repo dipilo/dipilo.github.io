@@ -51,6 +51,7 @@
       align-items: center;
       margin-bottom: 1.5rem;
       margin-top: 1.5rem;
+      gap: 1rem;
     }
     .chapter-arrow {
       background: #7B1FA2;
@@ -93,6 +94,19 @@
     .chapter-select:focus {
       border: 2px solid #4A148C;
     }
+
+    /* chapter title shown beside dropdown */
+    .chapter-title {
+      font-size: 1rem;
+      color: #4A148C;
+      font-weight: 700;
+      margin-left: 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 40ch;
+    }
+
     #amy-images {
       overflow-x: hidden;  /* Prevent horizontal scrolling */
       display: flex;
@@ -150,11 +164,20 @@
       .chapter-nav {
         flex-direction: column;
         gap: 1rem;
+        align-items: stretch;
+      }
+      .chapter-title {
+        max-width: none;
       }
       .back-arrow-btn {
         top: 8px;
         left: 8px;
       }
+    }
+    footer {
+      text-align: center;
+      margin: 2rem 0;
+      color: #6d6d6d;
     }
   </style>
 </head>
@@ -296,7 +319,23 @@
       ],
     };
 
-    // Helper to create navigation UI (arrows + dropdown)
+    // localStorage keys used to persist last view
+    const LS_VIEW_KEY = 'comics_last_view';         // 'library' | 'chapters' | 'images'
+    const LS_COMIC_KEY = 'comics_last_comic';       // comic title string
+    const LS_CHAPTER_KEY = 'comics_last_chapter';   // chapter index (number)
+
+    // Helper to save view state
+    function saveViewState(view, comicTitle = null, chapterIndex = null) {
+      try {
+        localStorage.setItem(LS_VIEW_KEY, view);
+        if (comicTitle !== null) localStorage.setItem(LS_COMIC_KEY, comicTitle);
+        else localStorage.removeItem(LS_COMIC_KEY);
+        if (chapterIndex !== null) localStorage.setItem(LS_CHAPTER_KEY, String(chapterIndex));
+        else localStorage.removeItem(LS_CHAPTER_KEY);
+      } catch (e) { /* ignore storage errors */ }
+    }
+
+    // Helper to create navigation UI (arrows + dropdown + displayed chapter title)
     function createChapterNav(comicTitle, chapters, currentIndex) {
       const nav = document.createElement('div');
       nav.className = 'chapter-nav';
@@ -310,14 +349,22 @@
       </svg>`;
       prevBtn.disabled = currentIndex === 0;
 
-      // Dropdown
+      // Dropdown (shows "Chapter X" labels)
       const select = document.createElement('select');
       select.className = 'chapter-select';
+      select.setAttribute('aria-label', 'Select chapter file number');
       chapters.forEach((chapter, i) => {
-        const opt = new Option(chapter.title, i);
+        // Dropdown label is file-style "Chapter <index+1>"
+        const label = `Chapter ${i + 1}`;
+        const opt = new Option(label, i);
         select.add(opt);
       });
       select.selectedIndex = currentIndex;
+
+      // Visible chapter title (full title shown outside of the select)
+      const titleSpan = document.createElement('div');
+      titleSpan.className = 'chapter-title';
+      titleSpan.textContent = chapters[currentIndex] ? chapters[currentIndex].title : '';
 
       // Next button
       const nextBtn = document.createElement('button');
@@ -328,8 +375,15 @@
       </svg>`;
       nextBtn.disabled = currentIndex === chapters.length - 1;
 
+      // Layout: prev | (select + title) | next
+      const centerWrapper = document.createElement('div');
+      centerWrapper.style.display = 'flex';
+      centerWrapper.style.alignItems = 'center';
+      centerWrapper.appendChild(select);
+      centerWrapper.appendChild(titleSpan);
+
       nav.appendChild(prevBtn);
-      nav.appendChild(select);
+      nav.appendChild(centerWrapper);
       nav.appendChild(nextBtn);
 
       // Navigation logic
@@ -347,6 +401,9 @@
       };
       select.onchange = (e) => {
         const idx = parseInt(e.target.value, 10);
+        // update visible title immediately
+        titleSpan.textContent = chapters[idx] ? chapters[idx].title : '';
+        // load images for that chapter
         loadChapterImages(comicTitle, idx);
       };
 
@@ -382,6 +439,9 @@
         };
         comicListElement.appendChild(comicItem);
       });
+
+      // persist view
+      saveViewState('library', null, null);
     }
 
     function renderChapters(comicTitle) {
@@ -407,6 +467,9 @@
       });
 
       comicListElement.appendChild(chapterList);
+
+      // persist view (chapter list)
+      saveViewState('chapters', comicTitle, null);
     }
 
     // Only pass index, not folder/count/title
@@ -419,7 +482,7 @@
       document.getElementById('chapter-nav-top').innerHTML = '';
       document.getElementById('chapter-nav-bottom').innerHTML = '';
 
-      // Navigation at top and bottom
+      // Navigation at top and bottom (both will rebuild and therefore stay in sync)
       const navTop = document.createElement('div');
       navTop.appendChild(createChapterNav(comicTitle, chapters, chapterIndex));
       document.getElementById('chapter-nav-top').appendChild(navTop);
@@ -445,13 +508,41 @@
       }
 
       comicListElement.appendChild(imageContainer);
+
+      // persist view (images + which chapter)
+      saveViewState('images', comicTitle, chapterIndex);
     }
 
+    // On load — restore last view if present
     window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const lastView = localStorage.getItem(LS_VIEW_KEY);
+        const lastComic = localStorage.getItem(LS_COMIC_KEY);
+        const lastChapter = localStorage.getItem(LS_CHAPTER_KEY);
+        if (lastView === 'images' && lastComic && lastChapter !== null) {
+          // ensure the comic still exists
+          if (comics[lastComic]) {
+            const idx = parseInt(lastChapter, 10) || 0;
+            // clamp index
+            const clamped = Math.max(0, Math.min(idx, comics[lastComic].length - 1));
+            loadChapterImages(lastComic, clamped);
+            return;
+          }
+        } else if (lastView === 'chapters' && lastComic) {
+          if (comics[lastComic]) {
+            renderChapters(lastComic);
+            return;
+          }
+        }
+      } catch (e) {
+        // ignore storage errors and fall back to library
+      }
+
+      // default
       renderComics();
     });
   </script>
-      <footer>
+  <footer>
     <p>&copy; 2025 Dipilodopilasaurus Nest. All Rights Reserved.</p>
   </footer>
 </body>
