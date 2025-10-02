@@ -90,21 +90,31 @@
       font-weight: bold;
       outline: none;
       transition: border 0.2s;
+      min-width: 160px;
     }
     .chapter-select:focus {
       border: 2px solid #4A148C;
     }
 
-    /* chapter title shown beside dropdown */
+    /* chapter title shown above dropdown (below comic name) */
+    .chapter-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      width: 100%;
+      padding: 0 0.5rem;
+    }
     .chapter-title {
       font-size: 1rem;
       color: #4A148C;
       font-weight: 700;
-      margin-left: 0.75rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 40ch;
+      text-align: center;
+      white-space: normal; /* allow wrapping */
+      overflow: visible;
+      max-width: 100%;
+      word-break: break-word;
+      padding: 0 0.5rem;
     }
 
     #amy-images {
@@ -167,11 +177,15 @@
         align-items: stretch;
       }
       .chapter-title {
-        max-width: none;
+        max-width: 100%;
       }
       .back-arrow-btn {
         top: 8px;
         left: 8px;
+      }
+      .chapter-select {
+        width: 100%;
+        min-width: 0;
       }
     }
     footer {
@@ -335,7 +349,7 @@
       } catch (e) { /* ignore storage errors */ }
     }
 
-    // Helper to create navigation UI (arrows + dropdown + displayed chapter title)
+    // Helper to create navigation UI (arrows + dropdown + displayed chapter title above)
     function createChapterNav(comicTitle, chapters, currentIndex) {
       const nav = document.createElement('div');
       nav.className = 'chapter-nav';
@@ -349,22 +363,27 @@
       </svg>`;
       prevBtn.disabled = currentIndex === 0;
 
+      // Center wrapper: title above dropdown
+      const center = document.createElement('div');
+      center.className = 'chapter-center';
+
+      const titleSpan = document.createElement('div');
+      titleSpan.className = 'chapter-title';
+      titleSpan.textContent = chapters[currentIndex] ? chapters[currentIndex].title : '';
+
       // Dropdown (shows "Chapter X" labels)
       const select = document.createElement('select');
       select.className = 'chapter-select';
       select.setAttribute('aria-label', 'Select chapter file number');
       chapters.forEach((chapter, i) => {
-        // Dropdown label is file-style "Chapter <index+1>"
         const label = `Chapter ${i + 1}`;
         const opt = new Option(label, i);
         select.add(opt);
       });
       select.selectedIndex = currentIndex;
 
-      // Visible chapter title (full title shown outside of the select)
-      const titleSpan = document.createElement('div');
-      titleSpan.className = 'chapter-title';
-      titleSpan.textContent = chapters[currentIndex] ? chapters[currentIndex].title : '';
+      center.appendChild(titleSpan);
+      center.appendChild(select);
 
       // Next button
       const nextBtn = document.createElement('button');
@@ -375,15 +394,8 @@
       </svg>`;
       nextBtn.disabled = currentIndex === chapters.length - 1;
 
-      // Layout: prev | (select + title) | next
-      const centerWrapper = document.createElement('div');
-      centerWrapper.style.display = 'flex';
-      centerWrapper.style.alignItems = 'center';
-      centerWrapper.appendChild(select);
-      centerWrapper.appendChild(titleSpan);
-
       nav.appendChild(prevBtn);
-      nav.appendChild(centerWrapper);
+      nav.appendChild(center);
       nav.appendChild(nextBtn);
 
       // Navigation logic
@@ -401,7 +413,7 @@
       };
       select.onchange = (e) => {
         const idx = parseInt(e.target.value, 10);
-        // update visible title immediately
+        // update visible title immediately (though loadChapterImages will rebuild navs)
         titleSpan.textContent = chapters[idx] ? chapters[idx].title : '';
         // load images for that chapter
         loadChapterImages(comicTitle, idx);
