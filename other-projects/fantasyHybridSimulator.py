@@ -50,6 +50,7 @@ STAT_UNITS = {
     "Size": "cm",
     "Venom": "",
     "Fire Breathing": "",
+    "Petrification": "",
     "Gestation Period": "days",
     "Litter Size": "offspring",
     "Maturation Age": "years",
@@ -89,6 +90,8 @@ MATURATION_AGE_SPECIES = {
     "fish": 1,
     "satyr/faun": 12,
     "naga": 20,
+    "lamia": 20,
+    "gorgon": 20,
     "minotaur": 12,
     "harpy": 10,
     "griffin": 8,
@@ -117,6 +120,8 @@ LIFESPAN_SPECIES = {
     "fish": 5,
     "satyr/faun": 100,
     "naga": 200,
+    "lamia": 200,
+    "gorgon": 200,
     "minotaur": 50,
     "harpy": 40,
     "griffin": 80,
@@ -172,6 +177,14 @@ SPECIES_NAME_DICT = {
     "naga": {
         "adjectives": ["Serpentine", "Venomous", "Sly", "Coiled"],
         "nouns": ["Cobra", "Viper", "Asp", "Python"]
+    },
+    "lamia": {
+        "adjectives": ["Enchanting", "Sinuous", "Velvet", "Moonlit"],
+        "nouns": ["Lamia", "Enchantress", "Temptress", "Sable"]
+    },
+    "gorgon": {
+        "adjectives": ["Stonegaze", "Cursed", "Serpentine", "Dire"],
+        "nouns": ["Gorgon", "Medusa", "Petrifier", "Stare"]
     },
     "minotaur": {
         "adjectives": ["Fierce", "Rampaging", "Mighty", "Colossal"],
@@ -297,6 +310,8 @@ known_species = {
     ("Fi", "Fi", "Fi"): "fish",
     ("Hu", "Hu", "Go"): "satyr/faun",
     ("Hu", "Hu", "Sn"): "naga",
+    ("Hu", "Sn", "Sn"): "lamia",
+    ("Hu", "Bi", "Sn"): "gorgon",
     ("Bu", "Hu", "Bu"): "minotaur",
     ("Hu", "Bi", "Bi"): "harpy",
     ("Bi", "Bi", "Li"): "griffin",
@@ -697,6 +712,38 @@ SPECIES_STAT_SOURCES = {
         "Gestation Period": ["bottom"],
         "Litter Size": ["bottom"]
     },
+    "lamia": {
+        "IQ": ["top"],
+        "EQ": ["top"],
+        "Dexterity": ["top"],
+        "Strength": ["top"],
+        "Land Speed": ["bottom"],
+        "Swim Speed": ["bottom"],
+        "Jump Height": ["bottom"],
+        "Flight Speed": ["top"],
+        "Climbing": ["bottom"],
+        "Bite": ["top"],
+        "Venom": ["bottom"],
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
+    },
+    "gorgon": {
+        "IQ": ["top"],
+        "EQ": ["top"],
+        "Dexterity": ["top"],
+        "Strength": ["top"],
+        "Land Speed": ["bottom"],
+        "Swim Speed": ["bottom"],
+        "Jump Height": ["bottom"],
+        "Flight Speed": ["top"],
+        "Climbing": ["bottom"],
+        "Bite": ["top"],
+        "Venom": ["bottom"],
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
+    },
     "minotaur": DEFAULT_STAT_SOURCES,
     "harpy": {
         "IQ": ["top"],
@@ -925,7 +972,7 @@ def apply_random_variation(value):
 
 def maybe_mutate_stat(value, stat):
     if random.random() < STAT_MUTATION_RATE:
-        if stat in ["Venom", "Fire Breathing"]:
+        if stat in ["Venom", "Fire Breathing", "Petrification"]:
             mutated_value = not value
             message = f"{stat} mutated from {value} to {mutated_value}"
             return mutated_value, message
@@ -1106,6 +1153,17 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats[stat] = final_value
             if msg:
                 mutations[stat] = msg
+        # Species-specific tweaks:
+        # Naga: minor dexterity bonus to reflect four arms; Lamia and Gorgon do not receive this.
+        if species == "naga" and "Dexterity" in stats:
+            boosted = round(stats["Dexterity"] * 1.5, 3)
+            stats["Dexterity"] = boosted
+        # Gorgon: Petrification ability
+        petr_val = (species == "gorgon")
+        petr_val, msg = maybe_mutate_stat(petr_val, "Petrification")
+        stats["Petrification"] = petr_val
+        if msg:
+            mutations["Petrification"] = msg
         stats["diet"] = DIET.get(top_expr, "omnivore")
 
     # Compute Size, Maturation Age, Lifespan, and Growth Rate (existing code)
