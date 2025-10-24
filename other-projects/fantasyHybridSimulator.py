@@ -51,6 +51,7 @@ STAT_UNITS = {
     "Venom": "",
     "Fire Breathing": "",
     "Petrification": "",
+    "Charm": "",
     "Gestation Period": "days",
     "Litter Size": "offspring",
     "Maturation Age": "years",
@@ -108,7 +109,8 @@ MATURATION_AGE_SPECIES = {
     "ipotane": 16,
     "dragon": 100,
     "tengu": 15,
-    "unicorn": 3
+    "unicorn": 3,
+    "sphinx": 10
 }
 
 LIFESPAN_SPECIES = {
@@ -138,7 +140,8 @@ LIFESPAN_SPECIES = {
     "ipotane": 80,
     "dragon": 1000,
     "tengu": 200,
-    "unicorn": 1000
+    "unicorn": 1000,
+    "sphinx": 200
 }
 # Growth Rate will be computed as: Growth Rate = Size / Maturation Age
 
@@ -249,6 +252,10 @@ SPECIES_NAME_DICT = {
     "tengu": {
         "adjectives": ["Mischievous", "Cunning", "Aerial", "Sleek", "Mystic", "Ethereal"],
         "nouns": ["Tengu", "Crow", "Harbinger", "Trickster", "Raven", "Shade"]
+    },
+    "sphinx": {
+        "adjectives": ["Riddling", "Enigmatic", "Majestic", "Oracle", "Solemn", "Ancient"],
+        "nouns": ["Sphinx", "Riddler", "Keeper", "Oracle", "Sentinel", "Seer"]
     }
 }
 
@@ -328,7 +335,8 @@ known_species = {
     ("Ho", "Hu", "Hu"): "ipotane",
     ("Dr", "Dr", "Dr"): "dragon",
     ("Bi", "Bi", "Hu"): "tengu",
-    ("Go", "Ho", "Li"): "unicorn"
+    ("Go", "Ho", "Li"): "unicorn",
+    ("Hu", "Bi", "Li"): "sphinx"
 }
 
 def count_alleles(gene_index):
@@ -940,6 +948,22 @@ SPECIES_STAT_SOURCES = {
         "Fire Breathing": ["top"],
         "Gestation Period": ["mid"],
         "Litter Size": ["mid"]
+    },
+    "sphinx": {
+        "IQ": ["top"],
+        "EQ": ["top"],
+        "Dexterity": ["top"],
+        "Strength": ["bottom"],
+        "Land Speed": ["bottom"],
+        "Swim Speed": ["bottom"],
+        "Jump Height": ["bottom"],
+        "Flight Speed": ["mid"],
+        "Climbing": ["bottom"],
+        "Bite": ["top"],
+        "Venom": ["top"],
+        "Fire Breathing": ["top"],
+        "Gestation Period": ["bottom"],
+        "Litter Size": ["bottom"]
     }
 }
 
@@ -972,7 +996,7 @@ def apply_random_variation(value):
 
 def maybe_mutate_stat(value, stat):
     if random.random() < STAT_MUTATION_RATE:
-        if stat in ["Venom", "Fire Breathing", "Petrification"]:
+        if stat in ["Venom", "Fire Breathing", "Petrification", "Charm"]:
             mutated_value = not value
             message = f"{stat} mutated from {value} to {mutated_value}"
             return mutated_value, message
@@ -1164,6 +1188,12 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         stats["Petrification"] = petr_val
         if msg:
             mutations["Petrification"] = msg
+        # Charm: present for lamia and sphinx, otherwise false (still subject to mutation)
+        charm_val = (species in ["lamia"])
+        charm_val, msg = maybe_mutate_stat(charm_val, "Charm")
+        stats["Charm"] = charm_val
+        if msg:
+            mutations["Charm"] = msg
         stats["diet"] = DIET.get(top_expr, "omnivore")
 
     # Compute Size, Maturation Age, Lifespan, and Growth Rate (existing code)
