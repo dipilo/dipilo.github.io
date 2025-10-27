@@ -1385,7 +1385,18 @@ def breed_from_saved(parent1_name, parent2_name):
         sim_stats["Thaumagen Production Rate"] = round(
             sim_stats["Thaumagen Production Rate"] * 3, 3
         )
-        sim_stats["Thaumacyst Capacity"] = round(sim_stats["Thaumacyst Capacity"] * 2, 3)
+        # Scale both current and max in capacity string if present
+        cap = sim_stats.get("Thaumacyst Capacity")
+        if isinstance(cap, str) and "/" in cap:
+            try:
+                cur_s, max_s = cap.split("/")
+                cur_v = float(cur_s.strip()) * 2
+                max_v = float(max_s.strip()) * 2
+                sim_stats["Thaumacyst Capacity"] = f"{cur_v:.1f}/{max_v:.1f}"
+            except Exception:
+                pass
+        elif isinstance(cap, (int, float)):
+            sim_stats["Thaumacyst Capacity"] = round(cap * 2, 3)
 
     elif is_horse_head and has_high_magic and is_not_unicorn:
         variant_prefix = "Unicorn "
@@ -1394,15 +1405,31 @@ def breed_from_saved(parent1_name, parent2_name):
     species_variant = variant_prefix + species
 
     # 8. Blend with parents’ stats as before
+    def _get_core_stat(sdict: dict, sname: str):
+        if sname in sdict:
+            return sdict[sname]
+        if sname == "IQ":
+            vals = [sdict.get(k) for k in ["Lion Head IQ", "Goat Head IQ", "Snake Head IQ"] if k in sdict]
+            if vals:
+                return round(sum(vals)/len(vals), 3)
+        if sname == "EQ":
+            vals = [sdict.get(k) for k in ["Lion Head EQ", "Goat Head EQ", "Snake Head EQ"] if k in sdict]
+            if vals:
+                return round(sum(vals)/len(vals), 3)
+        return None
     parents_avg = {}
     for stat in ["IQ","EQ","Dexterity","Strength",
                  "Land Speed","Swim Speed","Jump Height",
                  "Flight Speed","Climbing","Bite"]:
-        parents_avg[stat] = round(
-            (parent1["stats"][stat] + parent2["stats"][stat]) / 2, 3
-        )
-    venom_avg = ((1 if parent1["stats"]["Venom"] else 0) +
-                 (1 if parent2["stats"]["Venom"] else 0)) / 2
+        v1 = _get_core_stat(parent1["stats"], stat)
+        v2 = _get_core_stat(parent2["stats"], stat)
+        if v1 is None:
+            v1 = 0
+        if v2 is None:
+            v2 = 0
+        parents_avg[stat] = round((v1 + v2) / 2, 3)
+    venom_avg = ((1 if parent1["stats"].get("Venom", False) else 0) +
+                 (1 if parent2["stats"].get("Venom", False) else 0)) / 2
     weight_geno, weight_par = 0.7, 0.3
 
     final_stats = {}
@@ -1634,6 +1661,14 @@ class HybridCLI:
             self.saved_hybrids.clear()
             saved_hybrids = self.saved_hybrids
 
+            # Helper: canonicalize stat names (case-insensitive match to STAT_UNITS keys)
+            def _canon_stat(name: str) -> str:
+                lower = name.lower()
+                for k in STAT_UNITS.keys():
+                    if k.lower() == lower:
+                        return k
+                return name
+
             # Helper: parse stats spec into list of (name, dir)
             def parse_stats_spec(spec: str):
                 result = []
@@ -1643,10 +1678,10 @@ class HybridCLI:
                         continue
                     if token[0] in ['+','-']:
                         direction = 1 if token[0] == '+' else -1
-                        name = token[1:].strip()
+                        name = _canon_stat(token[1:].strip())
                     else:
                         direction = 1
-                        name = token
+                        name = _canon_stat(token)
                     result.append((name, direction))
                 return result
 
