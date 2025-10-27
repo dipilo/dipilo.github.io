@@ -1008,13 +1008,10 @@ def maybe_mutate_stat(value, stat):
     return value, None
 
 def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
-    if species != "chimera":
-        overall_diet = DIET.get(top_expr, "omnivore")
     stats = {}
     mutations = {}
-    if species != "chimera":
-        overall_diet = DIET.get(top_expr, "omnivore")
-    # ...existing code...
+    if species == "chimera":
+        # Only assign chimera head stats for chimeras
         iq_top = apply_random_variation(TOP_STATS[top_expr]["IQ"])
         iq_top, mut_iq_top = maybe_mutate_stat(iq_top, "IQ")
         iq_mid = apply_random_variation(TOP_STATS[mid_expr]["IQ"])
@@ -1028,88 +1025,64 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
         eq_bottom = apply_random_variation(TOP_STATS[bottom_expr]["EQ"])
         eq_bottom, mut_eq_bottom = maybe_mutate_stat(eq_bottom, "EQ")
         stats["Lion Head IQ"] = iq_top
-        stats = {}
-        mutations = {}
-        # Only assign chimera head stats for chimeras (and Sphinx if you want)
-        if species == "chimera":
-            iq_top = apply_random_variation(TOP_STATS[top_expr]["IQ"])
-            iq_top, mut_iq_top = maybe_mutate_stat(iq_top, "IQ")
-            iq_mid = apply_random_variation(TOP_STATS[mid_expr]["IQ"])
-            iq_mid, mut_iq_mid = maybe_mutate_stat(iq_mid, "IQ")
-            iq_bottom = apply_random_variation(TOP_STATS[bottom_expr]["IQ"])
-            iq_bottom, mut_iq_bottom = maybe_mutate_stat(iq_bottom, "IQ")
-            eq_top = apply_random_variation(TOP_STATS[top_expr]["EQ"])
-            eq_top, mut_eq_top = maybe_mutate_stat(eq_top, "EQ")
-            eq_mid = apply_random_variation(TOP_STATS[mid_expr]["EQ"])
-            eq_mid, mut_eq_mid = maybe_mutate_stat(eq_mid, "EQ")
-            eq_bottom = apply_random_variation(TOP_STATS[bottom_expr]["EQ"])
-            eq_bottom, mut_eq_bottom = maybe_mutate_stat(eq_bottom, "EQ")
-            stats["Lion Head IQ"] = iq_top
-            stats["Goat Head IQ"] = iq_mid
-            stats["Snake Head IQ"] = iq_bottom
-            stats["Lion Head EQ"] = eq_top
-            stats["Goat Head EQ"] = eq_mid
-            stats["Snake Head EQ"] = eq_bottom
-            stats["Lion Head Diet"] = DIET.get(top_expr, "omnivore")
-            stats["Goat Head Diet"] = DIET.get(mid_expr, "omnivore")
-            stats["Snake Head Diet"] = DIET.get(bottom_expr, "omnivore")
-            # Calculate detailed sense stats for each head separately.
-            for head, allele in zip(["Lion Head", "Goat Head", "Snake Head"], [top_expr, mid_expr, bottom_expr]):
-                # Visual Field (in degrees)
-                vf = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Field"])
-                vf, vf_mut = maybe_mutate_stat(vf, "Visual Field")
-                stats[f"{head} Visual Field"] = vf
-                if vf_mut:
-                    mutations[f"{head} Visual Field"] = vf_mut
-                # Visual Acuity: compute separately from 'cpd' and 'Snellen', then format as "X cpd, 20/Y"
-                va = SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Acuity"]
-                cpd_val = apply_random_variation(va["cpd"])
-                cpd_val, cpd_mut = maybe_mutate_stat(cpd_val, "Visual Acuity")
-                snellen_val = va["Snellen"]  # assumed relatively fixed per allele
-                stats[f"{head} Visual Acuity"] = f"{round(cpd_val,1)} cpd, 20/{round(snellen_val)}"
-                if cpd_mut:
-                    mutations[f"{head} Visual Acuity"] = cpd_mut
-                # Smell Strength
-                ss = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Strength"])
-                ss, ss_mut = maybe_mutate_stat(ss, "Smell Strength")
-                stats[f"{head} Smell Strength"] = ss
-                if ss_mut:
-                    mutations[f"{head} Smell Strength"] = ss_mut
-                # Smell Acuity (in OUₑ/m³)
-                sa = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Acuity"])
-                sa, sa_mut = maybe_mutate_stat(sa, "Smell Acuity")
-                stats[f"{head} Smell Acuity"] = sa
-                if sa_mut:
-                    mutations[f"{head} Smell Acuity"] = sa_mut
-                # Smell Distance (in meters)
-                sd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Distance"])
-                sd, sd_mut = maybe_mutate_stat(sd, "Smell Distance")
-                stats[f"{head} Smell Distance"] = sd
-                if sd_mut:
-                    mutations[f"{head} Smell Distance"] = sd_mut
-                # Hearing: Calculate lower and upper limits, then combine into a Hearing Range.
-                hl = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Lower"])
-                hl, hl_mut = maybe_mutate_stat(hl, "Hearing Lower")
-                hu = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Upper"])
-                hu, hu_mut = maybe_mutate_stat(hu, "Hearing Upper")
-                stats[f"{head} Hearing Range"] = f"{round(hl,1)}-{round(hu,1)} Hz"
-                if hl_mut:
-                    mutations[f"{head} Hearing Lower"] = hl_mut
-                if hu_mut:
-                    mutations[f"{head} Hearing Upper"] = hu_mut
-                # Hearing Distance (in meters)
-                hd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Distance"])
-                hd, hd_mut = maybe_mutate_stat(hd, "Hearing Distance")
-                stats[f"{head} Hearing Distance"] = f"{round(hd,1)} m"
-                if hd_mut:
-                    mutations[f"{head} Hearing Distance"] = hd_mut
-                final_value, msg = maybe_mutate_stat(value, stat)
-            else:
-                value = apply_random_variation(base)
-                final_value, msg = maybe_mutate_stat(value, stat)
-            stats[stat] = final_value
-            if msg:
-                mutations[stat] = msg
+        stats["Goat Head IQ"] = iq_mid
+        stats["Snake Head IQ"] = iq_bottom
+        stats["Lion Head EQ"] = eq_top
+        stats["Goat Head EQ"] = eq_mid
+        stats["Snake Head EQ"] = eq_bottom
+        stats["Lion Head Diet"] = DIET.get(top_expr, "omnivore")
+        stats["Goat Head Diet"] = DIET.get(mid_expr, "omnivore")
+        stats["Snake Head Diet"] = DIET.get(bottom_expr, "omnivore")
+        # Calculate detailed sense stats for each head separately.
+        for head, allele in zip(["Lion Head", "Goat Head", "Snake Head"], [top_expr, mid_expr, bottom_expr]):
+            # Visual Field (in degrees)
+            vf = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Field"])
+            vf, vf_mut = maybe_mutate_stat(vf, "Visual Field")
+            stats[f"{head} Visual Field"] = vf
+            if vf_mut:
+                mutations[f"{head} Visual Field"] = vf_mut
+            # Visual Acuity: compute separately from 'cpd' and 'Snellen', then format as "X cpd, 20/Y"
+            va = SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Acuity"]
+            cpd_val = apply_random_variation(va["cpd"])
+            cpd_val, cpd_mut = maybe_mutate_stat(cpd_val, "Visual Acuity")
+            snellen_val = va["Snellen"]  # assumed relatively fixed per allele
+            stats[f"{head} Visual Acuity"] = f"{round(cpd_val,1)} cpd, 20/{round(snellen_val)}"
+            if cpd_mut:
+                mutations[f"{head} Visual Acuity"] = cpd_mut
+            # Smell Strength
+            ss = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Strength"])
+            ss, ss_mut = maybe_mutate_stat(ss, "Smell Strength")
+            stats[f"{head} Smell Strength"] = ss
+            if ss_mut:
+                mutations[f"{head} Smell Strength"] = ss_mut
+            # Smell Acuity (in OUₑ/m³)
+            sa = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Acuity"])
+            sa, sa_mut = maybe_mutate_stat(sa, "Smell Acuity")
+            stats[f"{head} Smell Acuity"] = sa
+            if sa_mut:
+                mutations[f"{head} Smell Acuity"] = sa_mut
+            # Smell Distance (in meters)
+            sd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Distance"])
+            sd, sd_mut = maybe_mutate_stat(sd, "Smell Distance")
+            stats[f"{head} Smell Distance"] = sd
+            if sd_mut:
+                mutations[f"{head} Smell Distance"] = sd_mut
+            # Hearing: Calculate lower and upper limits, then combine into a Hearing Range.
+            hl = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Lower"])
+            hl, hl_mut = maybe_mutate_stat(hl, "Hearing Lower")
+            hu = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Upper"])
+            hu, hu_mut = maybe_mutate_stat(hu, "Hearing Upper")
+            stats[f"{head} Hearing Range"] = f"{round(hl,1)}-{round(hu,1)} Hz"
+            if hl_mut:
+                mutations[f"{head} Hearing Lower"] = hl_mut
+            if hu_mut:
+                mutations[f"{head} Hearing Upper"] = hu_mut
+            # Hearing Distance (in meters)
+            hd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Distance"])
+            hd, hd_mut = maybe_mutate_stat(hd, "Hearing Distance")
+            stats[f"{head} Hearing Distance"] = f"{round(hd,1)} m"
+            if hd_mut:
+                mutations[f"{head} Hearing Distance"] = hd_mut
         # Ensure mut_iq_top is defined before use
         if 'mut_iq_top' in locals() and mut_iq_top:
             mutations["Lion Head IQ"] = mut_iq_top
