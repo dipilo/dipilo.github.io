@@ -1780,6 +1780,28 @@ class HybridCLI:
             target_species = None
             if species_filter and len(species_filter) == 1:
                 target_species = species_filter[0]
+
+            # 1. Show min/avg/max for stat in target species (random baseline)
+            baseline_stats = {}
+            baseline_N = 100
+            if target_species and target_species in phenotype_genotypes:
+                for stat_name, _ in parsed_stats:
+                    vals = []
+                    for _ in range(baseline_N):
+                        geno = random.choice(phenotype_genotypes[target_species])
+                        t = top_expression(geno["top"])
+                        m = mid_expression(geno["mid"])
+                        b = bottom_expression(geno["bottom"])
+                        stats, _ = generate_individual_stats(target_species, t, m, b)
+                        val = numeric_value(stats.get(stat_name, 0))
+                        vals.append(val)
+                    if vals:
+                        baseline_stats[stat_name] = {
+                            "min": min(vals),
+                            "max": max(vals),
+                            "avg": sum(vals)/len(vals)
+                        }
+
             # Step 1: Try to get at least 2 of the target species
             initial_names = []
             initial_genos = []
@@ -1844,7 +1866,8 @@ class HybridCLI:
 
             # Evolutive loop
 
-            for g in range(generations):
+            # Main evolution loop, with progress indicator
+            def evolve_one_generation(gen, show_progress=True):
                 candidates = list(self.saved_hybrids.values())
                 if len(candidates) < 2:
                     # backfill population
@@ -1883,7 +1906,23 @@ class HybridCLI:
                     if name not in keep_names:
                         self.saved_hybrids.pop(name, None)
 
-                output += f"Generation {g+1}: bred {bred} pair(s).\n"
+                if show_progress and (gen % 10 == 0 or gen == generations-1):
+                    output += f"Generation {gen+1}: bred {bred} pair(s).\n"
+
+            # Run requested generations
+            for g in range(generations):
+                evolve_one_generation(g, show_progress=True)
+
+            # If target species required, keep evolving until at least one exists
+            if target_species:
+                def has_target_species():
+                    return any(rec["species"].lower() == target_species for rec in self.saved_hybrids.values())
+                extra_gens = 0
+                while not has_target_species():
+                    evolve_one_generation(generations + extra_gens, show_progress=True)
+                    extra_gens += 1
+                    if extra_gens % 10 == 0:
+                        output += f"[Still searching for {target_species}... {extra_gens} extra generations]\n"
 
             # Final results
             all_final = list(self.saved_hybrids.values())
@@ -1898,6 +1937,15 @@ class HybridCLI:
                 best_species = best_overall
 
             output += "\n--- OPTIMIZATION RESULT ---\n"
+            # Show baseline min/avg/max for comparison
+            if target_species and baseline_stats:
+                output += f"Random {target_species} baseline (N={baseline_N}):\n"
+                for stat_name, _ in parsed_stats:
+                    if stat_name in baseline_stats:
+                        b = baseline_stats[stat_name]
+                        unit = STAT_UNITS.get(stat_name, "")
+                        output += f"  {stat_name}: min={b['min']:.3f}, avg={b['avg']:.3f}, max={b['max']:.3f} {unit}\n"
+
             if best_overall and (not best_species or best_overall["name"] == best_species["name"]):
                 output += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
                 output += "Stats (selected):\n"
