@@ -1437,7 +1437,10 @@ def breed_from_saved(parent1_name, parent2_name, silent: bool = False):
     final_stats = {}
     combined_mutations = {}
     for stat in parents_avg:
-        val = round(weight_geno * sim_stats[stat] + weight_par * parents_avg[stat], 3)
+        sim_val = _get_core_stat(sim_stats, stat)
+        if sim_val is None:
+            sim_val = 0
+        val = round(weight_geno * sim_val + weight_par * parents_avg[stat], 3)
         final_stats[stat] = val
         if stat in sim_mutations:
             combined_mutations[stat] = sim_mutations[stat]
@@ -1657,6 +1660,9 @@ class HybridCLI:
                     raw = raw.replace(";", ",")
                     species_filter = [s.strip().lower() for s in raw.split(",") if s.strip()]
                     break
+            # Fallback: allow positional species tokens without 'species=' prefix
+            if species_filter is None and len(parts) > 3:
+                species_filter = [t.lower() for t in parts[3:] if t.strip()]
 
             # Ensure save mode and in-memory store are active for this session
             self.SAVE_MODE = True
