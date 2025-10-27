@@ -1480,6 +1480,7 @@ class HybridCLI:
             pass
 
     def process_command(self, command_line: str) -> str:
+        global saved_hybrids
         output = ""
         parts = shlex.split(command_line)
         if not parts:
@@ -1523,7 +1524,6 @@ class HybridCLI:
                 # — Saved-hybrid branch —
                 if self.SAVE_MODE and arg1 in self.saved_hybrids and arg2 in self.saved_hybrids:
                     # Make breed_from_saved use our in-memory store
-                    global saved_hybrids
                     saved_hybrids = self.saved_hybrids
 
                     result = breed_from_saved(arg1, arg2)
@@ -1632,7 +1632,6 @@ class HybridCLI:
             # Ensure save mode and in-memory store are active for this session
             self.SAVE_MODE = True
             self.saved_hybrids.clear()
-            global saved_hybrids
             saved_hybrids = self.saved_hybrids
 
             # Helper: parse stats spec into list of (name, dir)
