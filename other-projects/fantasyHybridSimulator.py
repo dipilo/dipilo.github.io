@@ -1351,6 +1351,7 @@ def breed_from_saved(parent1_name, parent2_name):
     is_unicorn = (species == "unicorn")
     is_not_unicorn = (species != "unicorn")
     is_not_manticore = (species != "manticore")
+    is_not_sphinx = (species != "sphinx")
     is_giant = (sim_stats["Size"] >= 2.5 * base_size)
     is_small = (sim_stats["Size"] <= 0.5 * base_size)
 
@@ -1365,16 +1366,16 @@ def breed_from_saved(parent1_name, parent2_name):
         variant_prefix = "Cyclopse "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 3.0, 3)
 
-    elif is_human_allele and is_not_manticore and is_small and has_high_magic:
+    elif is_human_allele and is_not_manticore and is_not_sphinx and is_small and has_high_magic:
         variant_prefix = "Fairy "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 4.5, 3)
 
-    elif is_human_allele and is_not_manticore and has_high_magic \
+    elif is_human_allele and is_not_manticore and is_not_sphinx and has_high_magic \
          and sim_stats["Size"] >= 1.2 * base_size:
         variant_prefix = "Elven "
         sim_stats["Lifespan"] = round(sim_stats["Lifespan"] * 7.5, 3)
 
-    elif is_human_allele and is_not_manticore \
+    elif is_human_allele and is_not_manticore and is_not_sphinx\
          and sim_stats["Size"] <= 0.8 * base_size \
          and sim_stats["Strength"] >= 1.2 * base_strength:
         variant_prefix = "Dwarven "
@@ -1494,6 +1495,7 @@ class HybridCLI:
                 "                             e.g., breed naga pegasus or breed \"Silver Griffin\" \"Mystic Stag\"\n"
                 "  random                    - Generate a random species (with a unique name if save mode is ON)\n"
                 "  simulate [n]              - Run random generation n times and list frequency of species produced\n"
+                "  optimize <gens> <stats> [species=sp1,sp2,...] - Evolve over generations to maximize/minimize stats; accepts variants\n"
                 "  help                      - Show this help message\n"
                 "  quit                      - Exit the simulator\n"
             )
@@ -1603,6 +1605,196 @@ class HybridCLI:
                         output += f"  {stat:15s}: {val} {unit}".rstrip() + "\n"
                         if stat in mutations:
                             output += f"                <-- {mutations[stat]}\n"
+        elif cmd == "optimize":
+            # Usage: optimize <generations> <stats_spec> [species=sp1,sp2,...]
+            # stats_spec example: +Strength,-Size,IQ (assume + if no sign)
+            if len(parts) < 3:
+                output += (
+                    "Usage: optimize <generations> <stats_spec> [species=sp1,sp2,...]\n"
+                    "Example: optimize 15 +Strength,-Size,IQ species=griffin,giant griffin\n"
+                )
+                return output
+            try:
+                generations = int(parts[1])
+            except ValueError:
+                output += "First argument must be an integer number of generations.\n"
+                return output
+
+            stats_spec = parts[2]
+            species_filter = None
+            for token in parts[3:]:
+                if token.lower().startswith("species="):
+                    raw = token.split("=", 1)[1]
+                    raw = raw.replace(";", ",")
+                    species_filter = [s.strip().lower() for s in raw.split(",") if s.strip()]
+                    break
+
+            # Ensure save mode and in-memory store are active for this session
+            self.SAVE_MODE = True
+            self.saved_hybrids.clear()
+            global saved_hybrids
+            saved_hybrids = self.saved_hybrids
+
+            # Helper: parse stats spec into list of (name, dir)
+            def parse_stats_spec(spec: str):
+                result = []
+                for raw in spec.split(','):
+                    token = raw.strip()
+                    if not token:
+                        continue
+                    if token[0] in ['+','-']:
+                        direction = 1 if token[0] == '+' else -1
+                        name = token[1:].strip()
+                    else:
+                        direction = 1
+                        name = token
+                    result.append((name, direction))
+                return result
+
+            parsed_stats = parse_stats_spec(stats_spec)
+            if not parsed_stats:
+                output += "No valid stats specified.\n"
+                return output
+
+            # Helper: numeric stat extraction
+            def numeric_value(v):
+                if isinstance(v, bool):
+                    return 1.0 if v else 0.0
+                if isinstance(v, (int, float)):
+                    return float(v)
+                if isinstance(v, str):
+                    # special-case capacity "cur/max" -> use max
+                    if '/' in v:
+                        try:
+                            parts = v.split('/')
+                            return float(parts[1].strip())
+                        except Exception:
+                            pass
+                    # extract first float-like token
+                    buf = []
+                    out = []
+                    for ch in v:
+                        if ch.isdigit() or ch in '.-':
+                            buf.append(ch)
+                        else:
+                            if buf:
+                                out.append(''.join(buf))
+                                buf = []
+                    if buf:
+                        out.append(''.join(buf))
+                    for tok in out:
+                        try:
+                            return float(tok)
+                        except Exception:
+                            continue
+                return 0.0
+
+            # Helper: species matching (supports variants)
+            def species_matches(species_str: str) -> bool:
+                if species_filter is None:
+                    return True
+                s = species_str.lower()
+                for want in species_filter:
+                    # exact match on variant string
+                    if s == want:
+                        return True
+                    # if user provided base only, accept any variant ending with that base
+                    if ' ' not in want and (s == want or s.endswith(' ' + want)):
+                        return True
+                return False
+
+            # Helper: base species set for initial population
+            if species_filter:
+                base_species_for_init = []
+                for t in species_filter:
+                    base = t.split()[-1]
+                    if base in phenotype_genotypes:
+                        base_species_for_init.append(base)
+                if not base_species_for_init:
+                    base_species_for_init = list(phenotype_genotypes.keys())
+            else:
+                base_species_for_init = list(phenotype_genotypes.keys())
+
+            # Helper: create a random individual of a species into session store
+            def create_random_individual(sp: str):
+                geno = random.choice(phenotype_genotypes[sp])
+                t = top_expression(geno["top"])
+                m = mid_expression(geno["mid"])
+                b = bottom_expression(geno["bottom"])
+                stats, _ = generate_individual_stats(sp, t, m, b)
+                name = generate_unique_name(sp)
+                record = {
+                    "name": name,
+                    "genotype": geno,
+                    "species": sp,
+                    "stats": stats
+                }
+                self.saved_hybrids[name.lower()] = record
+                return name
+
+            # Initialize population
+            POP_SIZE = 20
+            for _ in range(POP_SIZE):
+                sp = random.choice(base_species_for_init)
+                create_random_individual(sp)
+
+            # Helper: score tuple per record according to parsed_stats
+            def score_of(record):
+                tup = []
+                for stat_name, direction in parsed_stats:
+                    value = numeric_value(record["stats"].get(stat_name, 0))
+                    tup.append(direction * value)
+                # higher is better (after direction applied)
+                return tuple(tup)
+
+            def get_candidates():
+                return [rec for rec in self.saved_hybrids.values() if species_matches(rec["species"])]
+
+            # Evolutive loop
+            for g in range(generations):
+                candidates = get_candidates()
+                if len(candidates) < 2:
+                    # backfill population
+                    for _ in range(POP_SIZE - len(candidates)):
+                        sp = random.choice(base_species_for_init)
+                        create_random_individual(sp)
+                    candidates = get_candidates()
+                # sort by score desc
+                candidates.sort(key=score_of, reverse=True)
+                # breed top pairs
+                pair_count = max(1, min(len(candidates)//2, POP_SIZE//2))
+                bred = 0
+                for i in range(pair_count):
+                    p1 = candidates[2*i]["name"].lower()
+                    p2 = candidates[2*i+1]["name"].lower()
+                    result = breed_from_saved(p1, p2)
+                    if result is not None:
+                        offspring, _ = result
+                        bred += 1
+                output += f"Generation {g+1}: bred {bred} pair(s).\n"
+
+            # Final results
+            final_candidates = get_candidates()
+            if not final_candidates:
+                output += "No candidates matched the requested species after evolution.\n"
+                return output
+            final_candidates.sort(key=score_of, reverse=True)
+            best = final_candidates[0]
+            output += "\n--- OPTIMIZATION RESULT ---\n"
+            output += f"Best: {best['name']} (Species: {best['species']})\n"
+            output += "Stats (selected):\n"
+            for stat_name, direction in parsed_stats:
+                val = best["stats"].get(stat_name, 0)
+                unit = STAT_UNITS.get(stat_name, "")
+                dir_str = "+" if direction == 1 else "-"
+                output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+            # Show top 5 names
+            topN = min(5, len(final_candidates))
+            if topN > 1:
+                output += "\nTop candidates:\n"
+                for i in range(topN):
+                    rec = final_candidates[i]
+                    output += f"  {i+1}. {rec['name']} — {rec['species']}\n"
         elif cmd == "random":
             genotype, sp = random.choice(all_full_genotypes)
             output += "--- RANDOM SPECIES GENERATED ---\n"
