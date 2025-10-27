@@ -1008,10 +1008,12 @@ def maybe_mutate_stat(value, stat):
     return value, None
 
 def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
+    if species != "chimera":
+        overall_diet = DIET.get(top_expr, "omnivore")
     stats = {}
     mutations = {}
     if species == "chimera":
-        # Only assign chimera head stats for chimeras
+        # Existing chimera-specific calculations for IQ and EQ
         iq_top = apply_random_variation(TOP_STATS[top_expr]["IQ"])
         iq_top, mut_iq_top = maybe_mutate_stat(iq_top, "IQ")
         iq_mid = apply_random_variation(TOP_STATS[mid_expr]["IQ"])
@@ -1041,6 +1043,7 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats[f"{head} Visual Field"] = vf
             if vf_mut:
                 mutations[f"{head} Visual Field"] = vf_mut
+
             # Visual Acuity: compute separately from 'cpd' and 'Snellen', then format as "X cpd, 20/Y"
             va = SENSE_DETAIL_STATS_PER_ALLELE[allele]["Visual Acuity"]
             cpd_val = apply_random_variation(va["cpd"])
@@ -1049,24 +1052,28 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
             stats[f"{head} Visual Acuity"] = f"{round(cpd_val,1)} cpd, 20/{round(snellen_val)}"
             if cpd_mut:
                 mutations[f"{head} Visual Acuity"] = cpd_mut
+
             # Smell Strength
             ss = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Strength"])
             ss, ss_mut = maybe_mutate_stat(ss, "Smell Strength")
             stats[f"{head} Smell Strength"] = ss
             if ss_mut:
                 mutations[f"{head} Smell Strength"] = ss_mut
+
             # Smell Acuity (in OUₑ/m³)
             sa = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Acuity"])
             sa, sa_mut = maybe_mutate_stat(sa, "Smell Acuity")
             stats[f"{head} Smell Acuity"] = sa
             if sa_mut:
                 mutations[f"{head} Smell Acuity"] = sa_mut
+
             # Smell Distance (in meters)
             sd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Smell Distance"])
             sd, sd_mut = maybe_mutate_stat(sd, "Smell Distance")
             stats[f"{head} Smell Distance"] = sd
             if sd_mut:
                 mutations[f"{head} Smell Distance"] = sd_mut
+
             # Hearing: Calculate lower and upper limits, then combine into a Hearing Range.
             hl = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Lower"])
             hl, hl_mut = maybe_mutate_stat(hl, "Hearing Lower")
@@ -1077,15 +1084,35 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
                 mutations[f"{head} Hearing Lower"] = hl_mut
             if hu_mut:
                 mutations[f"{head} Hearing Upper"] = hu_mut
+
             # Hearing Distance (in meters)
             hd = apply_random_variation(SENSE_DETAIL_STATS_PER_ALLELE[allele]["Hearing Distance"])
             hd, hd_mut = maybe_mutate_stat(hd, "Hearing Distance")
             stats[f"{head} Hearing Distance"] = f"{round(hd,1)} m"
             if hd_mut:
                 mutations[f"{head} Hearing Distance"] = hd_mut
-        # Ensure mut_iq_top is defined before use
-        if 'mut_iq_top' in locals() and mut_iq_top:
-            mutations["Lion Head IQ"] = mut_iq_top
+
+        for stat in ["Dexterity", "Strength", "Land Speed", "Swim Speed", "Jump Height",
+                     "Flight Speed", "Climbing", "Bite", "Venom", "Fire Breathing"]:
+            sources = SPECIES_STAT_SOURCES.get(species, DEFAULT_STAT_SOURCES).get(stat, [])
+            if not sources:
+                base = 0
+            else:
+                values = []
+                for sec in sources:
+                    allele = {"top": top_expr, "mid": mid_expr, "bottom": bottom_expr}.get(sec)
+                    values.append(get_stat_base(stat, sec, allele))
+                base = sum(values) / len(values)
+            if stat in ["Venom", "Fire Breathing"]:
+                value = True if base >= 0.5 else False
+                final_value, msg = maybe_mutate_stat(value, stat)
+            else:
+                value = apply_random_variation(base)
+                final_value, msg = maybe_mutate_stat(value, stat)
+            stats[stat] = final_value
+            if msg:
+                mutations[stat] = msg
+        if mut_iq_top: mutations["Lion Head IQ"] = mut_iq_top
         if mut_iq_mid: mutations["Goat Head IQ"] = mut_iq_mid
         if mut_iq_bottom: mutations["Snake Head IQ"] = mut_iq_bottom
         if mut_eq_top: mutations["Lion Head EQ"] = mut_eq_top
@@ -1671,34 +1698,6 @@ class HybridCLI:
                 output += "No valid stats specified.\n"
                 return output
 
-            # --- NATURAL STAT RANGE SUMMARY (min, avg, max for target stat in target species) ---
-            if species_filter and parsed_stats:
-                stat_name, _ = parsed_stats[0]
-                SAMPLE_SIZE = 50
-                sample_stats = []
-                sp_key = None
-                # Try to find a matching species key (case-insensitive)
-                for k in phenotype_genotypes.keys():
-                    if k.lower() == species_filter[0]:
-                        sp_key = k
-                        break
-                if sp_key:
-                    for _ in range(SAMPLE_SIZE):
-                        geno = random.choice(phenotype_genotypes[sp_key])
-                        t = top_expression(geno["top"])
-                        m = mid_expression(geno["mid"])
-                        b = bottom_expression(geno["bottom"])
-                        stats, _ = generate_individual_stats(sp_key, t, m, b)
-                        if stat_name in stats:
-                            sample_stats.append(stats[stat_name])
-                    if sample_stats:
-                        min_val = min(sample_stats)
-                        max_val = max(sample_stats)
-                        avg_val = sum(sample_stats) / len(sample_stats)
-                        unit = STAT_UNITS.get(stat_name, "")
-                        output += f"\n--- NATURAL RANGE FOR {sp_key.upper()} ({stat_name}) ---\n"
-                        output += f"Min: {min_val} {unit}\nAvg: {avg_val:.2f} {unit}\nMax: {max_val} {unit}\n"
-
             # Helper: numeric stat extraction
             def numeric_value(v):
                 if isinstance(v, bool):
@@ -1746,29 +1745,17 @@ class HybridCLI:
                         return True
                 return False
 
-
-            # Helper: get all possible parent species that can produce the target species
-            def likely_parents_for_species(target_species):
-                # Find all genotype tuples that can produce the target species
-                # For each, collect the top/mid/bottom alleles
-                if target_species not in phenotype_genotypes:
-                    return set()
-                parent_allele_sets = set()
-                for geno in phenotype_genotypes[target_species]:
-                    parent_allele_sets.add((tuple(sorted(geno["top"])), tuple(sorted(geno["mid"])), tuple(sorted(geno["bottom"]))))
-                # Now, for each known species, see if any of their genotypes share at least one allele in each locus with the target
-                likely_species = set()
-                for sp, genos in phenotype_genotypes.items():
-                    for geno in genos:
-                        for tgt in parent_allele_sets:
-                            if (
-                                set(geno["top"]).intersection(tgt[0]) and
-                                set(geno["mid"]).intersection(tgt[1]) and
-                                set(geno["bottom"]).intersection(tgt[2])
-                            ):
-                                likely_species.add(sp)
-                                break
-                return likely_species
+            # Helper: base species set for initial population
+            if species_filter:
+                base_species_for_init = []
+                for t in species_filter:
+                    base = t.split()[-1]
+                    if base in phenotype_genotypes:
+                        base_species_for_init.append(base)
+                if not base_species_for_init:
+                    base_species_for_init = list(phenotype_genotypes.keys())
+            else:
+                base_species_for_init = list(phenotype_genotypes.keys())
 
             # Helper: create a random individual of a species into session store
             def create_random_individual(sp: str):
@@ -1787,43 +1774,11 @@ class HybridCLI:
                 self.saved_hybrids[name.lower()] = record
                 return name
 
-            # Initial population seeding: ensure at least 2 of the target species or 2 likely parents
+            # Initialize population
             POP_SIZE = 20
-            seeded = set()
-            if species_filter:
-                # Use first filter as primary target
-                target_species = species_filter[0]
-                # Accept any variant ending with the base
-                base = target_species.split()[-1]
-                # Find all matching base species
-                base_species = [sp for sp in phenotype_genotypes if sp == base or sp.endswith(' ' + base)]
-                likely_species = set(base_species)
-                # Add likely parents
-                for sp in base_species:
-                    likely_species.update(likely_parents_for_species(sp))
-                likely_species = list(likely_species)
-                # Seed until we have at least 2 of the target or 2 likely parents
-                count_target = 0
-                count_likely = 0
-                tries = 0
-                while (count_target < 2 and count_likely < 2) and tries < 200:
-                    sp = random.choice(likely_species)
-                    name = create_random_individual(sp)
-                    rec = self.saved_hybrids[name.lower()]
-                    if species_matches(rec["species"]):
-                        count_target += 1
-                    else:
-                        count_likely += 1
-                    tries += 1
-                # Fill up to POP_SIZE
-                while len(self.saved_hybrids) < POP_SIZE:
-                    sp = random.choice(likely_species)
-                    create_random_individual(sp)
-            else:
-                # No filter: just random
-                for _ in range(POP_SIZE):
-                    sp = random.choice(list(phenotype_genotypes.keys()))
-                    create_random_individual(sp)
+            for _ in range(POP_SIZE):
+                sp = random.choice(base_species_for_init)
+                create_random_individual(sp)
 
             # Helper: score tuple per record according to parsed_stats
             def score_of(record):
@@ -1835,29 +1790,16 @@ class HybridCLI:
                 return tuple(tup)
 
             def get_candidates():
-                # Candidates are those that are the target species or likely to produce it
-                if species_filter:
-                    target_species = species_filter[0]
-                    base = target_species.split()[-1]
-                    base_species = [sp for sp in phenotype_genotypes if sp == base or sp.endswith(' ' + base)]
-                    likely_species = set(base_species)
-                    for sp in base_species:
-                        likely_species.update(likely_parents_for_species(sp))
-                    likely_species = set(likely_species)
-                    return [rec for rec in self.saved_hybrids.values() if rec["species"] in likely_species or species_matches(rec["species"])]
-                else:
-                    return list(self.saved_hybrids.values())
+                return [rec for rec in self.saved_hybrids.values() if species_matches(rec["species"])]
 
             # Evolutive loop
             for g in range(generations):
-                if g % 10 == 0 and g > 0:
-                    print(f"[optimize] Generation {g}/{generations}")
                 candidates = get_candidates()
                 if len(candidates) < 2:
                     # backfill population
                     for _ in range(POP_SIZE - len(candidates)):
-                        # This branch should not exist; use likely_species logic above
-                        pass
+                        sp = random.choice(base_species_for_init)
+                        create_random_individual(sp)
                     candidates = get_candidates()
                 # sort by score desc
                 candidates.sort(key=score_of, reverse=True)
@@ -1886,54 +1828,29 @@ class HybridCLI:
                     if name not in keep_names:
                         self.saved_hybrids.pop(name, None)
 
-                # Optionally, print progress every 10 generations
-                if (g+1) % 10 == 0 or g == generations-1:
-                    output += f"Generation {g+1}: bred {bred} pair(s).\n"
+                output += f"Generation {g+1}: bred {bred} pair(s).\n"
 
             # Final results
-            all_final_candidates = list(self.saved_hybrids.values())
-            if not all_final_candidates:
-                output += "No candidates found after evolution.\n"
+            final_candidates = get_candidates()
+            if not final_candidates:
+                output += "No candidates matched the requested species after evolution.\n"
                 return output
-            all_final_candidates.sort(key=score_of, reverse=True)
-            best_any = all_final_candidates[0]
-            # Now, best within specified species
-            best_species = None
-            if species_filter:
-                filtered = [rec for rec in all_final_candidates if species_matches(rec["species"])]
-                if filtered:
-                    best_species = filtered[0]
-            # Output results
+            final_candidates.sort(key=score_of, reverse=True)
+            best = final_candidates[0]
             output += "\n--- OPTIMIZATION RESULT ---\n"
-            if best_species and best_any["name"] != best_species["name"]:
-                output += f"Best overall: {best_any['name']} (Species: {best_any['species']})\n"
-                output += "Stats (selected):\n"
-                for stat_name, direction in parsed_stats:
-                    val = best_any["stats"].get(stat_name, 0)
-                    unit = STAT_UNITS.get(stat_name, "")
-                    dir_str = "+" if direction == 1 else "-"
-                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-                output += f"\nBest in specified species: {best_species['name']} (Species: {best_species['species']})\n"
-                output += "Stats (selected):\n"
-                for stat_name, direction in parsed_stats:
-                    val = best_species["stats"].get(stat_name, 0)
-                    unit = STAT_UNITS.get(stat_name, "")
-                    dir_str = "+" if direction == 1 else "-"
-                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-            else:
-                output += f"Best: {best_any['name']} (Species: {best_any['species']})\n"
-                output += "Stats (selected):\n"
-                for stat_name, direction in parsed_stats:
-                    val = best_any["stats"].get(stat_name, 0)
-                    unit = STAT_UNITS.get(stat_name, "")
-                    dir_str = "+" if direction == 1 else "-"
-                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+            output += f"Best: {best['name']} (Species: {best['species']})\n"
+            output += "Stats (selected):\n"
+            for stat_name, direction in parsed_stats:
+                val = best["stats"].get(stat_name, 0)
+                unit = STAT_UNITS.get(stat_name, "")
+                dir_str = "+" if direction == 1 else "-"
+                output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
             # Show top 5 names
-            topN = min(5, len(all_final_candidates))
+            topN = min(5, len(final_candidates))
             if topN > 1:
                 output += "\nTop candidates:\n"
                 for i in range(topN):
-                    rec = all_final_candidates[i]
+                    rec = final_candidates[i]
                     output += f"  {i+1}. {rec['name']} — {rec['species']}\n"
         elif cmd == "random":
             genotype, sp = random.choice(all_full_genotypes)
