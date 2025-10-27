@@ -1745,17 +1745,18 @@ class HybridCLI:
                         return True
                 return False
 
-            # Helper: base species set for initial population
-            if species_filter:
-                base_species_for_init = []
-                for t in species_filter:
-                    base = t.split()[-1]
-                    if base in phenotype_genotypes:
-                        base_species_for_init.append(base)
-                if not base_species_for_init:
-                    base_species_for_init = list(phenotype_genotypes.keys())
-            else:
-                base_species_for_init = list(phenotype_genotypes.keys())
+
+            # Helper: estimate if two individuals can produce the target species with high chance
+            def can_produce_species(geno1, geno2, target_species):
+                # Simulate all possible offspring and count how many match target_species
+                count = 0
+                total = 0
+                for _ in range(20):
+                    child, sp = cross_breed_from_genotype(geno1, geno2)
+                    if sp == target_species:
+                        count += 1
+                    total += 1
+                return (count / total) >= 0.4  # 40%+ chance considered high
 
             # Helper: create a random individual of a species into session store
             def create_random_individual(sp: str):
@@ -1772,12 +1773,44 @@ class HybridCLI:
                     "stats": stats
                 }
                 self.saved_hybrids[name.lower()] = record
-                return name
+                return name, geno
 
-            # Initialize population
+            # Enhanced initial population logic
             POP_SIZE = 20
-            for _ in range(POP_SIZE):
-                sp = random.choice(base_species_for_init)
+            target_species = None
+            if species_filter and len(species_filter) == 1:
+                target_species = species_filter[0]
+            # Step 1: Try to get at least 2 of the target species
+            initial_names = []
+            initial_genos = []
+            if target_species and target_species in phenotype_genotypes:
+                for _ in range(POP_SIZE):
+                    name, geno = create_random_individual(target_species)
+                    initial_names.append(name)
+                    initial_genos.append(geno)
+                    if len(initial_names) >= 2:
+                        break
+            # Step 2: If not enough, try to get 2 that can produce the target species
+            if target_species and len(initial_names) < 2:
+                # Try all pairs of random individuals from all species
+                attempts = 0
+                while len(initial_names) < 2 and attempts < 100:
+                    sp1 = random.choice(list(phenotype_genotypes.keys()))
+                    sp2 = random.choice(list(phenotype_genotypes.keys()))
+                    _, geno1 = create_random_individual(sp1)
+                    _, geno2 = create_random_individual(sp2)
+                    if can_produce_species(geno1, geno2, target_species):
+                        # Save both if not already in
+                        if geno1 not in initial_genos:
+                            initial_genos.append(geno1)
+                        if geno2 not in initial_genos:
+                            initial_genos.append(geno2)
+                        if len(initial_genos) >= 2:
+                            break
+                    attempts += 1
+            # Step 3: Fill up to POP_SIZE with randoms
+            while len(self.saved_hybrids) < POP_SIZE:
+                sp = random.choice(list(phenotype_genotypes.keys()))
                 create_random_individual(sp)
 
             # Helper: score tuple per record according to parsed_stats
@@ -1789,41 +1822,63 @@ class HybridCLI:
                 # higher is better (after direction applied)
                 return tuple(tup)
 
+
             def get_candidates():
                 return [rec for rec in self.saved_hybrids.values() if species_matches(rec["species"])]
 
+            # Helper: get all pairs that are both target species or can produce it with high chance
+            def get_priority_pairs(candidates, target_species):
+                pairs = []
+                n = len(candidates)
+                for i in range(n):
+                    for j in range(i+1, n):
+                        rec1, rec2 = candidates[i], candidates[j]
+                        if target_species:
+                            if rec1["species"].lower() == target_species and rec2["species"].lower() == target_species:
+                                pairs.append((rec1, rec2))
+                            elif can_produce_species(rec1["genotype"], rec2["genotype"], target_species):
+                                pairs.append((rec1, rec2))
+                        else:
+                            pairs.append((rec1, rec2))
+                return pairs
+
             # Evolutive loop
+
             for g in range(generations):
-                candidates = get_candidates()
+                candidates = list(self.saved_hybrids.values())
                 if len(candidates) < 2:
                     # backfill population
                     for _ in range(POP_SIZE - len(candidates)):
-                        sp = random.choice(base_species_for_init)
+                        sp = random.choice(list(phenotype_genotypes.keys()))
                         create_random_individual(sp)
-                    candidates = get_candidates()
+                    candidates = list(self.saved_hybrids.values())
+
                 # sort by score desc
                 candidates.sort(key=score_of, reverse=True)
-                # breed top pairs
-                pair_count = max(1, min(len(candidates)//2, POP_SIZE//2))
+
+                # breed priority pairs (target species or can produce it)
                 bred = 0
+                pairs = get_priority_pairs(candidates, target_species)
+                random.shuffle(pairs)
+                pair_count = max(1, min(len(pairs), POP_SIZE//2))
+                used = set()
                 for i in range(pair_count):
-                    p1 = candidates[2*i]["name"].lower()
-                    p2 = candidates[2*i+1]["name"].lower()
-                    result = breed_from_saved(p1, p2, silent=True)
+                    p1, p2 = pairs[i]
+                    n1, n2 = p1["name"].lower(), p2["name"].lower()
+                    if n1 in used or n2 in used:
+                        continue
+                    result = breed_from_saved(n1, n2, silent=True)
                     if result is not None:
                         offspring, _ = result
                         bred += 1
+                        used.add(n1)
+                        used.add(n2)
 
                 # Population control: keep only top POP_SIZE candidates to bound memory
-                # Build a list over current saved hybrids and prune by score
                 all_records = list(self.saved_hybrids.values())
-                # Sort by score (using species filter) and keep top
-                def key_func(rec):
-                    return score_of(rec) if species_matches(rec["species"]) else tuple([-float('inf')] * len(parsed_stats))
-                all_records.sort(key=key_func, reverse=True)
+                all_records.sort(key=score_of, reverse=True)
                 keep = all_records[:POP_SIZE]
                 keep_names = set(r["name"].lower() for r in keep)
-                # Drop others
                 for name in list(self.saved_hybrids.keys()):
                     if name not in keep_names:
                         self.saved_hybrids.pop(name, None)
@@ -1831,27 +1886,43 @@ class HybridCLI:
                 output += f"Generation {g+1}: bred {bred} pair(s).\n"
 
             # Final results
-            final_candidates = get_candidates()
-            if not final_candidates:
-                output += "No candidates matched the requested species after evolution.\n"
-                return output
-            final_candidates.sort(key=score_of, reverse=True)
-            best = final_candidates[0]
+            all_final = list(self.saved_hybrids.values())
+            all_final.sort(key=score_of, reverse=True)
+            best_overall = all_final[0] if all_final else None
+            best_species = None
+            if target_species:
+                species_final = [rec for rec in all_final if rec["species"].lower() == target_species]
+                if species_final:
+                    best_species = species_final[0]
+            else:
+                best_species = best_overall
+
             output += "\n--- OPTIMIZATION RESULT ---\n"
-            output += f"Best: {best['name']} (Species: {best['species']})\n"
-            output += "Stats (selected):\n"
-            for stat_name, direction in parsed_stats:
-                val = best["stats"].get(stat_name, 0)
-                unit = STAT_UNITS.get(stat_name, "")
-                dir_str = "+" if direction == 1 else "-"
-                output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-            # Show top 5 names
-            topN = min(5, len(final_candidates))
-            if topN > 1:
-                output += "\nTop candidates:\n"
-                for i in range(topN):
-                    rec = final_candidates[i]
-                    output += f"  {i+1}. {rec['name']} — {rec['species']}\n"
+            if best_overall and (not best_species or best_overall["name"] == best_species["name"]):
+                output += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
+                output += "Stats (selected):\n"
+                for stat_name, direction in parsed_stats:
+                    val = best_overall["stats"].get(stat_name, 0)
+                    unit = STAT_UNITS.get(stat_name, "")
+                    dir_str = "+" if direction == 1 else "-"
+                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+            else:
+                if best_overall:
+                    output += f"Best Overall: {best_overall['name']} (Species: {best_overall['species']})\n"
+                    output += "Stats (selected):\n"
+                    for stat_name, direction in parsed_stats:
+                        val = best_overall["stats"].get(stat_name, 0)
+                        unit = STAT_UNITS.get(stat_name, "")
+                        dir_str = "+" if direction == 1 else "-"
+                        output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                if best_species:
+                    output += f"Best in Species: {best_species['name']} (Species: {best_species['species']})\n"
+                    output += "Stats (selected):\n"
+                    for stat_name, direction in parsed_stats:
+                        val = best_species["stats"].get(stat_name, 0)
+                        unit = STAT_UNITS.get(stat_name, "")
+                        dir_str = "+" if direction == 1 else "-"
+                        output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
         elif cmd == "random":
             genotype, sp = random.choice(all_full_genotypes)
             output += "--- RANDOM SPECIES GENERATED ---\n"
