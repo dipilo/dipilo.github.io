@@ -1279,9 +1279,10 @@ def cross_breed_from_genotype(geno1, geno2):
     species = overall_phenotype(offspring_top, offspring_mid, offspring_bottom)
     return {"top": offspring_top, "mid": offspring_mid, "bottom": offspring_bottom}, species
 
-def breed_from_saved(parent1_name, parent2_name):
+def breed_from_saved(parent1_name, parent2_name, silent: bool = False):
     if parent1_name not in saved_hybrids or parent2_name not in saved_hybrids:
-        print("One or both parent names not found in saved hybrids.")
+        if not silent:
+            print("One or both parent names not found in saved hybrids.")
         return None
     parent1 = saved_hybrids[parent1_name]
     parent2 = saved_hybrids[parent2_name]
@@ -1301,7 +1302,8 @@ def breed_from_saved(parent1_name, parent2_name):
             break
         attempt += 1
     if species is None:
-        print("Miscarriage: Offspring species could not be determined after several attempts.")
+        if not silent:
+            print("Miscarriage: Offspring species could not be determined after several attempts.")
         return None
 
     # 2. Simulate full stats for that species (includes senses, diet, magic, size, etc.)
@@ -1801,10 +1803,25 @@ class HybridCLI:
                 for i in range(pair_count):
                     p1 = candidates[2*i]["name"].lower()
                     p2 = candidates[2*i+1]["name"].lower()
-                    result = breed_from_saved(p1, p2)
+                    result = breed_from_saved(p1, p2, silent=True)
                     if result is not None:
                         offspring, _ = result
                         bred += 1
+
+                # Population control: keep only top POP_SIZE candidates to bound memory
+                # Build a list over current saved hybrids and prune by score
+                all_records = list(self.saved_hybrids.values())
+                # Sort by score (using species filter) and keep top
+                def key_func(rec):
+                    return score_of(rec) if species_matches(rec["species"]) else tuple([-float('inf')] * len(parsed_stats))
+                all_records.sort(key=key_func, reverse=True)
+                keep = all_records[:POP_SIZE]
+                keep_names = set(r["name"].lower() for r in keep)
+                # Drop others
+                for name in list(self.saved_hybrids.keys()):
+                    if name not in keep_names:
+                        self.saved_hybrids.pop(name, None)
+
                 output += f"Generation {g+1}: bred {bred} pair(s).\n"
 
             # Final results
