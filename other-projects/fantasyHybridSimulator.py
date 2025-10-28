@@ -1884,7 +1884,7 @@ class HybridCLI:
                 bred = 0
                 pairs = get_priority_pairs(candidates, target_species)
                 random.shuffle(pairs)
-                pair_count = max(1, min(len(pairs), POP_SIZE//2))
+                pair_count = min(len(pairs), max(1, POP_SIZE//2))
                 used = set()
                 for i in range(pair_count):
                     p1, p2 = pairs[i]
