@@ -1884,19 +1884,20 @@ class HybridCLI:
                 bred = 0
                 pairs = get_priority_pairs(candidates, target_species)
                 random.shuffle(pairs)
-                pair_count = min(len(pairs), max(1, POP_SIZE//2))
-                used = set()
-                for i in range(pair_count):
-                    p1, p2 = pairs[i]
-                    n1, n2 = p1["name"].lower(), p2["name"].lower()
-                    if n1 in used or n2 in used:
-                        continue
-                    result = breed_from_saved(n1, n2, silent=True)
-                    if result is not None:
-                        offspring, _ = result
-                        bred += 1
-                        used.add(n1)
-                        used.add(n2)
+                if pairs:
+                    pair_count = min(len(pairs), max(1, POP_SIZE//2))
+                    used = set()
+                    for i in range(pair_count):
+                        p1, p2 = pairs[i]
+                        n1, n2 = p1["name"].lower(), p2["name"].lower()
+                        if n1 in used or n2 in used:
+                            continue
+                        result = breed_from_saved(n1, n2, silent=True)
+                        if result is not None:
+                            offspring, _ = result
+                            bred += 1
+                            used.add(n1)
+                            used.add(n2)
 
                 # Population control: keep only top POP_SIZE candidates to bound memory
                 all_records = list(self.saved_hybrids.values())
