@@ -1868,6 +1868,7 @@ class HybridCLI:
 
             # Main evolution loop, with progress indicator
             def evolve_one_generation(gen, show_progress=True):
+                nonlocal output
                 candidates = list(self.saved_hybrids.values())
                 if len(candidates) < 2:
                     # backfill population
