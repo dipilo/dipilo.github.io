@@ -1672,6 +1672,9 @@ class HybridCLI:
         self.saved_hybrids = {}
         # Session state for chunked optimize to avoid UI freezes
         self._opt_session = None  # dict or None
+        # Litter mode controls
+        self.LITTER_MODE = False
+        self.LITTER_CAP = 10
 
     def load_saved_hybrids(self):
         if os.path.exists(self.SAVED_FILE):
@@ -1705,11 +1708,12 @@ class HybridCLI:
                 "Commands:\n"
                 "  toggle                    - Toggle save mode ON/OFF\n"
                 "  magic [on|off|status]     - Toggle or set elemental magic affinity display\n"
+                "  litter [on|off|status|cap=N] - Toggle litter reproduction and/or set a safety cap per pairing\n"
                 "  optimize start <gens> <stats> [species=..] [chunk=N] - Start a chunked evolution session (non-blocking)\n"
                 "  optimize step|continue [chunk=N] - Run N generations in the active session and report progress\n"
                 "  optimize status            - Show current optimize session progress and best candidate\n"
                 "  optimize stop              - Stop the active session\n"
-                "  optimize <gens> <stats> [species=..] - Legacy synchronous run (may freeze UI)\n"
+                "  optimize <gens> <stats> [species=..] - Legacy alias to non-blocking start (use step/continue)\n"
                 "    Tips: stats can include Affinity Fire/Water/Earth/Air/Beam (or just fire, water, etc.)\n"
                 "  list                      - List available known species and saved hybrids\n"
                 "  breed [arg1] [arg2]       - Breed two species or saved hybrids\n"
@@ -1735,6 +1739,32 @@ class HybridCLI:
                 for name in sorted(self.saved_hybrids.keys()):
                     record = self.saved_hybrids[name]
                     output += f"  {record['name']} (Species: {record['species']}, Genotype: {record.get('genotype','N/A')})\n"
+        elif cmd == "litter":
+            # Usage: litter -> toggle; litter on/off; litter status; litter cap=N
+            if len(parts) == 1:
+                self.LITTER_MODE = not self.LITTER_MODE
+                state = "ON" if self.LITTER_MODE else "OFF"
+                output += f"Litter mode toggled {state}. (Cap={self.LITTER_CAP})\n"
+            else:
+                sub = parts[1].lower()
+                if sub in ("on", "enable", "enabled"):
+                    self.LITTER_MODE = True
+                    output += f"Litter mode: ON (Cap={self.LITTER_CAP})\n"
+                elif sub in ("off", "disable", "disabled"):
+                    self.LITTER_MODE = False
+                    output += "Litter mode: OFF\n"
+                elif sub.startswith("cap="):
+                    try:
+                        cap = int(sub.split("=", 1)[1])
+                        self.LITTER_CAP = max(1, cap)
+                        output += f"Litter cap set to {self.LITTER_CAP}.\n"
+                    except Exception:
+                        output += "Invalid cap value. Use litter cap=N\n"
+                elif sub in ("status", "state"):
+                    state = "ON" if self.LITTER_MODE else "OFF"
+                    output += f"Litter mode is {state}. Cap={self.LITTER_CAP}.\n"
+                else:
+                    output += "Usage: litter [on|off|status|cap=N]\n"
         elif cmd == "breed":
             if len(parts) != 3:
                 output += "Usage: breed [species_or_saved_name1] [species_or_saved_name2]\n"
@@ -1746,31 +1776,51 @@ class HybridCLI:
                     # Make breed_from_saved use our in-memory store
                     saved_hybrids = self.saved_hybrids
 
-                    result = breed_from_saved(arg1, arg2)
-                    if result is None:
-                        output += "Miscarriage: could not determine offspring species after 10 attempts.\n"
-                        return output
-
-                    offspring, mutations = result
-                    # Store back into session memory
-                    self.saved_hybrids[offspring["name"].lower()] = offspring
+                    def _num(v):
+                        try:
+                            return float(v)
+                        except Exception:
+                            try:
+                                # Extract number from string
+                                s = str(v)
+                                if '/' in s:
+                                    return float(s.split('/')[1])
+                                return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
+                            except Exception:
+                                return 0.0
+                    # Estimate litter count from parents' stats
+                    lit1 = _num(self.saved_hybrids[arg1]["stats"].get("Litter Size", 1))
+                    lit2 = _num(self.saved_hybrids[arg2]["stats"].get("Litter Size", 1))
+                    litter_count = 1
+                    if self.LITTER_MODE:
+                        avg = (lit1 + lit2) / 2.0 if (lit1 and lit2) else max(lit1, lit2, 1)
+                        litter_count = max(1, min(self.LITTER_CAP, int(round(avg))))
 
                     output += "\n--- BREEDING RESULT (from saved hybrids) ---\n"
                     output += f"Parent 1: {self.saved_hybrids[arg1]['name']} (Species: {self.saved_hybrids[arg1]['species']})\n"
                     output += f"Parent 2: {self.saved_hybrids[arg2]['name']} (Species: {self.saved_hybrids[arg2]['species']})\n"
-                    output += f"Offspring name: {offspring['name']}\n"
-                    output += f"Species: {offspring['species']}\n"
-                    output += "(Saved into session memory)\n"
-                    output += "Genotype:\n"
-                    output += f"  Top   : {offspring['genotype']['top']}\n"
-                    output += f"  Mid   : {offspring['genotype']['mid']}\n"
-                    output += f"  Bottom: {offspring['genotype']['bottom']}\n"
-                    output += "Stats:\n"
-                    for stat, val in offspring["stats"].items():
-                        unit = STAT_UNITS.get(stat, "")
-                        output += f"  {stat:15s}: {val} {unit}".rstrip() + "\n"
-                        if stat in mutations:
-                            output += f"                <-- {mutations[stat]}\n"
+                    for i in range(litter_count):
+                        result = breed_from_saved(arg1, arg2)
+                        if result is None:
+                            output += "Miscarriage: could not determine offspring species after 10 attempts.\n"
+                            continue
+                        offspring, mutations = result
+                        # Store back into session memory
+                        self.saved_hybrids[offspring["name"].lower()] = offspring
+                        prefix = f"Offspring {i+1}/{litter_count}: " if litter_count > 1 else "Offspring: "
+                        output += prefix + f"{offspring['name']}\n"
+                        output += f"Species: {offspring['species']}\n"
+                        output += "(Saved into session memory)\n"
+                        output += "Genotype:\n"
+                        output += f"  Top   : {offspring['genotype']['top']}\n"
+                        output += f"  Mid   : {offspring['genotype']['mid']}\n"
+                        output += f"  Bottom: {offspring['genotype']['bottom']}\n"
+                        output += "Stats:\n"
+                        for stat, val in offspring["stats"].items():
+                            unit = STAT_UNITS.get(stat, "")
+                            output += f"  {stat:15s}: {val} {unit}".rstrip() + "\n"
+                            if stat in mutations:
+                                output += f"                <-- {mutations[stat]}\n"
 
                 # — Known-species branch remains unchanged —
                 else:
@@ -1788,43 +1838,67 @@ class HybridCLI:
                         output += f"Error: {e}\n"
                         return output
 
-                    # compute stats & variant prefix (same as before)…
-                    off_top = top_expression(result["offspring_top"])
-                    off_mid = mid_expression(result["offspring_mid"])
-                    off_bot = bottom_expression(result["offspring_bottom"])
-                    stats, mutations = generate_individual_stats(
-                        result["phenotype"], off_top, off_mid, off_bot
-                    )
-                    # … variant logic …
-                    species_name = generate_unique_name(result["phenotype"])
-                    offspring = {
-                        "name": species_name,
-                        "genotype": {
-                            "top": result["offspring_top"],
-                            "mid": result["offspring_mid"],
-                            "bottom": result["offspring_bottom"]
-                        },
-                        "species": result["phenotype"],
-                        "stats": stats
-                    }
-                    if self.SAVE_MODE:
-                        self.saved_hybrids[offspring["name"].lower()] = offspring
-                        output += f"(Saved in session as “{offspring['name']}”)\n"
+                    # Estimate litter count for species parents by sampling their genotypes' statblocks
+                    def _num(v):
+                        try:
+                            return float(v)
+                        except Exception:
+                            try:
+                                s = str(v)
+                                if '/' in s:
+                                    return float(s.split('/')[1])
+                                return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
+                            except Exception:
+                                return 0.0
+                    litter_count = 1
+                    if self.LITTER_MODE:
+                        p1_t = top_expression(result["parent1_genotype"]["top"])
+                        p1_m = mid_expression(result["parent1_genotype"]["mid"])
+                        p1_b = bottom_expression(result["parent1_genotype"]["bottom"])
+                        p1_stats, _ = generate_individual_stats(arg1, p1_t, p1_m, p1_b)
+                        p2_t = top_expression(result["parent2_genotype"]["top"])
+                        p2_m = mid_expression(result["parent2_genotype"]["mid"])
+                        p2_b = bottom_expression(result["parent2_genotype"]["bottom"])
+                        p2_stats, _ = generate_individual_stats(arg2, p2_t, p2_m, p2_b)
+                        avg = (_num(p1_stats.get("Litter Size", 1)) + _num(p2_stats.get("Litter Size", 1))) / 2.0
+                        litter_count = max(1, min(self.LITTER_CAP, int(round(avg))))
 
                     output += "\n--- BREEDING RESULT (from species simulation) ---\n"
                     output += f"Parent 1 ({arg1})  Genotype: {result['parent1_genotype']}\n"
                     output += f"Parent 2 ({arg2})  Genotype: {result['parent2_genotype']}\n"
-                    output += "\nGenotype:\n"
-                    output += f"  Top   : {result['offspring_top']}\n"
-                    output += f"  Mid   : {result['offspring_mid']}\n"
-                    output += f"  Bottom: {result['offspring_bottom']}\n"
-                    output += f"Species: {offspring['species']}\n"
-                    output += "\nStats:\n"
-                    for stat, val in stats.items():
-                        unit = STAT_UNITS.get(stat, "")
-                        output += f"  {stat:15s}: {val} {unit}".rstrip() + "\n"
-                        if stat in mutations:
-                            output += f"                <-- {mutations[stat]}\n"
+                    for i in range(litter_count):
+                        # compute stats & variant prefix (same as before)…
+                        off_top = top_expression(result["offspring_top"])
+                        off_mid = mid_expression(result["offspring_mid"])
+                        off_bot = bottom_expression(result["offspring_bottom"])
+                        stats, mutations = generate_individual_stats(
+                            result["phenotype"], off_top, off_mid, off_bot
+                        )
+                        species_name = generate_unique_name(result["phenotype"])
+                        offspring = {
+                            "name": species_name,
+                            "genotype": {
+                                "top": result["offspring_top"],
+                                "mid": result["offspring_mid"],
+                                "bottom": result["offspring_bottom"]
+                            },
+                            "species": result["phenotype"],
+                            "stats": stats
+                        }
+                        if self.SAVE_MODE:
+                            self.saved_hybrids[offspring["name"].lower()] = offspring
+                            output += f"(Saved in session as “{offspring['name']}”)\n"
+                        output += "\nGenotype:\n"
+                        output += f"  Top   : {result['offspring_top']}\n"
+                        output += f"  Mid   : {result['offspring_mid']}\n"
+                        output += f"  Bottom: {result['offspring_bottom']}\n"
+                        output += f"Species: {offspring['species']}\n"
+                        output += "\nStats:\n"
+                        for stat, val in stats.items():
+                            unit = STAT_UNITS.get(stat, "")
+                            output += f"  {stat:15s}: {val} {unit}".rstrip() + "\n"
+                            if stat in mutations:
+                                output += f"                <-- {mutations[stat]}\n"
         elif cmd == "magic":
             # Toggle or set the elemental magic affinity display mode
             # Usage: magic            -> toggle
@@ -1920,17 +1994,54 @@ class HybridCLI:
                     return 0.0
 
                 def _score_of(parsed_stats, record):
+                    # Normalized scoring: per-stat value divided by species baseline average (percent-over-base)
+                    # This makes cross-species comparisons fairer.
                     tup = []
+                    sess = self._opt_session if self._opt_session else {}
+                    baseline_by_species = sess.get("baseline_by_species", {})
+                    baseline_N = sess.get("baseline_N", 100)
+
+                    def _get_baseline_avg(species: str, stat_name: str) -> float:
+                        sp = species.lower()
+                        if sp not in baseline_by_species:
+                            baseline_by_species[sp] = {}
+                        if stat_name in baseline_by_species[sp]:
+                            return baseline_by_species[sp][stat_name]
+                        # Compute and cache average baseline for this species/stat
+                        if sp in phenotype_genotypes:
+                            vals = []
+                            for _ in range(baseline_N):
+                                geno = random.choice(phenotype_genotypes[sp])
+                                t = top_expression(geno["top"])
+                                m = mid_expression(geno["mid"])
+                                b = bottom_expression(geno["bottom"])
+                                stats, _ = generate_individual_stats(species, t, m, b)
+                                vals.append(_numeric_value(stats.get(stat_name, 0)))
+                            avg = (sum(vals) / len(vals)) if vals else 0.0
+                        else:
+                            avg = 0.0
+                        # guard against zero/near-zero baselines
+                        if avg <= 1e-9:
+                            avg = 1.0
+                        baseline_by_species[sp][stat_name] = avg
+                        sess["baseline_by_species"] = baseline_by_species
+                        return avg
+
+                    species = record.get("species", "").lower()
                     for stat_name, direction in parsed_stats:
-                        value = _numeric_value(record["stats"].get(stat_name, 0))
-                        tup.append(direction * value)
+                        raw_val = _numeric_value(record["stats"].get(stat_name, 0))
+                        base_avg = _get_baseline_avg(species, stat_name)
+                        norm = raw_val / base_avg if base_avg != 0 else raw_val
+                        tup.append(direction * norm)
                     return tuple(tup)
 
                 if sub == "start":
                     if len(parts) < 4:
                         output += (
                             "Usage: optimize start <generations> <stats_spec> [species=sp1,sp2,...] [chunk=N]\n"
-                            "Example: optimize start 50 +Strength,IQ species=griffin chunk=5\n"
+                            "Examples:\n"
+                            "  optimize start 50 +Strength,IQ species=griffin chunk=5\n"
+                            "  optimize start 1000 size centaur 50   (positional: gens stats species chunk)\n"
                         )
                         return output
                     try:
@@ -1941,16 +2052,31 @@ class HybridCLI:
                     stats_spec = parts[3]
                     species_filter = None
                     chunk = 5
+                    # Accept both prefixed and positional tokens after stats_spec
+                    pos_species: list[str] = []
+                    last_numeric: int | None = None
                     for token in parts[4:]:
                         tl = token.lower()
                         if tl.startswith("species="):
                             raw = token.split("=", 1)[1].replace(";", ",")
-                            species_filter = [s.strip().lower() for s in raw.split(",") if s.strip()]
+                            pos_species.extend([s.strip().lower() for s in raw.split(",") if s.strip()])
                         elif tl.startswith("chunk="):
                             try:
                                 chunk = max(1, int(token.split("=", 1)[1]))
                             except Exception:
                                 pass
+                        else:
+                            # positional: collect non-numeric as species tokens, numeric as chunk override
+                            try:
+                                val = int(token)
+                                last_numeric = val
+                            except Exception:
+                                if token:
+                                    pos_species.append(token.lower())
+                    if last_numeric is not None:
+                        chunk = max(1, last_numeric)
+                    if pos_species:
+                        species_filter = pos_species
                     parsed_stats = _parse_stats_spec(stats_spec)
                     if not parsed_stats:
                         output += "No valid stats specified.\n"
@@ -2034,10 +2160,16 @@ class HybridCLI:
                         "target_species": target_species,
                         "baseline_stats": baseline_stats,
                         "baseline_N": baseline_N,
+                        "baseline_by_species": {},
                         "POP_SIZE": POP_SIZE,
                         "chunk": chunk,
                         "prev_magic": prev_magic,
                     }
+                    # Preload normalized baseline map with target species averages (if any)
+                    if target_species and baseline_stats:
+                        self._opt_session["baseline_by_species"][target_species] = {
+                            k: v["avg"] for k, v in baseline_stats.items()
+                        }
                     output += "Optimize session started. Use 'optimize step' (optionally with chunk=N) to progress.\n"
                     if target_species and baseline_stats:
                         output += f"Random {target_species} baseline (N={baseline_N}):\n"
@@ -2054,10 +2186,18 @@ class HybridCLI:
                         return "No active optimize session. Start one with: optimize start <gens> <stats_spec> ...\n"
                     # Allow overriding chunk
                     chunk = self._opt_session["chunk"]
+                    # Accept either chunk=N or a bare integer as positional
                     for token in parts[2:]:
-                        if token.lower().startswith("chunk="):
+                        tl = token.lower()
+                        if tl.startswith("chunk="):
                             try:
                                 chunk = max(1, int(token.split("=", 1)[1]))
+                            except Exception:
+                                pass
+                        else:
+                            try:
+                                val = int(token)
+                                chunk = max(1, val)
                             except Exception:
                                 pass
                     self._opt_session["chunk"] = chunk
@@ -2119,9 +2259,30 @@ class HybridCLI:
                                 n1, n2 = p1["name"].lower(), p2["name"].lower()
                                 if n1 in used or n2 in used:
                                     continue
-                                result = breed_from_saved(n1, n2, silent=True)
-                                if result is not None:
-                                    offspring, _ = result
+                                # Litter-aware breeding: possibly multiple offspring per pair
+                                produced_any = False
+                                litter_count = 1
+                                if getattr(self, "LITTER_MODE", False):
+                                    def _num(v):
+                                        try:
+                                            return float(v)
+                                        except Exception:
+                                            try:
+                                                s = str(v)
+                                                if '/' in s:
+                                                    return float(s.split('/')[1])
+                                                return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
+                                            except Exception:
+                                                return 0.0
+                                    lit1 = _num(p1.get("stats", {}).get("Litter Size", 1))
+                                    lit2 = _num(p2.get("stats", {}).get("Litter Size", 1))
+                                    avg = (lit1 + lit2) / 2.0 if (lit1 and lit2) else max(lit1, lit2, 1)
+                                    litter_count = max(1, min(getattr(self, "LITTER_CAP", 10), int(round(avg))))
+                                for _ in range(litter_count):
+                                    result = breed_from_saved(n1, n2, silent=True)
+                                    if result is not None:
+                                        produced_any = True
+                                if produced_any:
                                     bred += 1
                                     used.add(n1)
                                     used.add(n2)
@@ -2144,8 +2305,30 @@ class HybridCLI:
                         all_final = list(self.saved_hybrids.values())
                         all_final.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
                         best_overall = all_final[0] if all_final else None
+                        # Determine best in target species if applicable
+                        target_species = self._opt_session.get("target_species")
+                        best_species = None
+                        if target_species:
+                            species_final = [rec for rec in all_final if rec["species"].lower() == target_species]
+                            if species_final:
+                                best_species = species_final[0]
+                        else:
+                            best_species = best_overall
+
                         output += "\n--- OPTIMIZATION RESULT ---\n"
-                        if best_overall:
+                        # Show baseline if we had a single target species
+                        baseline_stats = self._opt_session.get("baseline_stats", {})
+                        baseline_N = self._opt_session.get("baseline_N", 100)
+                        if target_species and baseline_stats:
+                            output += f"Random {target_species} baseline (N={baseline_N}):\n"
+                            for stat_name, _ in parsed_stats:
+                                if stat_name in baseline_stats:
+                                    b = baseline_stats[stat_name]
+                                    unit = STAT_UNITS.get(stat_name, "")
+                                    output += f"  {stat_name}: min={b['min']:.3f}, avg={b['avg']:.3f}, max={b['max']:.3f} {unit}\n"
+
+                        # Print bests similar to legacy output
+                        if best_overall and (not best_species or best_overall["name"] == best_species["name"]):
                             output += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
                             output += "Stats (selected):\n"
                             for stat_name, direction in parsed_stats:
@@ -2153,40 +2336,29 @@ class HybridCLI:
                                 unit = STAT_UNITS.get(stat_name, "")
                                 dir_str = "+" if direction == 1 else "-"
                                 output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                        else:
+                            if best_overall:
+                                output += f"Best Overall: {best_overall['name']} (Species: {best_overall['species']})\n"
+                                output += "Stats (selected):\n"
+                                for stat_name, direction in parsed_stats:
+                                    val = best_overall["stats"].get(stat_name, 0)
+                                    unit = STAT_UNITS.get(stat_name, "")
+                                    dir_str = "+" if direction == 1 else "-"
+                                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                            if best_species:
+                                output += f"Best in Species: {best_species['name']} (Species: {best_species['species']})\n"
+                                output += "Stats (selected):\n"
+                                for stat_name, direction in parsed_stats:
+                                    val = best_species["stats"].get(stat_name, 0)
+                                    unit = STAT_UNITS.get(stat_name, "")
+                                    dir_str = "+" if direction == 1 else "-"
+                                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
                         prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
                         MAGIC_AFFINITY_MODE = prev_magic
                         self._opt_session = None
                         return output
-
-                    output += f"Progress: {done}/{generations} generations completed.\n"
-                    return output
-
-                if sub == "status":
-                    if not self._opt_session:
-                        return "No active optimize session.\n"
-                    parsed_stats = self._opt_session["parsed_stats"]
-                    generations = self._opt_session["generations"]
-                    done = self._opt_session["done"]
-                    def best_str():
-                        if not self.saved_hybrids:
-                            return "(no candidates)"
-                        best = max(self.saved_hybrids.values(), key=lambda r: _score_of(parsed_stats, r))
-                        return f"{best['name']} [{best['species']}]"
-                    return f"Optimize status: {done}/{generations} generations. Best so far: {best_str()}\n"
-
-                if sub == "stop":
-                    if not self._opt_session:
-                        return "No active optimize session to stop.\n"
-                    prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
-                    MAGIC_AFFINITY_MODE = prev_magic
-                    self._opt_session = None
-                    return "Optimize session stopped.\n"
-
-                # Unknown subcommand
-                return "Usage: optimize start|step|continue|status|stop ...\n"
-            # Legacy synchronous mode (may freeze UI for long runs):
+            # Legacy alias to non-blocking start: initialize a session and print baseline + progress header
             # Usage: optimize <generations> <stats_spec> [species=sp1,sp2,...]
-            # stats_spec example: +Strength,-Size,IQ (assume + if no sign)
             if len(parts) < 3:
                 output += (
                     "Usage: optimize <generations> <stats_spec> [species=sp1,sp2,...]\n"
@@ -2200,32 +2372,43 @@ class HybridCLI:
                 return output
 
             stats_spec = parts[2]
+            # Allow both 'species=' and positional species tokens (no chunk here)
             species_filter = None
+            pos_species: list[str] = []
             for token in parts[3:]:
-                if token.lower().startswith("species="):
-                    raw = token.split("=", 1)[1]
-                    raw = raw.replace(";", ",")
-                    species_filter = [s.strip().lower() for s in raw.split(",") if s.strip()]
-                    break
-            # Fallback: allow positional species tokens without 'species=' prefix
-            if species_filter is None and len(parts) > 3:
-                species_filter = [t.lower() for t in parts[3:] if t.strip()]
+                tl = token.lower()
+                if tl.startswith("species="):
+                    raw = token.split("=", 1)[1].replace(";", ",")
+                    pos_species.extend([s.strip().lower() for s in raw.split(",") if s.strip()])
+                else:
+                    if token:
+                        pos_species.append(token.lower())
+            if pos_species:
+                species_filter = pos_species
 
-            # Ensure save mode and in-memory store are active for this session
-            self.SAVE_MODE = True
-            self.saved_hybrids.clear()
-            saved_hybrids = self.saved_hybrids
-
-            # Helper: canonicalize stat names (case-insensitive match to STAT_UNITS keys)
-            def _canon_stat(name: str) -> str:
-                lower = name.lower()
+            # Parse stats with affinity canonicalization
+            def _canon_stat_legacy(name: str) -> str:
+                lower = name.lower().strip()
+                elem_map = {
+                    "fire": "Affinity Fire",
+                    "water": "Affinity Water",
+                    "earth": "Affinity Earth",
+                    "air": "Affinity Air",
+                    "beam": "Affinity Beam",
+                    "affinity fire": "Affinity Fire",
+                    "affinity water": "Affinity Water",
+                    "affinity earth": "Affinity Earth",
+                    "affinity air": "Affinity Air",
+                    "affinity beam": "Affinity Beam",
+                }
+                if lower in elem_map:
+                    return elem_map[lower]
                 for k in STAT_UNITS.keys():
                     if k.lower() == lower:
                         return k
                 return name
 
-            # Helper: parse stats spec into list of (name, dir)
-            def parse_stats_spec(spec: str):
+            def _parse_stats_spec_legacy(spec: str):
                 result = []
                 for raw in spec.split(','):
                     token = raw.strip()
@@ -2233,33 +2416,61 @@ class HybridCLI:
                         continue
                     if token[0] in ['+','-']:
                         direction = 1 if token[0] == '+' else -1
-                        name = _canon_stat(token[1:].strip())
+                        name = _canon_stat_legacy(token[1:].strip())
                     else:
                         direction = 1
-                        name = _canon_stat(token)
+                        name = _canon_stat_legacy(token)
                     result.append((name, direction))
                 return result
 
-            parsed_stats = parse_stats_spec(stats_spec)
+            parsed_stats = _parse_stats_spec_legacy(stats_spec)
             if not parsed_stats:
                 output += "No valid stats specified.\n"
                 return output
 
-            # Helper: numeric stat extraction
-            def numeric_value(v):
+            # Affinity optimization: auto-enable magic mode when targeting any affinity
+            prev_magic = MAGIC_AFFINITY_MODE
+            if any(name.lower().startswith("affinity ") for name, _ in parsed_stats):
+                MAGIC_AFFINITY_MODE = True
+
+            # Start fresh population
+            self.SAVE_MODE = True
+            self.saved_hybrids.clear()
+
+            def create_random_individual(sp: str):
+                geno = random.choice(phenotype_genotypes[sp])
+                t = top_expression(geno["top"])
+                m = mid_expression(geno["mid"])
+                b = bottom_expression(geno["bottom"])
+                stats, _ = generate_individual_stats(sp, t, m, b)
+                name = generate_unique_name(sp)
+                record = {
+                    "name": name,
+                    "genotype": geno,
+                    "species": sp,
+                    "stats": stats
+                }
+                self.saved_hybrids[name.lower()] = record
+                return name, geno
+
+            POP_SIZE = 20
+            while len(self.saved_hybrids) < POP_SIZE:
+                sp = random.choice(list(phenotype_genotypes.keys()))
+                create_random_individual(sp)
+
+            # Local numeric extractor (same as session)
+            def _numeric_value_local(v):
                 if isinstance(v, bool):
                     return 1.0 if v else 0.0
                 if isinstance(v, (int, float)):
                     return float(v)
                 if isinstance(v, str):
-                    # special-case capacity "cur/max" -> use max
                     if '/' in v:
                         try:
-                            parts = v.split('/')
-                            return float(parts[1].strip())
+                            pp = v.split('/')
+                            return float(pp[1].strip())
                         except Exception:
                             pass
-                    # extract first float-like token
                     buf = []
                     out = []
                     for ch in v:
@@ -2278,57 +2489,10 @@ class HybridCLI:
                             continue
                 return 0.0
 
-            # Helper: species matching (supports variants)
-            def species_matches(species_str: str) -> bool:
-                if species_filter is None:
-                    return True
-                s = species_str.lower()
-                for want in species_filter:
-                    # exact match on variant string
-                    if s == want:
-                        return True
-                    # if user provided base only, accept any variant ending with that base
-                    if ' ' not in want and (s == want or s.endswith(' ' + want)):
-                        return True
-                return False
-
-
-            # Helper: estimate if two individuals can produce the target species with high chance
-            def can_produce_species(geno1, geno2, target_species):
-                # Simulate all possible offspring and count how many match target_species
-                count = 0
-                total = 0
-                for _ in range(20):
-                    child, sp = cross_breed_from_genotype(geno1, geno2)
-                    if sp == target_species:
-                        count += 1
-                    total += 1
-                return (count / total) >= 0.4  # 40%+ chance considered high
-
-            # Helper: create a random individual of a species into session store
-            def create_random_individual(sp: str):
-                geno = random.choice(phenotype_genotypes[sp])
-                t = top_expression(geno["top"])
-                m = mid_expression(geno["mid"])
-                b = bottom_expression(geno["bottom"])
-                stats, _ = generate_individual_stats(sp, t, m, b)
-                name = generate_unique_name(sp)
-                record = {
-                    "name": name,
-                    "genotype": geno,
-                    "species": sp,
-                    "stats": stats
-                }
-                self.saved_hybrids[name.lower()] = record
-                return name, geno
-
-            # Enhanced initial population logic
-            POP_SIZE = 20
+            # Baseline for target species (if a single filter provided)
             target_species = None
             if species_filter and len(species_filter) == 1:
                 target_species = species_filter[0]
-
-            # 1. Show min/avg/max for stat in target species (random baseline)
             baseline_stats = {}
             baseline_N = 100
             if target_species and target_species in phenotype_genotypes:
@@ -2340,7 +2504,7 @@ class HybridCLI:
                         m = mid_expression(geno["mid"])
                         b = bottom_expression(geno["bottom"])
                         stats, _ = generate_individual_stats(target_species, t, m, b)
-                        val = numeric_value(stats.get(stat_name, 0))
+                        val = _numeric_value_local(stats.get(stat_name, 0))
                         vals.append(val)
                     if vals:
                         baseline_stats[stat_name] = {
@@ -2349,144 +2513,23 @@ class HybridCLI:
                             "avg": sum(vals)/len(vals)
                         }
 
-            # Step 1: Try to get at least 2 of the target species
-            initial_names = []
-            initial_genos = []
-            if target_species and target_species in phenotype_genotypes:
-                for _ in range(POP_SIZE):
-                    name, geno = create_random_individual(target_species)
-                    initial_names.append(name)
-                    initial_genos.append(geno)
-                    if len(initial_names) >= 2:
-                        break
-            # Step 2: If not enough, try to get 2 that can produce the target species
-            if target_species and len(initial_names) < 2:
-                # Try all pairs of random individuals from all species
-                attempts = 0
-                while len(initial_names) < 2 and attempts < 100:
-                    sp1 = random.choice(list(phenotype_genotypes.keys()))
-                    sp2 = random.choice(list(phenotype_genotypes.keys()))
-                    _, geno1 = create_random_individual(sp1)
-                    _, geno2 = create_random_individual(sp2)
-                    if can_produce_species(geno1, geno2, target_species):
-                        # Save both if not already in
-                        if geno1 not in initial_genos:
-                            initial_genos.append(geno1)
-                        if geno2 not in initial_genos:
-                            initial_genos.append(geno2)
-                        if len(initial_genos) >= 2:
-                            break
-                    attempts += 1
-            # Step 3: Fill up to POP_SIZE with randoms
-            while len(self.saved_hybrids) < POP_SIZE:
-                sp = random.choice(list(phenotype_genotypes.keys()))
-                create_random_individual(sp)
+            # Create session with default small chunk
+            self._opt_session = {
+                "generations": generations,
+                "done": 0,
+                "stats_spec": stats_spec,
+                "parsed_stats": parsed_stats,
+                "species_filter": species_filter,
+                "target_species": target_species,
+                "baseline_stats": baseline_stats,
+                "baseline_N": baseline_N,
+                "baseline_by_species": ({target_species: {k: v["avg"] for k, v in baseline_stats.items()}} if target_species and baseline_stats else {}),
+                "POP_SIZE": POP_SIZE,
+                "chunk": 5,
+                "prev_magic": prev_magic,
+            }
 
-            # Helper: score tuple per record according to parsed_stats
-            def score_of(record):
-                tup = []
-                for stat_name, direction in parsed_stats:
-                    value = numeric_value(record["stats"].get(stat_name, 0))
-                    tup.append(direction * value)
-                # higher is better (after direction applied)
-                return tuple(tup)
-
-
-            def get_candidates():
-                return [rec for rec in self.saved_hybrids.values() if species_matches(rec["species"])]
-
-            # Helper: get all pairs that are both target species or can produce it with high chance
-            def get_priority_pairs(candidates, target_species):
-                pairs = []
-                n = len(candidates)
-                for i in range(n):
-                    for j in range(i+1, n):
-                        rec1, rec2 = candidates[i], candidates[j]
-                        if target_species:
-                            if rec1["species"].lower() == target_species and rec2["species"].lower() == target_species:
-                                pairs.append((rec1, rec2))
-                            elif can_produce_species(rec1["genotype"], rec2["genotype"], target_species):
-                                pairs.append((rec1, rec2))
-                        else:
-                            pairs.append((rec1, rec2))
-                return pairs
-
-            # Evolutive loop
-
-            # Main evolution loop, with progress indicator
-            def evolve_one_generation(gen, show_progress=True):
-                nonlocal output
-                candidates = list(self.saved_hybrids.values())
-                if len(candidates) < 2:
-                    # backfill population
-                    for _ in range(POP_SIZE - len(candidates)):
-                        sp = random.choice(list(phenotype_genotypes.keys()))
-                        create_random_individual(sp)
-                    candidates = list(self.saved_hybrids.values())
-
-                # sort by score desc
-                candidates.sort(key=score_of, reverse=True)
-
-                # breed priority pairs (target species or can produce it)
-                bred = 0
-                pairs = get_priority_pairs(candidates, target_species)
-                random.shuffle(pairs)
-                if pairs:
-                    pair_count = min(len(pairs), max(1, POP_SIZE//2))
-                    used = set()
-                    for i in range(pair_count):
-                        p1, p2 = pairs[i]
-                        n1, n2 = p1["name"].lower(), p2["name"].lower()
-                        if n1 in used or n2 in used:
-                            continue
-                        result = breed_from_saved(n1, n2, silent=True)
-                        if result is not None:
-                            offspring, _ = result
-                            bred += 1
-                            used.add(n1)
-                            used.add(n2)
-
-                # Population control: keep only top POP_SIZE candidates to bound memory
-                all_records = list(self.saved_hybrids.values())
-                all_records.sort(key=score_of, reverse=True)
-                keep = all_records[:POP_SIZE]
-                keep_names = set(r["name"].lower() for r in keep)
-                for name in list(self.saved_hybrids.keys()):
-                    if name not in keep_names:
-                        self.saved_hybrids.pop(name, None)
-
-                if show_progress and (gen % 10 == 0 or gen == generations-1):
-                    output += f"Generation {gen+1}: bred {bred} pair(s).\n"
-
-            # Run requested generations
-            for g in range(generations):
-                evolve_one_generation(g, show_progress=True)
-
-            # If target species required, keep evolving until at least one exists
-            if target_species:
-                def has_target_species():
-                    return any(rec["species"].lower() == target_species for rec in self.saved_hybrids.values())
-                extra_gens = 0
-                while not has_target_species():
-                    evolve_one_generation(generations + extra_gens, show_progress=True)
-                    extra_gens += 1
-                    if extra_gens % 10 == 0:
-                        output += f"[Still searching for {target_species}... {extra_gens} extra generations]\n"
-
-            # Final results
-            all_final = list(self.saved_hybrids.values())
-            all_final.sort(key=score_of, reverse=True)
-            best_overall = all_final[0] if all_final else None
-            best_species = None
-            if target_species:
-                species_final = [rec for rec in all_final if rec["species"].lower() == target_species]
-                if species_final:
-                    best_species = species_final[0]
-            else:
-                best_species = best_overall
-
-            output += "\n--- OPTIMIZATION RESULT ---\n"
-            # Show baseline min/avg/max for comparison
+            output += "Optimize session started. Use 'optimize step' (optionally with chunk=N) to progress.\n"
             if target_species and baseline_stats:
                 output += f"Random {target_species} baseline (N={baseline_N}):\n"
                 for stat_name, _ in parsed_stats:
@@ -2494,32 +2537,26 @@ class HybridCLI:
                         b = baseline_stats[stat_name]
                         unit = STAT_UNITS.get(stat_name, "")
                         output += f"  {stat_name}: min={b['min']:.3f}, avg={b['avg']:.3f}, max={b['max']:.3f} {unit}\n"
-
-            if best_overall and (not best_species or best_overall["name"] == best_species["name"]):
-                output += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
-                output += "Stats (selected):\n"
-                for stat_name, direction in parsed_stats:
-                    val = best_overall["stats"].get(stat_name, 0)
-                    unit = STAT_UNITS.get(stat_name, "")
-                    dir_str = "+" if direction == 1 else "-"
-                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-            else:
-                if best_overall:
-                    output += f"Best Overall: {best_overall['name']} (Species: {best_overall['species']})\n"
-                    output += "Stats (selected):\n"
-                    for stat_name, direction in parsed_stats:
-                        val = best_overall["stats"].get(stat_name, 0)
-                        unit = STAT_UNITS.get(stat_name, "")
-                        dir_str = "+" if direction == 1 else "-"
-                        output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-                if best_species:
-                    output += f"Best in Species: {best_species['name']} (Species: {best_species['species']})\n"
-                    output += "Stats (selected):\n"
-                    for stat_name, direction in parsed_stats:
-                        val = best_species["stats"].get(stat_name, 0)
-                        unit = STAT_UNITS.get(stat_name, "")
-                        dir_str = "+" if direction == 1 else "-"
-                        output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+            output += f"Progress: 0/{generations} generations completed.\n"
+            # Auto-advance: run in steps until completion, using the session's chunk
+            # This keeps output chunked while completing in one command.
+            safety = 100000
+            while self._opt_session and safety > 0:
+                step_out = self.process_command("optimize step")
+                # Suppress any stray legacy usage lines that might appear interleaved
+                if "Usage: optimize <generations>" in step_out:
+                    filtered = []
+                    for line in step_out.splitlines():
+                        if line.startswith("Usage: optimize <generations>"):
+                            continue
+                        if line.startswith("Example: optimize "):
+                            continue
+                        filtered.append(line)
+                    step_out = "\n".join(filtered) + ("\n" if step_out.endswith("\n") else "")
+                output += step_out
+                # process_command('optimize step') will clear the session on completion
+                safety -= 1
+            return output
         elif cmd == "random":
             genotype, sp = random.choice(all_full_genotypes)
             output += "--- RANDOM SPECIES GENERATED ---\n"

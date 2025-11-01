@@ -1,1400 +1,1075 @@
 {
-    "blazing flame": {
-        "name": "Blazing Flame",
-        "genotype": {
-            "top": [
-                "Dr",
-                "Sn"
-            ],
-            "mid": [
-                "Dr",
-                "Dr"
-            ],
-            "bottom": [
-                "Dr",
-                "Dr"
-            ]
-        },
-        "species": "dragon",
-        "stats": {
-            "Visual Field": 247.785,
-            "Smell Strength": 2.958,
-            "Smell Acuity": 193.504,
-            "Smell Distance": 49.167,
-            "Visual Acuity": "31.9 cpd, 20/18",
-            "Hearing Range": "15.5-29472.3 Hz",
-            "Hearing Distance": "313.3 m",
-            "IQ": 95.308,
-            "EQ": 74.714,
-            "Dexterity": 64.318,
-            "Strength": 299.302,
-            "Land Speed": 79.796,
-            "Swim Speed": 6.206,
-            "Jump Height": 3.124,
-            "Flight Speed": 125.951,
-            "Climbing": 6.225,
-            "Bite": 887.65,
-            "Venom": true,
-            "Fire Breathing": true,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "carnivore",
-            "Size": 328.58,
-            "Maturation Age": 90.847,
-            "Lifespan": 1066.545,
-            "Growth Rate": 3.617,
-            "Gestation Period": 438.148,
-            "Litter Size": 5.026,
-            "Thaumagen Production Rate": 23.803,
-            "Thaumacyst Capacity": "377.2/566.4",
-            "Affinity Fire": 60.41,
-            "Affinity Water": 26.61,
-            "Affinity Earth": 35.2,
-            "Affinity Air": 12.41,
-            "Affinity Beam": 64.81,
-            "Active Affinities": "Beam, Earth, Water, Air"
-        }
-    },
-    "sinuous enchantress": {
-        "name": "Sinuous Enchantress",
-        "genotype": {
-            "top": [
-                "Go",
-                "Hu"
-            ],
-            "mid": [
-                "Fi",
-                "Sn"
-            ],
-            "bottom": [
-                "Go",
-                "Sn"
-            ]
-        },
-        "species": "lamia",
-        "stats": {
-            "Visual Field": 153.35,
-            "Smell Strength": 5.209,
-            "Smell Acuity": 167.875,
-            "Smell Distance": 16.462,
-            "Visual Acuity": "15.0 cpd, 20/40",
-            "Hearing Range": "13.9-12559.8 Hz",
-            "Hearing Distance": "60.3 m",
-            "IQ": 101.204,
-            "EQ": 91.671,
-            "Dexterity": 83.395,
-            "Strength": 63.579,
-            "Land Speed": 1.043,
-            "Swim Speed": 2.114,
-            "Jump Height": 0.101,
-            "Flight Speed": 0.0,
-            "Climbing": 3.241,
-            "Bite": 218.597,
-            "Venom": true,
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": true,
-            "diet": "omnivore",
-            "Size": 237.173,
-            "Maturation Age": 20.052,
-            "Lifespan": 190.635,
-            "Growth Rate": 11.828,
-            "Gestation Period": 86.056,
-            "Litter Size": 16.591,
-            "Thaumagen Production Rate": 6.267,
-            "Thaumacyst Capacity": "79.9/103.1",
-            "Affinity Fire": 10.41,
-            "Affinity Water": 12.58,
-            "Affinity Earth": 1.04,
-            "Affinity Air": 5.44,
-            "Affinity Beam": 0.78,
-            "Active Affinities": "None"
-        }
-    },
-    "mighty king": {
-        "name": "Mighty King",
+    "shadow wraith": {
+        "name": "Shadow Wraith",
         "genotype": {
             "top": [
                 "Fi",
-                "Li"
+                "Go"
             ],
             "mid": [
-                "Bu",
-                "Li"
+                "Fi",
+                "Ho"
             ],
             "bottom": [
-                "Li",
+                "Dr",
                 "Li"
             ]
         },
-        "species": "lion",
+        "species": "unicorn",
         "stats": {
-            "Visual Field": 188.679,
-            "Smell Strength": 5.75,
-            "Smell Acuity": 143.256,
-            "Smell Distance": 10.825,
-            "Visual Acuity": "30.3 cpd, 20/20",
-            "Hearing Range": "21.6-19816.0 Hz",
-            "Hearing Distance": "93.4 m",
-            "IQ": 74.731,
-            "EQ": 61.435,
-            "Dexterity": 65.382,
-            "Strength": 223.991,
-            "Land Speed": 62.935,
-            "Swim Speed": 11.508,
-            "Jump Height": 2.114,
+            "Visual Field": 194.565,
+            "Smell Strength": 6.071,
+            "Smell Acuity": 137.714,
+            "Smell Distance": 12.74,
+            "Visual Acuity": "23.4 cpd, 20/22",
+            "Hearing Range": "18.9-22677.1 Hz",
+            "Hearing Distance": "100.3 m",
+            "IQ": 54.06,
+            "EQ": 56.624,
+            "Dexterity": 46.861,
+            "Strength": 189.901,
+            "Land Speed": 48.734,
+            "Swim Speed": 7.53,
+            "Jump Height": 1.118,
             "Flight Speed": 0.0,
-            "Climbing": 4.201,
-            "Bite": 700.609,
-            "Venom": false,
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "carnivore",
-            "Size": 132.416,
-            "Maturation Age": 2.902,
-            "Lifespan": 14.993,
-            "Growth Rate": 45.629,
-            "Gestation Period": 116.469,
-            "Litter Size": 3.217,
-            "Thaumagen Production Rate": 10.982,
-            "Thaumacyst Capacity": "80.5/106.4",
-            "Affinity Fire": 12.93,
-            "Affinity Water": 3.13,
-            "Affinity Earth": 4.95,
-            "Affinity Air": 0.08,
-            "Affinity Beam": 18.37,
-            "Active Affinities": "Beam"
-        }
-    },
-    "mystic unity": {
-        "name": "Mystic Unity",
-        "genotype": {
-            "top": [
-                "Ho",
-                "Li"
-            ],
-            "mid": [
-                "Hu",
-                "Hu"
-            ],
-            "bottom": [
-                "Bi",
-                "Hu"
-            ]
-        },
-        "species": "ipotane",
-        "stats": {
-            "Visual Field": 189.976,
-            "Smell Strength": 10.008,
-            "Smell Acuity": 113.173,
-            "Smell Distance": 6.605,
-            "Visual Acuity": "27.3 cpd, 20/22",
-            "Hearing Range": "19.1-20292.1 Hz",
-            "Hearing Distance": "111.9 m",
-            "IQ": 103.717,
-            "EQ": 86.161,
-            "Dexterity": 86.26,
-            "Strength": 58.636,
-            "Land Speed": 7.452,
-            "Swim Speed": 3.035,
-            "Jump Height": 0.645,
-            "Flight Speed": 0.0,
-            "Climbing": 1.87,
-            "Bite": 361.139,
+            "Climbing": 0.923,
+            "Bite": 253.865,
             "Venom": false,
             "Fire Breathing": false,
             "Petrification": false,
             "Charm": false,
             "diet": "herbivore",
-            "Size": 176.997,
-            "Maturation Age": 17.235,
-            "Lifespan": 76.249,
-            "Growth Rate": 10.27,
-            "Gestation Period": 304.585,
-            "Litter Size": 1.012,
-            "Thaumagen Production Rate": 9.999,
-            "Thaumacyst Capacity": "62.5/101.4",
-            "Affinity Fire": 10.46,
-            "Affinity Water": 5.46,
-            "Affinity Earth": 16.27,
-            "Affinity Air": 19.3,
-            "Affinity Beam": 2.63,
-            "Active Affinities": "None"
+            "Size": 124.27,
+            "Maturation Age": 2.972,
+            "Lifespan": 953.417,
+            "Growth Rate": 41.814,
+            "Gestation Period": 148.785,
+            "Litter Size": 2.643,
+            "Thaumagen Production Rate": 10.316,
+            "Thaumacyst Capacity": "53.4/84.9",
+            "Affinity Fire": 9.41,
+            "Affinity Water": 6.83,
+            "Affinity Earth": 40.14,
+            "Affinity Air": 2.56,
+            "Affinity Beam": 8.49,
+            "Active Affinities": "Earth, Water"
         }
     },
-    "fused chimera": {
-        "name": "Fused Chimera",
+    "serpentine cobra": {
+        "name": "Serpentine Cobra",
         "genotype": {
             "top": [
-                "Li",
-                "Li"
+                "Bi",
+                "Hu"
+            ],
+            "mid": [
+                "Hu",
+                "Sn"
+            ],
+            "bottom": [
+                "Go",
+                "Sn"
+            ]
+        },
+        "species": "naga",
+        "stats": {
+            "Visual Field": 172.617,
+            "Smell Strength": 7.847,
+            "Smell Acuity": 132.292,
+            "Smell Distance": 10.706,
+            "Visual Acuity": "22.5 cpd, 20/30",
+            "Hearing Range": "17.8-17526.4 Hz",
+            "Hearing Distance": "79.1 m",
+            "IQ": 106.751,
+            "EQ": 91.912,
+            "Dexterity": 139.678,
+            "Strength": 55.811,
+            "Land Speed": 0.935,
+            "Swim Speed": 2.125,
+            "Jump Height": 0.101,
+            "Flight Speed": 0.0,
+            "Climbing": 3.199,
+            "Bite": 203.198,
+            "Venom": true,
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 208.439,
+            "Maturation Age": 18.324,
+            "Lifespan": 207.205,
+            "Growth Rate": 11.375,
+            "Gestation Period": 121.666,
+            "Litter Size": 15.168,
+            "Thaumagen Production Rate": 7.581,
+            "Thaumacyst Capacity": "22.5/97.2",
+            "Affinity Fire": 6.98,
+            "Affinity Water": 1.72,
+            "Affinity Earth": 3.88,
+            "Affinity Air": 12.11,
+            "Affinity Beam": 1.72,
+            "Active Affinities": "Air"
+        }
+    },
+    "glimmering scale": {
+        "name": "Glimmering Scale",
+        "genotype": {
+            "top": [
+                "Fi",
+                "Fi"
             ],
             "mid": [
                 "Fi",
+                "Fi"
+            ],
+            "bottom": [
+                "Dr",
+                "Fi"
+            ]
+        },
+        "species": "fish",
+        "stats": {
+            "Visual Field": 91.282,
+            "Smell Strength": 4.739,
+            "Smell Acuity": 47.241,
+            "Smell Distance": 2.093,
+            "Visual Acuity": "9.6 cpd, 20/40",
+            "Hearing Range": "49.6-5021.7 Hz",
+            "Hearing Distance": "27.4 m",
+            "IQ": 10.924,
+            "EQ": 9.906,
+            "Dexterity": 19.27,
+            "Strength": 4.869,
+            "Land Speed": 0.547,
+            "Swim Speed": 43.379,
+            "Jump Height": 0.28,
+            "Flight Speed": 0.0,
+            "Climbing": 0.095,
+            "Bite": 48.063,
+            "Venom": false,
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 16.303,
+            "Maturation Age": 0.966,
+            "Lifespan": 4.731,
+            "Growth Rate": 16.877,
+            "Gestation Period": 1.077,
+            "Litter Size": 948.462,
+            "Thaumagen Production Rate": 1.91,
+            "Thaumacyst Capacity": "0.7/2.1",
+            "Affinity Fire": 6.17,
+            "Affinity Water": 14.69,
+            "Affinity Earth": 4.81,
+            "Affinity Air": 2.41,
+            "Affinity Beam": 5.87,
+            "Active Affinities": "Water"
+        }
+    },
+    "ancient being": {
+        "name": "Ancient Being",
+        "genotype": {
+            "top": [
+                "Go",
                 "Go"
+            ],
+            "mid": [
+                "Fi",
+                "Ho"
+            ],
+            "bottom": [
+                "Dr",
+                "Li"
+            ]
+        },
+        "species": "unicorn",
+        "stats": {
+            "Visual Field": 180.344,
+            "Smell Strength": 6.853,
+            "Smell Acuity": 144.346,
+            "Smell Distance": 12.079,
+            "Visual Acuity": "23.5 cpd, 20/22",
+            "Hearing Range": "17.0-23065.5 Hz",
+            "Hearing Distance": "103.2 m",
+            "IQ": 65.408,
+            "EQ": 57.714,
+            "Dexterity": 49.39,
+            "Strength": 209.509,
+            "Land Speed": 40.682,
+            "Swim Speed": 8.671,
+            "Jump Height": 1.242,
+            "Flight Speed": 0.0,
+            "Climbing": 1.065,
+            "Bite": 247.794,
+            "Venom": false,
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "herbivore",
+            "Size": 141.868,
+            "Maturation Age": 3.289,
+            "Lifespan": 1021.479,
+            "Growth Rate": 43.134,
+            "Gestation Period": 147.732,
+            "Litter Size": 2.336,
+            "Thaumagen Production Rate": 10.272,
+            "Thaumacyst Capacity": "51.1/91.9",
+            "Affinity Fire": 9.03,
+            "Affinity Water": 6.18,
+            "Affinity Earth": 29.04,
+            "Affinity Air": 4.31,
+            "Affinity Beam": 0.74,
+            "Active Affinities": "None"
+        }
+    },
+    "wild pan": {
+        "name": "Wild Pan",
+        "genotype": {
+            "top": [
+                "Dr",
+                "Hu"
+            ],
+            "mid": [
+                "Ho",
+                "Hu"
+            ],
+            "bottom": [
+                "Go",
+                "Go"
+            ]
+        },
+        "species": "satyr/faun",
+        "stats": {
+            "Visual Field": 166.516,
+            "Smell Strength": 8.58,
+            "Smell Acuity": 115.721,
+            "Smell Distance": 9.051,
+            "Visual Acuity": "26.1 cpd, 20/21",
+            "Hearing Range": "18.3-21689.1 Hz",
+            "Hearing Distance": "92.3 m",
+            "IQ": 102.752,
+            "EQ": 87.331,
+            "Dexterity": 90.725,
+            "Strength": 56.785,
+            "Land Speed": 18.428,
+            "Swim Speed": 2.844,
+            "Jump Height": 0.984,
+            "Flight Speed": 0.0,
+            "Climbing": 14.023,
+            "Bite": 208.865,
+            "Venom": false,
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 151.83,
+            "Maturation Age": 12.921,
+            "Lifespan": 103.043,
+            "Growth Rate": 11.751,
+            "Gestation Period": 193.211,
+            "Litter Size": 1.677,
+            "Thaumagen Production Rate": 10.18,
+            "Thaumacyst Capacity": "86.7/94.6",
+            "Affinity Fire": 6.74,
+            "Affinity Water": 5.9,
+            "Affinity Earth": 10.24,
+            "Affinity Air": 7.89,
+            "Affinity Beam": 12.5,
+            "Active Affinities": "None"
+        }
+    },
+    "wild archer": {
+        "name": "Wild Archer",
+        "genotype": {
+            "top": [
+                "Hu",
+                "Li"
+            ],
+            "mid": [
+                "Go",
+                "Hu"
+            ],
+            "bottom": [
+                "Fi",
+                "Ho"
+            ]
+        },
+        "species": "centaur",
+        "stats": {
+            "Visual Field": 176.175,
+            "Smell Strength": 8.563,
+            "Smell Acuity": 113.375,
+            "Smell Distance": 6.044,
+            "Visual Acuity": "27.9 cpd, 20/22",
+            "Hearing Range": "17.7-22109.0 Hz",
+            "Hearing Distance": "113.4 m",
+            "IQ": 99.053,
+            "EQ": 88.638,
+            "Dexterity": 76.544,
+            "Strength": 60.185,
+            "Land Speed": 49.168,
+            "Swim Speed": 7.261,
+            "Jump Height": 1.224,
+            "Flight Speed": 0.0,
+            "Climbing": 1.086,
+            "Bite": 211.96,
+            "Venom": false,
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 162.889,
+            "Maturation Age": 14.504,
+            "Lifespan": 98.047,
+            "Growth Rate": 11.231,
+            "Gestation Period": 324.088,
+            "Litter Size": 1.04,
+            "Thaumagen Production Rate": 10.27,
+            "Thaumacyst Capacity": "16.9/95.0",
+            "Affinity Fire": 6.61,
+            "Affinity Water": 10.17,
+            "Affinity Earth": 4.85,
+            "Affinity Air": 10.69,
+            "Affinity Beam": 2.78,
+            "Active Affinities": "Air, Fire"
+        }
+    },
+    "stonegaze gorgon": {
+        "name": "Stonegaze Gorgon",
+        "genotype": {
+            "top": [
+                "Ho",
+                "Hu"
+            ],
+            "mid": [
+                "Bi",
+                "Fi"
             ],
             "bottom": [
                 "Ho",
+                "Sn"
+            ]
+        },
+        "species": "gorgon",
+        "stats": {
+            "Visual Field": 201.939,
+            "Smell Strength": 4.702,
+            "Smell Acuity": 145.442,
+            "Smell Distance": 19.717,
+            "Visual Acuity": "26.9 cpd, 20/28",
+            "Hearing Range": "20.5-16484.7 Hz",
+            "Hearing Distance": "125.2 m",
+            "IQ": 92.882,
+            "EQ": 94.558,
+            "Dexterity": 90.106,
+            "Strength": 64.936,
+            "Land Speed": 0.985,
+            "Swim Speed": 2.136,
+            "Jump Height": 0.101,
+            "Flight Speed": 0.0,
+            "Climbing": 3.061,
+            "Bite": 180.59,
+            "Venom": true,
+            "Fire Breathing": false,
+            "Petrification": true,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 167.564,
+            "Maturation Age": 18.969,
+            "Lifespan": 200.013,
+            "Growth Rate": 8.834,
+            "Gestation Period": 85.828,
+            "Litter Size": 14.524,
+            "Thaumagen Production Rate": 10.587,
+            "Thaumacyst Capacity": "94.4/93.2",
+            "Affinity Fire": 7.58,
+            "Affinity Water": 1.66,
+            "Affinity Earth": 3.52,
+            "Affinity Air": 12.88,
+            "Affinity Beam": 1.01,
+            "Active Affinities": "None"
+        }
+    },
+    "nightmare chimera": {
+        "name": "Nightmare Chimera",
+        "genotype": {
+            "top": [
+                "Li",
+                "Sn"
+            ],
+            "mid": [
+                "Go",
+                "Go"
+            ],
+            "bottom": [
+                "Go",
                 "Sn"
             ]
         },
         "species": "chimera",
         "stats": {
-            "Lion Head IQ": 69.48,
-            "Goat Head IQ": 63.12,
-            "Snake Head IQ": 26.217,
-            "Lion Head EQ": 57.438,
-            "Goat Head EQ": 57.337,
-            "Snake Head EQ": 19.559,
+            "Lion Head IQ": 68.972,
+            "Goat Head IQ": 57.595,
+            "Snake Head IQ": 25.549,
+            "Lion Head EQ": 56.157,
+            "Goat Head EQ": 50.049,
+            "Snake Head EQ": 21.413,
             "Lion Head Diet": "carnivore",
             "Goat Head Diet": "herbivore",
             "Snake Head Diet": "carnivore",
-            "Lion Head Visual Field": 176.864,
-            "Lion Head Visual Acuity": "25.7 cpd, 20/20",
-            "Lion Head Smell Strength": 6.361,
-            "Lion Head Smell Acuity": 133.262,
-            "Lion Head Smell Distance": 9.415,
-            "Lion Head Hearing Range": "19.1-19654.1 Hz",
-            "Lion Head Hearing Distance": "97.5 m",
-            "Goat Head Visual Field": 166.85,
-            "Goat Head Visual Acuity": "26.1 cpd, 20/22",
-            "Goat Head Smell Strength": 4.756,
-            "Goat Head Smell Acuity": 154.086,
-            "Goat Head Smell Distance": 16.16,
-            "Goat Head Hearing Range": "18.2-20439.6 Hz",
-            "Goat Head Hearing Distance": "84.7 m",
-            "Snake Head Visual Field": 116.331,
-            "Snake Head Visual Acuity": "7.5 cpd, 20/50",
-            "Snake Head Smell Strength": 2.765,
-            "Snake Head Smell Acuity": 197.423,
-            "Snake Head Smell Distance": 20.03,
-            "Snake Head Hearing Range": "10.0-9393.1 Hz",
-            "Snake Head Hearing Distance": "49.8 m",
-            "Dexterity": 66.993,
-            "Strength": 228.741,
-            "Land Speed": 1.029,
-            "Swim Speed": 1.946,
-            "Jump Height": 0.105,
+            "Lion Head Visual Field": 168.703,
+            "Lion Head Visual Acuity": "26.8 cpd, 20/20",
+            "Lion Head Smell Strength": 5.937,
+            "Lion Head Smell Acuity": 134.392,
+            "Lion Head Smell Distance": 9.414,
+            "Lion Head Hearing Range": "18.1-20115.0 Hz",
+            "Lion Head Hearing Distance": "100.8 m",
+            "Goat Head Visual Field": 146.139,
+            "Goat Head Visual Acuity": "25.9 cpd, 20/22",
+            "Goat Head Smell Strength": 4.548,
+            "Goat Head Smell Acuity": 157.917,
+            "Goat Head Smell Distance": 14.547,
+            "Goat Head Hearing Range": "21.8-21507.5 Hz",
+            "Goat Head Hearing Distance": "85.7 m",
+            "Snake Head Visual Field": 113.564,
+            "Snake Head Visual Acuity": "7.8 cpd, 20/50",
+            "Snake Head Smell Strength": 3.013,
+            "Snake Head Smell Acuity": 211.417,
+            "Snake Head Smell Distance": 20.905,
+            "Snake Head Hearing Range": "9.8-10357.6 Hz",
+            "Snake Head Hearing Distance": "51.4 m",
+            "Dexterity": 64.775,
+            "Strength": 239.493,
+            "Land Speed": 0.966,
+            "Swim Speed": 2.162,
+            "Jump Height": 0.101,
             "Flight Speed": 0.0,
-            "Climbing": 2.96,
-            "Bite": 663.973,
+            "Climbing": 3.121,
+            "Bite": 727.193,
             "Venom": true,
             "Fire Breathing": false,
-            "Size": 156.405,
-            "Maturation Age": 4.871,
-            "Lifespan": 19.961,
-            "Growth Rate": 32.109,
-            "Gestation Period": 75.847,
-            "Litter Size": 13.435,
-            "Thaumagen Production Rate": 8.819,
-            "Thaumacyst Capacity": "9.3/91.1",
-            "Affinity Fire": 8.62,
-            "Affinity Water": 2.94,
-            "Affinity Earth": 0.72,
-            "Affinity Air": 4.01,
-            "Affinity Beam": 6.21,
-            "Active Affinities": "Beam"
+            "Size": 163.347,
+            "Maturation Age": 5.058,
+            "Lifespan": 21.273,
+            "Growth Rate": 32.295,
+            "Gestation Period": 79.137,
+            "Litter Size": 15.525,
+            "Thaumagen Production Rate": 8.58,
+            "Thaumacyst Capacity": "57.0/87.5",
+            "Affinity Fire": 6.21,
+            "Affinity Water": 9.53,
+            "Affinity Earth": 2.25,
+            "Affinity Air": 7.68,
+            "Affinity Beam": 4.09,
+            "Active Affinities": "Water"
         }
     },
-    "regal lion-eagle": {
-        "name": "Regal Lion-Eagle",
+    "sinuous sable": {
+        "name": "Sinuous Sable",
+        "genotype": {
+            "top": [
+                "Dr",
+                "Hu"
+            ],
+            "mid": [
+                "Sn",
+                "Sn"
+            ],
+            "bottom": [
+                "Dr",
+                "Sn"
+            ]
+        },
+        "species": "lamia",
+        "stats": {
+            "Visual Field": 145.043,
+            "Smell Strength": 5.134,
+            "Smell Acuity": 169.342,
+            "Smell Distance": 13.782,
+            "Visual Acuity": "15.6 cpd, 20/40",
+            "Hearing Range": "12.9-12840.6 Hz",
+            "Hearing Distance": "62.8 m",
+            "IQ": 91.103,
+            "EQ": 87.626,
+            "Dexterity": 79.888,
+            "Strength": 58.963,
+            "Land Speed": 0.922,
+            "Swim Speed": 2.11,
+            "Jump Height": 0.1,
+            "Flight Speed": 0.0,
+            "Climbing": 3.134,
+            "Bite": 205.614,
+            "Venom": true,
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": true,
+            "diet": "omnivore",
+            "Size": 233.472,
+            "Maturation Age": 19.601,
+            "Lifespan": 218.542,
+            "Growth Rate": 11.911,
+            "Gestation Period": 101.827,
+            "Litter Size": 17.628,
+            "Thaumagen Production Rate": 7.035,
+            "Thaumacyst Capacity": "48.3/105.0",
+            "Affinity Fire": 5.97,
+            "Affinity Water": 3.64,
+            "Affinity Earth": 6.52,
+            "Affinity Air": 1.75,
+            "Affinity Beam": 12.77,
+            "Active Affinities": "None"
+        }
+    },
+    "velvet temptress": {
+        "name": "Velvet Temptress",
+        "genotype": {
+            "top": [
+                "Fi",
+                "Hu"
+            ],
+            "mid": [
+                "Fi",
+                "Sn"
+            ],
+            "bottom": [
+                "Dr",
+                "Sn"
+            ]
+        },
+        "species": "lamia",
+        "stats": {
+            "Visual Field": 142.167,
+            "Smell Strength": 5.126,
+            "Smell Acuity": 164.916,
+            "Smell Distance": 14.367,
+            "Visual Acuity": "14.8 cpd, 20/40",
+            "Hearing Range": "12.5-14167.3 Hz",
+            "Hearing Distance": "66.7 m",
+            "IQ": 105.864,
+            "EQ": 82.688,
+            "Dexterity": 84.139,
+            "Strength": 62.269,
+            "Land Speed": 1.058,
+            "Swim Speed": 1.974,
+            "Jump Height": 0.095,
+            "Flight Speed": 0.0,
+            "Climbing": 3.262,
+            "Bite": 180.213,
+            "Venom": true,
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": true,
+            "diet": "omnivore",
+            "Size": 221.103,
+            "Maturation Age": 18.134,
+            "Lifespan": 186.391,
+            "Growth Rate": 12.193,
+            "Gestation Period": 93.219,
+            "Litter Size": 18.111,
+            "Thaumagen Production Rate": 6.11,
+            "Thaumacyst Capacity": "104.8/104.0",
+            "Affinity Fire": 10.12,
+            "Affinity Water": 1.61,
+            "Affinity Earth": 2.62,
+            "Affinity Air": 2.35,
+            "Affinity Beam": 4.51,
+            "Active Affinities": "None"
+        }
+    },
+    "aerial windrider": {
+        "name": "Aerial Windrider",
         "genotype": {
             "top": [
                 "Bi",
-                "Dr"
+                "Li"
             ],
             "mid": [
                 "Bi",
-                "Ho"
+                "Go"
             ],
             "bottom": [
-                "Hu",
+                "Ho",
                 "Li"
             ]
         },
-        "species": "griffin",
+        "species": "hippogriff",
         "stats": {
-            "Visual Field": 259.659,
-            "Smell Strength": 3.275,
-            "Smell Acuity": 179.766,
-            "Smell Distance": 24.561,
-            "Visual Acuity": "37.7 cpd, 20/17",
-            "Hearing Range": "25.6-19624.9 Hz",
-            "Hearing Distance": "198.3 m",
-            "IQ": 39.865,
-            "EQ": 35.24,
-            "Dexterity": 79.73,
-            "Strength": 226.383,
-            "Land Speed": 55.724,
-            "Swim Speed": 12.255,
-            "Jump Height": 1.875,
-            "Flight Speed": 79.772,
-            "Climbing": 4.188,
-            "Bite": 105.531,
+            "IQ": 48.885,
+            "EQ": 43.533,
+            "Dexterity": 76.351,
+            "Strength": 191.864,
+            "Land Speed": 45.352,
+            "Swim Speed": 8.924,
+            "Jump Height": 1.254,
+            "Flight Speed": 70.108,
+            "Climbing": 1.418,
+            "Bite": 122.206,
             "Venom": false,
+            "Visual Field": 294.882,
+            "Smell Strength": 3.73,
+            "Smell Acuity": 162.088,
+            "Smell Distance": 24.224,
+            "Visual Acuity": "35.3 cpd, 20/18",
+            "Hearing Range": "25.0-24256.6 Hz",
+            "Hearing Distance": "228.6 m",
             "Fire Breathing": false,
             "Petrification": false,
             "Charm": false,
             "diet": "omnivore",
-            "Size": 69.84,
-            "Maturation Age": 7.77,
-            "Lifespan": 85.502,
-            "Growth Rate": 8.988,
-            "Gestation Period": 86.92,
-            "Litter Size": 3.18,
-            "Thaumagen Production Rate": 15.23,
-            "Thaumacyst Capacity": "25.4/55.9",
-            "Affinity Fire": 12.86,
-            "Affinity Water": 6.22,
-            "Affinity Earth": 12.95,
-            "Affinity Air": 3.0,
-            "Affinity Beam": 5.14,
-            "Active Affinities": "None"
-        }
+            "Size": 83.705,
+            "Maturation Age": 5.406,
+            "Lifespan": 57.338,
+            "Growth Rate": 15.484,
+            "Gestation Period": 235.258,
+            "Litter Size": 1.529,
+            "Thaumagen Production Rate": 13.852,
+            "Thaumacyst Capacity": "47.4/58.1",
+            "Affinity Fire": 12.91,
+            "Affinity Water": 2.37,
+            "Affinity Earth": 3.41,
+            "Affinity Air": 11.02,
+            "Affinity Beam": 4.25,
+            "Active Affinities": "Fire, Air"
+        },
+        "mode": "saved_breed",
+        "parents": [
+            "wild archer",
+            "regal griffin"
+        ]
     },
-    "tidal neptune": {
-        "name": "Tidal Neptune",
+    "sinuous temptress": {
+        "name": "Sinuous Temptress",
         "genotype": {
             "top": [
-                "Ho",
-                "Sn"
+                "Hu",
+                "Hu"
             ],
             "mid": [
-                "Dr",
-                "Ho"
+                "Fi",
+                "Sn"
             ],
             "bottom": [
-                "Dr",
-                "Fi"
+                "Ho",
+                "Sn"
             ]
         },
-        "species": "hippocampus",
+        "species": "lamia",
         "stats": {
-            "IQ": 54.446,
-            "EQ": 47.638,
-            "Dexterity": 54.458,
-            "Strength": 208.013,
-            "Land Speed": 12.633,
-            "Swim Speed": 33.113,
-            "Jump Height": 0.718,
-            "Flight Speed": 20.681,
-            "Climbing": 1.126,
-            "Bite": 416.615,
-            "Venom": false,
-            "Visual Field": 164.528,
-            "Smell Strength": 6.782,
-            "Smell Acuity": 103.955,
-            "Smell Distance": 6.833,
-            "Visual Acuity": "17.9 cpd, 20/30",
-            "Hearing Range": "26.4-19098.2 Hz",
-            "Hearing Distance": "108.2 m",
+            "IQ": 99.156,
+            "EQ": 86.204,
+            "Dexterity": 88.368,
+            "Strength": 62.47,
+            "Land Speed": 1.016,
+            "Swim Speed": 2.002,
+            "Jump Height": 0.094,
+            "Flight Speed": 0.0,
+            "Climbing": 3.127,
+            "Bite": 182.554,
+            "Venom": true,
+            "Visual Field": 134.729,
+            "Smell Strength": 4.852,
+            "Smell Acuity": 179.889,
+            "Smell Distance": 14.11,
+            "Visual Acuity": "16.8 cpd, 20/40",
+            "Hearing Range": "13.3-12202.7 Hz",
+            "Hearing Distance": "69.5 m",
             "Fire Breathing": false,
             "Petrification": false,
-            "Charm": false,
-            "diet": "herbivore",
-            "Size": 111.456,
-            "Maturation Age": 2.083,
-            "Lifespan": 29.081,
-            "Growth Rate": 53.507,
-            "Gestation Period": 100.681,
-            "Litter Size": 641.525,
-            "Thaumagen Production Rate": 9.505,
-            "Thaumacyst Capacity": "5.1/48.7",
-            "Affinity Fire": 10.29,
-            "Affinity Water": 5.41,
-            "Affinity Earth": 13.87,
-            "Affinity Air": 6.9,
-            "Affinity Beam": 18.83,
+            "Charm": true,
+            "diet": "omnivore",
+            "Size": 217.587,
+            "Maturation Age": 21.125,
+            "Lifespan": 186.203,
+            "Growth Rate": 10.3,
+            "Gestation Period": 96.787,
+            "Litter Size": 17.553,
+            "Thaumagen Production Rate": 6.257,
+            "Thaumacyst Capacity": "51.4/90.0",
+            "Affinity Fire": 11.23,
+            "Affinity Water": 3.68,
+            "Affinity Earth": 2.04,
+            "Affinity Air": 3.36,
+            "Affinity Beam": 4.29,
             "Active Affinities": "Air"
         },
         "mode": "saved_breed",
         "parents": [
-            "blazing flame",
-            "deep seahorse"
+            "velvet temptress",
+            "stonegaze gorgon"
         ]
     },
-    "enigmatic centaur": {
-        "name": "Enigmatic Centaur",
+    "wild warrior": {
+        "name": "Wild Warrior",
         "genotype": {
             "top": [
-                "Go",
-                "Ho"
+                "Fi",
+                "Hu"
             ],
             "mid": [
-                "Dr",
+                "Ho",
                 "Hu"
             ],
             "bottom": [
-                "Bu",
-                "Hu"
+                "Dr",
+                "Ho"
             ]
         },
-        "species": "ipotane",
+        "species": "centaur",
         "stats": {
-            "IQ": 97.448,
-            "EQ": 84.557,
-            "Dexterity": 89.769,
-            "Strength": 64.754,
-            "Land Speed": 9.204,
-            "Swim Speed": 3.224,
-            "Jump Height": 0.676,
-            "Flight Speed": 10.666,
-            "Climbing": 2.014,
-            "Bite": 321.007,
+            "IQ": 97.859,
+            "EQ": 80.241,
+            "Dexterity": 80.344,
+            "Strength": 81.201,
+            "Land Speed": 48.268,
+            "Swim Speed": 7.306,
+            "Jump Height": 1.268,
+            "Flight Speed": 0.0,
+            "Climbing": 1.047,
+            "Bite": 211.963,
             "Venom": false,
-            "Visual Field": 189.311,
-            "Smell Strength": 9.33,
-            "Smell Acuity": 104.062,
-            "Smell Distance": 7.298,
-            "Visual Acuity": "28.6 cpd, 20/22",
-            "Hearing Range": "19.3-19539.2 Hz",
-            "Hearing Distance": "111.6 m",
+            "Visual Field": 180.32,
+            "Smell Strength": 9.051,
+            "Smell Acuity": 113.317,
+            "Smell Distance": 6.826,
+            "Visual Acuity": "28.0 cpd, 20/22",
+            "Hearing Range": "17.0-23580.8 Hz",
+            "Hearing Distance": "126.0 m",
             "Fire Breathing": false,
             "Petrification": false,
             "Charm": false,
-            "diet": "herbivore",
-            "Size": 173.733,
-            "Maturation Age": 15.682,
-            "Lifespan": 80.224,
-            "Growth Rate": 11.078,
-            "Gestation Period": 316.648,
-            "Litter Size": 1.014,
-            "Thaumagen Production Rate": 11.051,
-            "Thaumacyst Capacity": "18.2/96.8",
-            "Affinity Fire": 8.46,
-            "Affinity Water": 3.95,
-            "Affinity Earth": 11.51,
-            "Affinity Air": 7.23,
-            "Affinity Beam": 12.2,
-            "Active Affinities": "Water"
+            "diet": "omnivore",
+            "Size": 158.055,
+            "Maturation Age": 14.731,
+            "Lifespan": 109.871,
+            "Growth Rate": 10.729,
+            "Gestation Period": 347.754,
+            "Litter Size": 0.985,
+            "Thaumagen Production Rate": 11.402,
+            "Thaumacyst Capacity": "41.6/105.0",
+            "Affinity Fire": 9.37,
+            "Affinity Water": 2.71,
+            "Affinity Earth": 27.64,
+            "Affinity Air": 8.9,
+            "Affinity Beam": 4.32,
+            "Active Affinities": "Earth"
         },
         "mode": "saved_breed",
         "parents": [
-            "mystic unity",
-            "sleek raven"
+            "shadow wraith",
+            "wild archer"
         ]
     },
-    "regal griffin": {
-        "name": "Regal Griffin",
+    "moonlit sable": {
+        "name": "Moonlit Sable",
+        "genotype": {
+            "top": [
+                "Fi",
+                "Hu"
+            ],
+            "mid": [
+                "Fi",
+                "Sn"
+            ],
+            "bottom": [
+                "Fi",
+                "Sn"
+            ]
+        },
+        "species": "lamia",
+        "stats": {
+            "IQ": 90.206,
+            "EQ": 82.957,
+            "Dexterity": 77.322,
+            "Strength": 50.72,
+            "Land Speed": 0.892,
+            "Swim Speed": 8.076,
+            "Jump Height": 0.126,
+            "Flight Speed": 0.0,
+            "Climbing": 2.715,
+            "Bite": 168.636,
+            "Venom": true,
+            "Visual Field": 147.997,
+            "Smell Strength": 5.775,
+            "Smell Acuity": 180.535,
+            "Smell Distance": 16.209,
+            "Visual Acuity": "13.9 cpd, 20/40",
+            "Hearing Range": "13.7-12926.2 Hz",
+            "Hearing Distance": "73.0 m",
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": true,
+            "diet": "omnivore",
+            "Size": 224.606,
+            "Maturation Age": 18.215,
+            "Lifespan": 181.06,
+            "Growth Rate": 12.331,
+            "Gestation Period": 100.791,
+            "Litter Size": 16.187,
+            "Thaumagen Production Rate": 7.141,
+            "Thaumacyst Capacity": "37.4/102.8",
+            "Affinity Fire": 7.74,
+            "Affinity Water": 8.88,
+            "Affinity Earth": 3.06,
+            "Affinity Air": 2.09,
+            "Affinity Beam": 4.74,
+            "Active Affinities": "Water, Earth"
+        },
+        "mode": "saved_breed",
+        "parents": [
+            "velvet temptress",
+            "glimmering scale"
+        ]
+    },
+    "majestic griffin": {
+        "name": "Majestic Griffin",
         "genotype": {
             "top": [
                 "Bi",
-                "Dr"
+                "Li"
             ],
             "mid": [
                 "Bi",
-                "Bi"
+                "Go"
             ],
             "bottom": [
-                "Bi",
+                "Go",
                 "Li"
             ]
         },
         "species": "griffin",
         "stats": {
-            "IQ": 38.566,
-            "EQ": 34.544,
-            "Dexterity": 78.26,
-            "Strength": 204.259,
-            "Land Speed": 50.989,
-            "Swim Speed": 11.767,
-            "Jump Height": 1.785,
-            "Flight Speed": 80.265,
-            "Climbing": 4.409,
-            "Bite": 99.634,
+            "IQ": 43.099,
+            "EQ": 37.924,
+            "Dexterity": 78.563,
+            "Strength": 225.474,
+            "Land Speed": 52.725,
+            "Swim Speed": 11.332,
+            "Jump Height": 1.665,
+            "Flight Speed": 66.41,
+            "Climbing": 4.185,
+            "Bite": 200.004,
             "Venom": false,
-            "Visual Field": 293.584,
-            "Smell Strength": 3.384,
-            "Smell Acuity": 164.946,
-            "Smell Distance": 21.681,
-            "Visual Acuity": "38.1 cpd, 20/17",
-            "Hearing Range": "25.0-21642.4 Hz",
-            "Hearing Distance": "196.8 m",
+            "Visual Field": 291.113,
+            "Smell Strength": 3.123,
+            "Smell Acuity": 164.866,
+            "Smell Distance": 23.097,
+            "Visual Acuity": "36.2 cpd, 20/17",
+            "Hearing Range": "24.5-20031.6 Hz",
+            "Hearing Distance": "197.5 m",
             "Fire Breathing": false,
             "Petrification": false,
             "Charm": false,
             "diet": "omnivore",
-            "Size": 76.789,
-            "Maturation Age": 8.188,
-            "Lifespan": 78.772,
-            "Growth Rate": 9.378,
-            "Gestation Period": 83.109,
-            "Litter Size": 3.18,
-            "Thaumagen Production Rate": 15.17,
-            "Thaumacyst Capacity": "10.8/59.0",
-            "Affinity Fire": 9.33,
-            "Affinity Water": 5.07,
-            "Affinity Earth": 5.54,
-            "Affinity Air": 14.82,
-            "Affinity Beam": 7.28,
-            "Active Affinities": "Beam, Water"
+            "Size": 80.673,
+            "Maturation Age": 8.216,
+            "Lifespan": 84.511,
+            "Growth Rate": 9.819,
+            "Gestation Period": 88.817,
+            "Litter Size": 2.753,
+            "Thaumagen Production Rate": 14.525,
+            "Thaumacyst Capacity": "48.4/70.2",
+            "Affinity Fire": 7.48,
+            "Affinity Water": 4.26,
+            "Affinity Earth": 2.6,
+            "Affinity Air": 25.26,
+            "Affinity Beam": 20.23,
+            "Active Affinities": "Air, Beam"
         },
         "mode": "saved_breed",
         "parents": [
-            "regal lion-eagle",
-            "feathered skycaller"
+            "nightmare chimera",
+            "golden sky king"
         ]
     },
-    "sturdy rampager": {
-        "name": "Sturdy Rampager",
-        "genotype": {
-            "top": [
-                "Bu",
-                "Li"
-            ],
-            "mid": [
-                "Bu",
-                "Fi"
-            ],
-            "bottom": [
-                "Bu",
-                "Dr"
-            ]
-        },
-        "species": "bull",
-        "stats": {
-            "IQ": 45.339,
-            "EQ": 39.342,
-            "Dexterity": 51.546,
-            "Strength": 208.334,
-            "Land Speed": 27.593,
-            "Swim Speed": 10.006,
-            "Jump Height": 0.946,
-            "Flight Speed": 0.0,
-            "Climbing": 1.362,
-            "Bite": 746.975,
-            "Venom": false,
-            "Visual Field": 126.399,
-            "Smell Strength": 6.734,
-            "Smell Acuity": 108.592,
-            "Smell Distance": 8.525,
-            "Visual Acuity": "10.8 cpd, 20/45",
-            "Hearing Range": "24.7-19444.1 Hz",
-            "Hearing Distance": "73.5 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "herbivore",
-            "Size": 211.062,
-            "Maturation Age": 2.85,
-            "Lifespan": 21.071,
-            "Growth Rate": 74.057,
-            "Gestation Period": 315.713,
-            "Litter Size": 1.02,
-            "Thaumagen Production Rate": 9.059,
-            "Thaumacyst Capacity": "1.7/127.6",
-            "Affinity Fire": 14.46,
-            "Affinity Water": 4.36,
-            "Affinity Earth": 9.06,
-            "Affinity Air": 3.15,
-            "Affinity Beam": 11.11,
-            "Active Affinities": "Beam"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "imperial roarer",
-            "oceanic daughter"
-        ]
-    },
-    "enchanting lamia": {
-        "name": "Enchanting Lamia",
-        "genotype": {
-            "top": [
-                "Hu",
-                "Li"
-            ],
-            "mid": [
-                "Fi",
-                "Sn"
-            ],
-            "bottom": [
-                "Go",
-                "Sn"
-            ]
-        },
-        "species": "lamia",
-        "stats": {
-            "IQ": 96.443,
-            "EQ": 81.471,
-            "Dexterity": 76.386,
-            "Strength": 87.021,
-            "Land Speed": 0.981,
-            "Swim Speed": 1.983,
-            "Jump Height": 0.102,
-            "Flight Speed": 0.0,
-            "Climbing": 2.997,
-            "Bite": 266.535,
-            "Venom": true,
-            "Visual Field": 140.246,
-            "Smell Strength": 4.851,
-            "Smell Acuity": 177.294,
-            "Smell Distance": 13.902,
-            "Visual Acuity": "15.6 cpd, 20/40",
-            "Hearing Range": "14.1-14526.4 Hz",
-            "Hearing Distance": "63.5 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": true,
-            "diet": "omnivore",
-            "Size": 232.678,
-            "Maturation Age": 19.236,
-            "Lifespan": 214.953,
-            "Growth Rate": 12.096,
-            "Gestation Period": 90.438,
-            "Litter Size": 16.331,
-            "Thaumagen Production Rate": 6.476,
-            "Thaumacyst Capacity": "89.0/106.7",
-            "Affinity Fire": 17.82,
-            "Affinity Water": 2.77,
-            "Affinity Earth": 4.0,
-            "Affinity Air": 2.66,
-            "Affinity Beam": 2.64,
-            "Active Affinities": "Earth"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "sinuous enchantress",
-            "fused chimera"
-        ]
-    },
-    "honorable knight": {
-        "name": "Honorable Knight",
-        "genotype": {
-            "top": [
-                "Hu",
-                "Sn"
-            ],
-            "mid": [
-                "Go",
-                "Hu"
-            ],
-            "bottom": [
-                "Bi",
-                "Hu"
-            ]
-        },
-        "species": "human",
-        "stats": {
-            "IQ": 94.107,
-            "EQ": 83.932,
-            "Dexterity": 90.268,
-            "Strength": 57.0,
-            "Land Speed": 6.131,
-            "Swim Speed": 15.115,
-            "Jump Height": 0.505,
-            "Flight Speed": 0.0,
-            "Climbing": 1.519,
-            "Bite": 202.543,
-            "Venom": false,
-            "Visual Field": 171.544,
-            "Smell Strength": 9.075,
-            "Smell Acuity": 95.02,
-            "Smell Distance": 5.224,
-            "Visual Acuity": "28.3 cpd, 20/20",
-            "Hearing Range": "21.6-20411.7 Hz",
-            "Hearing Distance": "98.7 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "omnivore",
-            "Size": 162.986,
-            "Maturation Age": 16.802,
-            "Lifespan": 72.246,
-            "Growth Rate": 9.7,
-            "Gestation Period": 275.266,
-            "Litter Size": 0.906,
-            "Thaumagen Production Rate": 9.693,
-            "Thaumacyst Capacity": "1.9/91.1",
-            "Affinity Fire": 10.48,
-            "Affinity Water": 4.64,
-            "Affinity Earth": 5.71,
-            "Affinity Air": 4.09,
-            "Affinity Beam": 7.14,
-            "Active Affinities": "None"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "luminous siren",
-            "luminous maiden"
-        ]
-    },
-    "ancient oracle": {
-        "name": "Ancient Oracle",
+    "aerial sky knight": {
+        "name": "Aerial Sky Knight",
         "genotype": {
             "top": [
                 "Bi",
-                "Hu"
-            ],
-            "mid": [
-                "Bi",
-                "Sn"
-            ],
-            "bottom": [
-                "Hu",
-                "Li"
-            ]
-        },
-        "species": "sphinx",
-        "stats": {
-            "IQ": 96.285,
-            "EQ": 88.305,
-            "Dexterity": 86.612,
-            "Strength": 194.342,
-            "Land Speed": 52.158,
-            "Swim Speed": 10.737,
-            "Jump Height": 1.756,
-            "Flight Speed": 65.216,
-            "Climbing": 3.753,
-            "Bite": 176.047,
-            "Venom": false,
-            "Visual Field": 241.418,
-            "Smell Strength": 6.353,
-            "Smell Acuity": 136.157,
-            "Smell Distance": 16.427,
-            "Visual Acuity": "31.9 cpd, 20/18",
-            "Hearing Range": "24.8-21683.0 Hz",
-            "Hearing Distance": "164.2 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "omnivore",
-            "Size": 119.416,
-            "Maturation Age": 9.866,
-            "Lifespan": 180.756,
-            "Growth Rate": 12.104,
-            "Gestation Period": 116.88,
-            "Litter Size": 2.724,
-            "Thaumagen Production Rate": 12.811,
-            "Thaumacyst Capacity": "9.4/78.2",
-            "Affinity Fire": 11.12,
-            "Affinity Water": 2.52,
-            "Affinity Earth": 4.78,
-            "Affinity Air": 10.92,
-            "Affinity Beam": 21.03,
-            "Active Affinities": "Beam"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "regal lion-eagle",
-            "venomous asp"
-        ]
-    },
-    "nightstalker beast": {
-        "name": "Nightstalker Beast",
-        "genotype": {
-            "top": [
-                "Hu",
-                "Li"
-            ],
-            "mid": [
-                "Fi",
-                "Li"
-            ],
-            "bottom": [
-                "Dr",
                 "Go"
-            ]
-        },
-        "species": "manticore",
-        "stats": {
-            "IQ": 92.872,
-            "EQ": 81.851,
-            "Dexterity": 67.961,
-            "Strength": 209.297,
-            "Land Speed": 51.811,
-            "Swim Speed": 10.639,
-            "Jump Height": 1.838,
-            "Flight Speed": 85.252,
-            "Climbing": 5.129,
-            "Bite": 274.973,
-            "Venom": true,
-            "Visual Field": 214.819,
-            "Smell Strength": 6.523,
-            "Smell Acuity": 143.855,
-            "Smell Distance": 23.431,
-            "Visual Acuity": "32.9 cpd, 20/19",
-            "Hearing Range": "18.7-22843.1 Hz",
-            "Hearing Distance": "150.0 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "omnivore",
-            "Size": 195.262,
-            "Maturation Age": 7.407,
-            "Lifespan": 36.55,
-            "Growth Rate": 26.362,
-            "Gestation Period": 309.612,
-            "Litter Size": 4.249,
-            "Thaumagen Production Rate": 16.713,
-            "Thaumacyst Capacity": "39.8/188.9",
-            "Affinity Fire": 25.96,
-            "Affinity Water": 1.62,
-            "Affinity Earth": 5.35,
-            "Affinity Air": 2.09,
-            "Affinity Beam": 3.56,
-            "Active Affinities": "Fire"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "enchanting lamia",
-            "imperial roarer"
-        ]
-    },
-    "dignified guardian": {
-        "name": "Dignified Guardian",
-        "genotype": {
-            "top": [
-                "Dr",
-                "Hu"
             ],
             "mid": [
-                "Dr",
-                "Hu"
-            ],
-            "bottom": [
-                "Dr",
-                "Hu"
-            ]
-        },
-        "species": "human",
-        "stats": {
-            "IQ": 94.345,
-            "EQ": 81.219,
-            "Dexterity": 77.559,
-            "Strength": 93.014,
-            "Land Speed": 18.649,
-            "Swim Speed": 5.279,
-            "Jump Height": 0.969,
-            "Flight Speed": 18.892,
-            "Climbing": 2.585,
-            "Bite": 307.155,
-            "Venom": false,
-            "Visual Field": 181.407,
-            "Smell Strength": 9.615,
-            "Smell Acuity": 109.812,
-            "Smell Distance": 5.428,
-            "Visual Acuity": "27.3 cpd, 20/20",
-            "Hearing Range": "20.6-19232.2 Hz",
-            "Hearing Distance": "99.0 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "omnivore",
-            "Size": 162.061,
-            "Maturation Age": 16.542,
-            "Lifespan": 82.253,
-            "Growth Rate": 9.797,
-            "Gestation Period": 270.359,
-            "Litter Size": 1.03,
-            "Thaumagen Production Rate": 10.498,
-            "Thaumacyst Capacity": "4.5/94.3",
-            "Affinity Fire": 17.28,
-            "Affinity Water": 16.06,
-            "Affinity Earth": 12.02,
-            "Affinity Air": 4.49,
-            "Affinity Beam": 25.58,
-            "Active Affinities": "Beam"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "blazing flame",
-            "honorable knight"
-        ]
-    },
-    "blue triton": {
-        "name": "Blue Triton",
-        "genotype": {
-            "top": [
-                "Dr",
-                "Ho"
-            ],
-            "mid": [
-                "Dr",
-                "Ho"
-            ],
-            "bottom": [
-                "Dr",
+                "Bi",
                 "Fi"
-            ]
-        },
-        "species": "hippocampus",
-        "stats": {
-            "IQ": 56.394,
-            "EQ": 44.547,
-            "Dexterity": 55.544,
-            "Strength": 204.57,
-            "Land Speed": 14.191,
-            "Swim Speed": 31.151,
-            "Jump Height": 0.79,
-            "Flight Speed": 21.995,
-            "Climbing": 1.168,
-            "Bite": 456.326,
-            "Venom": false,
-            "Visual Field": 153.11,
-            "Smell Strength": 7.393,
-            "Smell Acuity": 103.117,
-            "Smell Distance": 7.912,
-            "Visual Acuity": "17.1 cpd, 20/30",
-            "Hearing Range": "25.7-19529.6 Hz",
-            "Hearing Distance": "108.3 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "herbivore",
-            "Size": 120.397,
-            "Maturation Age": 2.086,
-            "Lifespan": 32.746,
-            "Growth Rate": 57.717,
-            "Gestation Period": 103.081,
-            "Litter Size": 726.519,
-            "Thaumagen Production Rate": 9.054,
-            "Thaumacyst Capacity": "25.4/57.6",
-            "Affinity Fire": 13.52,
-            "Affinity Water": 10.49,
-            "Affinity Earth": 17.31,
-            "Affinity Air": 6.31,
-            "Affinity Beam": 23.2,
-            "Active Affinities": "None"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "blazing flame",
-            "tidal neptune"
-        ]
-    },
-    "enigmatic oracle": {
-        "name": "Enigmatic Oracle",
-        "genotype": {
-            "top": [
-                "Ho",
-                "Hu"
-            ],
-            "mid": [
-                "Bi",
-                "Dr"
             ],
             "bottom": [
-                "Bu",
-                "Li"
+                "Dr",
+                "Ho"
             ]
         },
-        "species": "sphinx",
+        "species": "hippogriff",
         "stats": {
-            "IQ": 105.723,
-            "EQ": 83.976,
-            "Dexterity": 86.171,
-            "Strength": 196.591,
-            "Land Speed": 47.211,
-            "Swim Speed": 10.236,
-            "Jump Height": 1.751,
-            "Flight Speed": 63.511,
-            "Climbing": 3.693,
-            "Bite": 205.693,
+            "IQ": 45.441,
+            "EQ": 39.459,
+            "Dexterity": 73.337,
+            "Strength": 200.962,
+            "Land Speed": 42.493,
+            "Swim Speed": 8.103,
+            "Jump Height": 1.238,
+            "Flight Speed": 61.052,
+            "Climbing": 1.025,
+            "Bite": 130.45,
             "Venom": false,
-            "Visual Field": 236.632,
-            "Smell Strength": 6.169,
-            "Smell Acuity": 141.244,
-            "Smell Distance": 14.462,
-            "Visual Acuity": "34.4 cpd, 20/18",
-            "Hearing Range": "22.9-18791.7 Hz",
-            "Hearing Distance": "156.0 m",
+            "Visual Field": 307.297,
+            "Smell Strength": 3.99,
+            "Smell Acuity": 172.603,
+            "Smell Distance": 22.199,
+            "Visual Acuity": "32.9 cpd, 20/18",
+            "Hearing Range": "26.1-23792.4 Hz",
+            "Hearing Distance": "232.5 m",
             "Fire Breathing": false,
             "Petrification": false,
             "Charm": false,
             "diet": "omnivore",
-            "Size": 124.676,
-            "Maturation Age": 10.549,
-            "Lifespan": 182.73,
-            "Growth Rate": 11.819,
-            "Gestation Period": 114.772,
-            "Litter Size": 2.827,
-            "Thaumagen Production Rate": 12.787,
-            "Thaumacyst Capacity": "30.9/95.2",
-            "Affinity Fire": 14.22,
-            "Affinity Water": 2.41,
-            "Affinity Earth": 7.64,
-            "Affinity Air": 6.47,
-            "Affinity Beam": 5.58,
-            "Active Affinities": "Earth, Air"
+            "Size": 84.232,
+            "Maturation Age": 6.546,
+            "Lifespan": 58.321,
+            "Growth Rate": 12.868,
+            "Gestation Period": 270.007,
+            "Litter Size": 1.543,
+            "Thaumagen Production Rate": 12.826,
+            "Thaumacyst Capacity": "27.6/68.6",
+            "Affinity Fire": 9.14,
+            "Affinity Water": 2.47,
+            "Affinity Earth": 6.24,
+            "Affinity Air": 9.34,
+            "Affinity Beam": 1.44,
+            "Active Affinities": "Air"
         },
         "mode": "saved_breed",
         "parents": [
-            "ancient oracle",
-            "hybrid chimera"
+            "aerial windrider",
+            "ancient being"
         ]
     },
-    "hybrid maned steed": {
-        "name": "Hybrid Maned Steed",
-        "genotype": {
-            "top": [
-                "Ho",
-                "Ho"
-            ],
-            "mid": [
-                "Dr",
-                "Hu"
-            ],
-            "bottom": [
-                "Dr",
-                "Hu"
-            ]
-        },
-        "species": "ipotane",
-        "stats": {
-            "IQ": 97.046,
-            "EQ": 82.611,
-            "Dexterity": 79.45,
-            "Strength": 84.374,
-            "Land Speed": 8.831,
-            "Swim Speed": 7.369,
-            "Jump Height": 0.626,
-            "Flight Speed": 4.702,
-            "Climbing": 1.898,
-            "Bite": 352.173,
-            "Venom": false,
-            "Visual Field": 174.832,
-            "Smell Strength": 8.809,
-            "Smell Acuity": 112.942,
-            "Smell Distance": 7.141,
-            "Visual Acuity": "24.2 cpd, 20/22",
-            "Hearing Range": "16.6-20626.8 Hz",
-            "Hearing Distance": "122.2 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "herbivore",
-            "Size": 161.892,
-            "Maturation Age": 15.588,
-            "Lifespan": 76.151,
-            "Growth Rate": 10.386,
-            "Gestation Period": 267.482,
-            "Litter Size": 1.053,
-            "Thaumagen Production Rate": 11.055,
-            "Thaumacyst Capacity": "42.6/96.2",
-            "Affinity Fire": 12.93,
-            "Affinity Water": 2.61,
-            "Affinity Earth": 12.98,
-            "Affinity Air": 5.61,
-            "Affinity Beam": 6.96,
-            "Active Affinities": "Water"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "tidal neptune",
-            "enigmatic centaur"
-        ]
-    },
-    "resolute baron": {
-        "name": "Resolute Baron",
+    "serpentine medusa": {
+        "name": "Serpentine Medusa",
         "genotype": {
             "top": [
                 "Hu",
-                "Li"
+                "Hu"
             ],
             "mid": [
-                "Fi",
-                "Hu"
+                "Bi",
+                "Ho"
             ],
             "bottom": [
-                "Bu",
-                "Hu"
+                "Go",
+                "Sn"
             ]
         },
-        "species": "human",
+        "species": "gorgon",
         "stats": {
-            "IQ": 91.2,
-            "EQ": 79.161,
-            "Dexterity": 81.341,
-            "Strength": 81.251,
-            "Land Speed": 10.747,
-            "Swim Speed": 5.791,
-            "Jump Height": 0.608,
+            "IQ": 99.121,
+            "EQ": 88.62,
+            "Dexterity": 89.383,
+            "Strength": 62.994,
+            "Land Speed": 3.648,
+            "Swim Speed": 2.139,
+            "Jump Height": 0.24,
             "Flight Speed": 0.0,
-            "Climbing": 1.952,
-            "Bite": 282.336,
-            "Venom": false,
-            "Visual Field": 179.055,
-            "Smell Strength": 9.523,
-            "Smell Acuity": 95.125,
-            "Smell Distance": 5.147,
-            "Visual Acuity": "31.2 cpd, 20/20",
-            "Hearing Range": "20.0-18706.6 Hz",
-            "Hearing Distance": "108.2 m",
+            "Climbing": 4.583,
+            "Bite": 203.625,
+            "Venom": true,
+            "Visual Field": 215.866,
+            "Smell Strength": 5.459,
+            "Smell Acuity": 166.788,
+            "Smell Distance": 17.917,
+            "Visual Acuity": "24.5 cpd, 20/28",
+            "Hearing Range": "20.6-17338.0 Hz",
+            "Hearing Distance": "142.4 m",
             "Fire Breathing": false,
-            "Petrification": false,
+            "Petrification": true,
             "Charm": false,
             "diet": "omnivore",
-            "Size": 160.925,
-            "Maturation Age": 16.31,
-            "Lifespan": 85.497,
-            "Growth Rate": 9.867,
-            "Gestation Period": 252.15,
-            "Litter Size": 0.971,
-            "Thaumagen Production Rate": 9.765,
-            "Thaumacyst Capacity": "77.1/86.1",
-            "Affinity Fire": 8.16,
-            "Affinity Water": 12.23,
-            "Affinity Earth": 7.56,
-            "Affinity Air": 11.52,
-            "Affinity Beam": 3.18,
-            "Active Affinities": "Fire"
+            "Size": 158.214,
+            "Maturation Age": 20.37,
+            "Lifespan": 184.207,
+            "Growth Rate": 7.767,
+            "Gestation Period": 91.463,
+            "Litter Size": 14.098,
+            "Thaumagen Production Rate": 10.055,
+            "Thaumacyst Capacity": "70.0/90.1",
+            "Affinity Fire": 9.23,
+            "Affinity Water": 9.97,
+            "Affinity Earth": 9.18,
+            "Affinity Air": 14.35,
+            "Affinity Beam": 4.71,
+            "Active Affinities": "Air"
         },
         "mode": "saved_breed",
         "parents": [
-            "sturdy rampager",
-            "honorable knight"
+            "stonegaze gorgon",
+            "wild pan"
         ]
     },
-    "majestic keeper": {
-        "name": "Majestic Keeper",
+    "gallant archer": {
+        "name": "Gallant Archer",
         "genotype": {
             "top": [
-                "Dr",
+                "Go",
                 "Hu"
-            ],
-            "mid": [
-                "Bi",
-                "Dr"
-            ],
-            "bottom": [
-                "Li",
-                "Li"
-            ]
-        },
-        "species": "sphinx",
-        "stats": {
-            "IQ": 98.746,
-            "EQ": 84.636,
-            "Dexterity": 88.557,
-            "Strength": 224.517,
-            "Land Speed": 55.489,
-            "Swim Speed": 12.25,
-            "Jump Height": 1.921,
-            "Flight Speed": 81.589,
-            "Climbing": 4.073,
-            "Bite": 195.492,
-            "Venom": false,
-            "Visual Field": 205.145,
-            "Smell Strength": 6.234,
-            "Smell Acuity": 132.027,
-            "Smell Distance": 14.143,
-            "Visual Acuity": "32.7 cpd, 20/18",
-            "Hearing Range": "23.9-19216.4 Hz",
-            "Hearing Distance": "159.3 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "omnivore",
-            "Size": 109.778,
-            "Maturation Age": 10.913,
-            "Lifespan": 181.008,
-            "Growth Rate": 10.059,
-            "Gestation Period": 134.579,
-            "Litter Size": 2.9,
-            "Thaumagen Production Rate": 11.421,
-            "Thaumacyst Capacity": "31.4/75.1",
-            "Affinity Fire": 8.59,
-            "Affinity Water": 4.34,
-            "Affinity Earth": 5.45,
-            "Affinity Air": 7.35,
-            "Affinity Beam": 7.65,
-            "Active Affinities": "Fire"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "enigmatic oracle",
-            "regal lion-eagle"
-        ]
-    },
-    "riddling sphinx": {
-        "name": "Riddling Sphinx",
-        "genotype": {
-            "top": [
-                "Ho",
-                "Hu"
-            ],
-            "mid": [
-                "Bi",
-                "Hu"
-            ],
-            "bottom": [
-                "Dr",
-                "Li"
-            ]
-        },
-        "species": "sphinx",
-        "stats": {
-            "IQ": 94.826,
-            "EQ": 84.588,
-            "Dexterity": 87.837,
-            "Strength": 209.65,
-            "Land Speed": 51.358,
-            "Swim Speed": 11.565,
-            "Jump Height": 1.757,
-            "Flight Speed": 67.687,
-            "Climbing": 3.628,
-            "Bite": 219.871,
-            "Venom": false,
-            "Visual Field": 248.728,
-            "Smell Strength": 5.493,
-            "Smell Acuity": 138.794,
-            "Smell Distance": 14.797,
-            "Visual Acuity": "30.7 cpd, 20/18",
-            "Hearing Range": "24.3-21223.0 Hz",
-            "Hearing Distance": "142.7 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "omnivore",
-            "Size": 106.678,
-            "Maturation Age": 9.938,
-            "Lifespan": 199.289,
-            "Growth Rate": 10.734,
-            "Gestation Period": 135.392,
-            "Litter Size": 2.697,
-            "Thaumagen Production Rate": 11.805,
-            "Thaumacyst Capacity": "66.5/79.2",
-            "Affinity Fire": 8.72,
-            "Affinity Water": 4.15,
-            "Affinity Earth": 6.08,
-            "Affinity Air": 9.44,
-            "Affinity Beam": 21.12,
-            "Active Affinities": "None"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "dignified guardian",
-            "enigmatic oracle"
-        ]
-    },
-    "swift mustang": {
-        "name": "Swift Mustang",
-        "genotype": {
-            "top": [
-                "Ho",
-                "Li"
             ],
             "mid": [
                 "Fi",
-                "Ho"
+                "Hu"
             ],
             "bottom": [
                 "Dr",
                 "Ho"
             ]
         },
-        "species": "horse",
+        "species": "centaur",
         "stats": {
-            "IQ": 52.962,
-            "EQ": 41.378,
-            "Dexterity": 55.877,
-            "Strength": 216.155,
-            "Land Speed": 36.902,
-            "Swim Speed": 10.722,
-            "Jump Height": 0.909,
-            "Flight Speed": 3.299,
-            "Climbing": 1.34,
-            "Bite": 428.935,
+            "IQ": 91.606,
+            "EQ": 81.372,
+            "Dexterity": 72.993,
+            "Strength": 82.472,
+            "Land Speed": 42.911,
+            "Swim Speed": 8.123,
+            "Jump Height": 1.266,
+            "Flight Speed": 0.0,
+            "Climbing": 0.971,
+            "Bite": 204.975,
             "Venom": false,
-            "Visual Field": 185.082,
-            "Smell Strength": 8.636,
-            "Smell Acuity": 108.269,
-            "Smell Distance": 10.605,
-            "Visual Acuity": "19.6 cpd, 20/25",
-            "Hearing Range": "12.9-23019.6 Hz",
-            "Hearing Distance": "160.9 m",
-            "Fire Breathing": false,
-            "Petrification": false,
-            "Charm": false,
-            "diet": "herbivore",
-            "Size": 173.26,
-            "Maturation Age": 4.28,
-            "Lifespan": 24.955,
-            "Growth Rate": 40.481,
-            "Gestation Period": 330.083,
-            "Litter Size": 1.045,
-            "Thaumagen Production Rate": 12.777,
-            "Thaumacyst Capacity": "2.4/101.9",
-            "Affinity Fire": 5.16,
-            "Affinity Water": 4.93,
-            "Affinity Earth": 15.08,
-            "Affinity Air": 3.22,
-            "Affinity Beam": 11.19,
-            "Active Affinities": "Earth"
-        },
-        "mode": "saved_breed",
-        "parents": [
-            "blue triton",
-            "fused chimera"
-        ]
-    },
-    "majestic oracle": {
-        "name": "Majestic Oracle",
-        "genotype": {
-            "top": [
-                "Hu",
-                "Li"
-            ],
-            "mid": [
-                "Bi",
-                "Bu"
-            ],
-            "bottom": [
-                "Li",
-                "Li"
-            ]
-        },
-        "species": "sphinx",
-        "stats": {
-            "IQ": 89.612,
-            "EQ": 90.811,
-            "Dexterity": 88.344,
-            "Strength": 210.778,
-            "Land Speed": 57.07,
-            "Swim Speed": 11.548,
-            "Jump Height": 1.908,
-            "Flight Speed": 73.232,
-            "Climbing": 4.127,
-            "Bite": 285.05,
-            "Venom": false,
-            "Visual Field": 240.234,
-            "Smell Strength": 5.467,
-            "Smell Acuity": 152.631,
-            "Smell Distance": 14.264,
-            "Visual Acuity": "34.9 cpd, 20/18",
-            "Hearing Range": "24.9-21142.4 Hz",
-            "Hearing Distance": "145.2 m",
+            "Visual Field": 183.676,
+            "Smell Strength": 9.059,
+            "Smell Acuity": 96.734,
+            "Smell Distance": 6.529,
+            "Visual Acuity": "24.9 cpd, 20/22",
+            "Hearing Range": "17.9-23559.2 Hz",
+            "Hearing Distance": "123.8 m",
             "Fire Breathing": false,
             "Petrification": false,
             "Charm": false,
             "diet": "omnivore",
-            "Size": 121.271,
-            "Maturation Age": 9.571,
-            "Lifespan": 188.408,
-            "Growth Rate": 12.671,
-            "Gestation Period": 116.811,
-            "Litter Size": 2.857,
-            "Thaumagen Production Rate": 12.607,
-            "Thaumacyst Capacity": "72.2/87.0",
-            "Affinity Fire": 3.6,
-            "Affinity Water": 3.73,
-            "Affinity Earth": 6.56,
-            "Affinity Air": 4.0,
-            "Affinity Beam": 9.22,
+            "Size": 150.885,
+            "Maturation Age": 13.947,
+            "Lifespan": 99.867,
+            "Growth Rate": 10.818,
+            "Gestation Period": 332.308,
+            "Litter Size": 1.1,
+            "Thaumagen Production Rate": 10.022,
+            "Thaumacyst Capacity": "1.8/96.2",
+            "Affinity Fire": 13.13,
+            "Affinity Water": 11.4,
+            "Affinity Earth": 10.98,
+            "Affinity Air": 12.18,
+            "Affinity Beam": 6.62,
             "Active Affinities": "None"
         },
         "mode": "saved_breed",
         "parents": [
-            "mighty king",
-            "majestic keeper"
+            "ancient being",
+            "wild archer"
         ]
     },
-    "sinuous lamia": {
-        "name": "Sinuous Lamia",
+    "velvet lamia": {
+        "name": "Velvet Lamia",
         "genotype": {
             "top": [
-                "Hu",
+                "Fi",
                 "Hu"
             ],
             "mid": [
@@ -1408,47 +1083,352 @@
         },
         "species": "lamia",
         "stats": {
-            "IQ": 95.251,
-            "EQ": 84.895,
-            "Dexterity": 82.072,
-            "Strength": 83.803,
-            "Land Speed": 8.633,
-            "Swim Speed": 3.388,
-            "Jump Height": 0.356,
-            "Flight Speed": 12.788,
-            "Climbing": 3.136,
-            "Bite": 231.957,
+            "IQ": 92.27,
+            "EQ": 79.028,
+            "Dexterity": 75.383,
+            "Strength": 83.9,
+            "Land Speed": 8.123,
+            "Swim Speed": 2.737,
+            "Jump Height": 0.246,
+            "Flight Speed": 0.0,
+            "Climbing": 2.595,
+            "Bite": 200.622,
             "Venom": true,
-            "Visual Field": 146.535,
-            "Smell Strength": 5.11,
-            "Smell Acuity": 176.515,
-            "Smell Distance": 14.172,
-            "Visual Acuity": "16.5 cpd, 20/40",
-            "Hearing Range": "13.4-13192.0 Hz",
-            "Hearing Distance": "60.9 m",
+            "Visual Field": 149.628,
+            "Smell Strength": 5.46,
+            "Smell Acuity": 166.245,
+            "Smell Distance": 14.198,
+            "Visual Acuity": "16.6 cpd, 20/40",
+            "Hearing Range": "12.7-13692.7 Hz",
+            "Hearing Distance": "71.7 m",
             "Fire Breathing": false,
             "Petrification": false,
             "Charm": true,
             "diet": "omnivore",
-            "Size": 215.743,
-            "Maturation Age": 21.67,
-            "Lifespan": 195.842,
-            "Growth Rate": 9.956,
-            "Gestation Period": 100.161,
-            "Litter Size": 16.753,
-            "Thaumagen Production Rate": 6.032,
-            "Thaumacyst Capacity": "91.1/98.7",
-            "Affinity Fire": 8.11,
-            "Affinity Water": 0.78,
-            "Affinity Earth": 9.41,
-            "Affinity Air": 1.27,
-            "Affinity Beam": 8.69,
+            "Size": 212.925,
+            "Maturation Age": 19.278,
+            "Lifespan": 207.997,
+            "Growth Rate": 11.045,
+            "Gestation Period": 100.381,
+            "Litter Size": 16.426,
+            "Thaumagen Production Rate": 6.805,
+            "Thaumacyst Capacity": "52.0/96.9",
+            "Affinity Fire": 6.65,
+            "Affinity Water": 6.51,
+            "Affinity Earth": 17.02,
+            "Affinity Air": 1.83,
+            "Affinity Beam": 5.3,
             "Active Affinities": "None"
         },
         "mode": "saved_breed",
         "parents": [
-            "nightstalker beast",
-            "enchanting lamia"
+            "sinuous temptress",
+            "shadow wraith"
+        ]
+    },
+    "noble hippogriff": {
+        "name": "Noble Hippogriff",
+        "genotype": {
+            "top": [
+                "Bi",
+                "Fi"
+            ],
+            "mid": [
+                "Bi",
+                "Ho"
+            ],
+            "bottom": [
+                "Go",
+                "Ho"
+            ]
+        },
+        "species": "hippogriff",
+        "stats": {
+            "IQ": 50.6,
+            "EQ": 41.081,
+            "Dexterity": 80.646,
+            "Strength": 189.495,
+            "Land Speed": 47.971,
+            "Swim Speed": 8.302,
+            "Jump Height": 1.23,
+            "Flight Speed": 63.502,
+            "Climbing": 1.545,
+            "Bite": 131.886,
+            "Venom": false,
+            "Visual Field": 277.205,
+            "Smell Strength": 3.988,
+            "Smell Acuity": 160.055,
+            "Smell Distance": 24.02,
+            "Visual Acuity": "35.4 cpd, 20/18",
+            "Hearing Range": "25.2-21205.1 Hz",
+            "Hearing Distance": "201.7 m",
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 79.02,
+            "Maturation Age": 5.552,
+            "Lifespan": 59.449,
+            "Growth Rate": 14.233,
+            "Gestation Period": 249.375,
+            "Litter Size": 1.638,
+            "Thaumagen Production Rate": 14.479,
+            "Thaumacyst Capacity": "19.8/66.1",
+            "Affinity Fire": 6.65,
+            "Affinity Water": 4.93,
+            "Affinity Earth": 8.46,
+            "Affinity Air": 17.6,
+            "Affinity Beam": 7.43,
+            "Active Affinities": "None"
+        },
+        "mode": "saved_breed",
+        "parents": [
+            "wild warrior",
+            "majestic griffin"
+        ]
+    },
+    "venomous viper": {
+        "name": "Venomous Viper",
+        "genotype": {
+            "top": [
+                "Hu",
+                "Hu"
+            ],
+            "mid": [
+                "Fi",
+                "Hu"
+            ],
+            "bottom": [
+                "Go",
+                "Sn"
+            ]
+        },
+        "species": "naga",
+        "stats": {
+            "IQ": 100.721,
+            "EQ": 86.204,
+            "Dexterity": 119.176,
+            "Strength": 58.482,
+            "Land Speed": 3.6,
+            "Swim Speed": 2.119,
+            "Jump Height": 0.231,
+            "Flight Speed": 0.0,
+            "Climbing": 4.794,
+            "Bite": 188.223,
+            "Venom": true,
+            "Visual Field": 152.148,
+            "Smell Strength": 7.486,
+            "Smell Acuity": 130.607,
+            "Smell Distance": 10.878,
+            "Visual Acuity": "22.8 cpd, 20/30",
+            "Hearing Range": "16.3-15215.6 Hz",
+            "Hearing Distance": "87.5 m",
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 188.372,
+            "Maturation Age": 21.997,
+            "Lifespan": 204.836,
+            "Growth Rate": 8.564,
+            "Gestation Period": 114.508,
+            "Litter Size": 13.013,
+            "Thaumagen Production Rate": 8.521,
+            "Thaumacyst Capacity": "64.7/100.3",
+            "Affinity Fire": 4.42,
+            "Affinity Water": 2.73,
+            "Affinity Earth": 19.85,
+            "Affinity Air": 1.83,
+            "Affinity Beam": 9.07,
+            "Active Affinities": "None"
+        },
+        "mode": "saved_breed",
+        "parents": [
+            "sinuous temptress",
+            "wild pan"
+        ]
+    },
+    "radiant skyborne": {
+        "name": "Radiant Skyborne",
+        "genotype": {
+            "top": [
+                "Fi",
+                "Ho"
+            ],
+            "mid": [
+                "Bi",
+                "Fi"
+            ],
+            "bottom": [
+                "Dr",
+                "Ho"
+            ]
+        },
+        "species": "pegasus",
+        "stats": {
+            "IQ": 50.795,
+            "EQ": 44.021,
+            "Dexterity": 48.547,
+            "Strength": 145.271,
+            "Land Speed": 34.418,
+            "Swim Speed": 12.457,
+            "Jump Height": 0.917,
+            "Flight Speed": 51.015,
+            "Climbing": 1.199,
+            "Bite": 284.344,
+            "Venom": false,
+            "Visual Field": 223.841,
+            "Smell Strength": 5.969,
+            "Smell Acuity": 132.233,
+            "Smell Distance": 16.748,
+            "Visual Acuity": "26.4 cpd, 20/22",
+            "Hearing Range": "21.2-22060.6 Hz",
+            "Hearing Distance": "198.4 m",
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "herbivore",
+            "Size": 127.997,
+            "Maturation Age": 4.399,
+            "Lifespan": 29.618,
+            "Growth Rate": 29.097,
+            "Gestation Period": 310.431,
+            "Litter Size": 1.328,
+            "Thaumagen Production Rate": 13.658,
+            "Thaumacyst Capacity": "45.9/96.8",
+            "Affinity Fire": 3.44,
+            "Affinity Water": 3.64,
+            "Affinity Earth": 14.95,
+            "Affinity Air": 8.78,
+            "Affinity Beam": 2.65,
+            "Active Affinities": "None"
+        },
+        "mode": "saved_breed",
+        "parents": [
+            "stonegaze gorgon",
+            "glimmering scale"
+        ]
+    },
+    "gallant stallion": {
+        "name": "Gallant Stallion",
+        "genotype": {
+            "top": [
+                "Hu",
+                "Li"
+            ],
+            "mid": [
+                "Go",
+                "Hu"
+            ],
+            "bottom": [
+                "Dr",
+                "Ho"
+            ]
+        },
+        "species": "centaur",
+        "stats": {
+            "IQ": 92.231,
+            "EQ": 79.695,
+            "Dexterity": 78.413,
+            "Strength": 85.454,
+            "Land Speed": 47.406,
+            "Swim Speed": 7.9,
+            "Jump Height": 1.189,
+            "Flight Speed": 10.516,
+            "Climbing": 1.019,
+            "Bite": 188.972,
+            "Venom": false,
+            "Visual Field": 190.316,
+            "Smell Strength": 9.028,
+            "Smell Acuity": 98.776,
+            "Smell Distance": 6.724,
+            "Visual Acuity": "28.4 cpd, 20/22",
+            "Hearing Range": "17.1-20215.1 Hz",
+            "Hearing Distance": "105.9 m",
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": false,
+            "diet": "omnivore",
+            "Size": 155.319,
+            "Maturation Age": 15.027,
+            "Lifespan": 106.938,
+            "Growth Rate": 10.336,
+            "Gestation Period": 294.214,
+            "Litter Size": 0.943,
+            "Thaumagen Production Rate": 10.882,
+            "Thaumacyst Capacity": "58.3/90.5",
+            "Affinity Fire": 12.81,
+            "Affinity Water": 13.17,
+            "Affinity Earth": 4.83,
+            "Affinity Air": 8.51,
+            "Affinity Beam": 6.96,
+            "Active Affinities": "Fire"
+        },
+        "mode": "saved_breed",
+        "parents": [
+            "gallant archer",
+            "aerial windrider"
+        ]
+    },
+    "velvet enchantress": {
+        "name": "Velvet Enchantress",
+        "genotype": {
+            "top": [
+                "Go",
+                "Hu"
+            ],
+            "mid": [
+                "Fi",
+                "Sn"
+            ],
+            "bottom": [
+                "Li",
+                "Sn"
+            ]
+        },
+        "species": "lamia",
+        "stats": {
+            "IQ": 93.933,
+            "EQ": 85.206,
+            "Dexterity": 74.628,
+            "Strength": 86.85,
+            "Land Speed": 9.227,
+            "Swim Speed": 3.062,
+            "Jump Height": 0.268,
+            "Flight Speed": 0.0,
+            "Climbing": 2.71,
+            "Bite": 203.469,
+            "Venom": true,
+            "Visual Field": 153.18,
+            "Smell Strength": 5.015,
+            "Smell Acuity": 166.73,
+            "Smell Distance": 13.845,
+            "Visual Acuity": "14.4 cpd, 20/40",
+            "Hearing Range": "12.4-14455.8 Hz",
+            "Hearing Distance": "62.9 m",
+            "Fire Breathing": false,
+            "Petrification": false,
+            "Charm": true,
+            "diet": "omnivore",
+            "Size": 227.332,
+            "Maturation Age": 18.639,
+            "Lifespan": 212.565,
+            "Growth Rate": 12.197,
+            "Gestation Period": 86.567,
+            "Litter Size": 16.816,
+            "Thaumagen Production Rate": 6.603,
+            "Thaumacyst Capacity": "54.8/96.1",
+            "Affinity Fire": 3.51,
+            "Affinity Water": 2.02,
+            "Affinity Earth": 11.84,
+            "Affinity Air": 3.52,
+            "Affinity Beam": 4.08,
+            "Active Affinities": "None"
+        },
+        "mode": "saved_breed",
+        "parents": [
+            "shadow wraith",
+            "velvet lamia"
         ]
     }
 }
