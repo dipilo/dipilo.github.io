@@ -1670,6 +1670,8 @@ class HybridCLI:
     def __init__(self):
         self.SAVE_MODE = False
         self.saved_hybrids = {}
+        # Session state for chunked optimize to avoid UI freezes
+        self._opt_session = None  # dict or None
 
     def load_saved_hybrids(self):
         if os.path.exists(self.SAVED_FILE):
@@ -1703,6 +1705,12 @@ class HybridCLI:
                 "Commands:\n"
                 "  toggle                    - Toggle save mode ON/OFF\n"
                 "  magic [on|off|status]     - Toggle or set elemental magic affinity display\n"
+                "  optimize start <gens> <stats> [species=..] [chunk=N] - Start a chunked evolution session (non-blocking)\n"
+                "  optimize step|continue [chunk=N] - Run N generations in the active session and report progress\n"
+                "  optimize status            - Show current optimize session progress and best candidate\n"
+                "  optimize stop              - Stop the active session\n"
+                "  optimize <gens> <stats> [species=..] - Legacy synchronous run (may freeze UI)\n"
+                "    Tips: stats can include Affinity Fire/Water/Earth/Air/Beam (or just fire, water, etc.)\n"
                 "  list                      - List available known species and saved hybrids\n"
                 "  breed [arg1] [arg2]       - Breed two species or saved hybrids\n"
                 "                             e.g., breed naga pegasus or breed \"Silver Griffin\" \"Mystic Stag\"\n"
@@ -1840,6 +1848,343 @@ class HybridCLI:
                 else:
                     output += "Usage: magic [on|off|status]\n"
         elif cmd == "optimize":
+            # Chunked session controls to avoid long blocking runs in UI contexts
+            if len(parts) > 1 and parts[1].lower() in ("start", "step", "continue", "status", "stop"):
+                sub = parts[1].lower()
+
+                def _canon_stat(name: str) -> str:
+                    lower = name.lower().strip()
+                    # Accept plain element names or prefixed variants
+                    elem_map = {
+                        "fire": "Affinity Fire",
+                        "water": "Affinity Water",
+                        "earth": "Affinity Earth",
+                        "air": "Affinity Air",
+                        "beam": "Affinity Beam",
+                        "affinity fire": "Affinity Fire",
+                        "affinity water": "Affinity Water",
+                        "affinity earth": "Affinity Earth",
+                        "affinity air": "Affinity Air",
+                        "affinity beam": "Affinity Beam",
+                    }
+                    if lower in elem_map:
+                        return elem_map[lower]
+                    for k in STAT_UNITS.keys():
+                        if k.lower() == lower:
+                            return k
+                    return name
+
+                def _parse_stats_spec(spec: str):
+                    result = []
+                    for raw in spec.split(','):
+                        token = raw.strip()
+                        if not token:
+                            continue
+                        if token[0] in ['+','-']:
+                            direction = 1 if token[0] == '+' else -1
+                            name = _canon_stat(token[1:].strip())
+                        else:
+                            direction = 1
+                            name = _canon_stat(token)
+                        result.append((name, direction))
+                    return result
+
+                def _numeric_value(v):
+                    if isinstance(v, bool):
+                        return 1.0 if v else 0.0
+                    if isinstance(v, (int, float)):
+                        return float(v)
+                    if isinstance(v, str):
+                        if '/' in v:
+                            try:
+                                pp = v.split('/')
+                                return float(pp[1].strip())
+                            except Exception:
+                                pass
+                        buf = []
+                        out = []
+                        for ch in v:
+                            if ch.isdigit() or ch in '.-':
+                                buf.append(ch)
+                            else:
+                                if buf:
+                                    out.append(''.join(buf))
+                                    buf = []
+                        if buf:
+                            out.append(''.join(buf))
+                        for tok in out:
+                            try:
+                                return float(tok)
+                            except Exception:
+                                continue
+                    return 0.0
+
+                def _score_of(parsed_stats, record):
+                    tup = []
+                    for stat_name, direction in parsed_stats:
+                        value = _numeric_value(record["stats"].get(stat_name, 0))
+                        tup.append(direction * value)
+                    return tuple(tup)
+
+                if sub == "start":
+                    if len(parts) < 4:
+                        output += (
+                            "Usage: optimize start <generations> <stats_spec> [species=sp1,sp2,...] [chunk=N]\n"
+                            "Example: optimize start 50 +Strength,IQ species=griffin chunk=5\n"
+                        )
+                        return output
+                    try:
+                        generations = int(parts[2])
+                    except ValueError:
+                        output += "Second argument must be an integer number of generations.\n"
+                        return output
+                    stats_spec = parts[3]
+                    species_filter = None
+                    chunk = 5
+                    for token in parts[4:]:
+                        tl = token.lower()
+                        if tl.startswith("species="):
+                            raw = token.split("=", 1)[1].replace(";", ",")
+                            species_filter = [s.strip().lower() for s in raw.split(",") if s.strip()]
+                        elif tl.startswith("chunk="):
+                            try:
+                                chunk = max(1, int(token.split("=", 1)[1]))
+                            except Exception:
+                                pass
+                    parsed_stats = _parse_stats_spec(stats_spec)
+                    if not parsed_stats:
+                        output += "No valid stats specified.\n"
+                        return output
+
+                    # Affinity optimization: auto-enable magic mode when targeting any affinity
+                    prev_magic = MAGIC_AFFINITY_MODE
+                    if any(name.lower().startswith("affinity ") for name, _ in parsed_stats):
+                        MAGIC_AFFINITY_MODE = True
+
+                    # Start fresh population
+                    self.SAVE_MODE = True
+                    self.saved_hybrids.clear()
+                    saved_hybrids = self.saved_hybrids
+
+                    # Build phenotype helpers
+                    def species_matches(species_str: str) -> bool:
+                        if species_filter is None:
+                            return True
+                        s = species_str.lower()
+                        for want in species_filter:
+                            if s == want:
+                                return True
+                            if ' ' not in want and (s == want or s.endswith(' ' + want)):
+                                return True
+                        return False
+
+                    def create_random_individual(sp: str):
+                        geno = random.choice(phenotype_genotypes[sp])
+                        t = top_expression(geno["top"])
+                        m = mid_expression(geno["mid"])
+                        b = bottom_expression(geno["bottom"])
+                        stats, _ = generate_individual_stats(sp, t, m, b)
+                        name = generate_unique_name(sp)
+                        record = {
+                            "name": name,
+                            "genotype": geno,
+                            "species": sp,
+                            "stats": stats
+                        }
+                        self.saved_hybrids[name.lower()] = record
+                        return name, geno
+
+                    POP_SIZE = 20
+                    # Seed POP_SIZE randoms unrestricted (keeps code simpler for session mode)
+                    while len(self.saved_hybrids) < POP_SIZE:
+                        sp = random.choice(list(phenotype_genotypes.keys()))
+                        create_random_individual(sp)
+
+                    # Baseline for target species (if a single filter provided)
+                    target_species = None
+                    if species_filter and len(species_filter) == 1:
+                        target_species = species_filter[0]
+                    baseline_stats = {}
+                    baseline_N = 100
+                    if target_species and target_species in phenotype_genotypes:
+                        for stat_name, _ in parsed_stats:
+                            vals = []
+                            for _ in range(baseline_N):
+                                geno = random.choice(phenotype_genotypes[target_species])
+                                t = top_expression(geno["top"])
+                                m = mid_expression(geno["mid"])
+                                b = bottom_expression(geno["bottom"])
+                                stats, _ = generate_individual_stats(target_species, t, m, b)
+                                val = _numeric_value(stats.get(stat_name, 0))
+                                vals.append(val)
+                            if vals:
+                                baseline_stats[stat_name] = {
+                                    "min": min(vals),
+                                    "max": max(vals),
+                                    "avg": sum(vals)/len(vals)
+                                }
+
+                    # Save session
+                    self._opt_session = {
+                        "generations": generations,
+                        "done": 0,
+                        "stats_spec": stats_spec,
+                        "parsed_stats": parsed_stats,
+                        "species_filter": species_filter,
+                        "target_species": target_species,
+                        "baseline_stats": baseline_stats,
+                        "baseline_N": baseline_N,
+                        "POP_SIZE": POP_SIZE,
+                        "chunk": chunk,
+                        "prev_magic": prev_magic,
+                    }
+                    output += "Optimize session started. Use 'optimize step' (optionally with chunk=N) to progress.\n"
+                    if target_species and baseline_stats:
+                        output += f"Random {target_species} baseline (N={baseline_N}):\n"
+                        for stat_name, _ in parsed_stats:
+                            if stat_name in baseline_stats:
+                                b = baseline_stats[stat_name]
+                                unit = STAT_UNITS.get(stat_name, "")
+                                output += f"  {stat_name}: min={b['min']:.3f}, avg={b['avg']:.3f}, max={b['max']:.3f} {unit}\n"
+                    output += f"Progress: 0/{generations} generations completed.\n"
+                    return output
+
+                if sub in ("step", "continue"):
+                    if not self._opt_session:
+                        return "No active optimize session. Start one with: optimize start <gens> <stats_spec> ...\n"
+                    # Allow overriding chunk
+                    chunk = self._opt_session["chunk"]
+                    for token in parts[2:]:
+                        if token.lower().startswith("chunk="):
+                            try:
+                                chunk = max(1, int(token.split("=", 1)[1]))
+                            except Exception:
+                                pass
+                    self._opt_session["chunk"] = chunk
+
+                    parsed_stats = self._opt_session["parsed_stats"]
+                    generations = self._opt_session["generations"]
+                    done = self._opt_session["done"]
+                    POP_SIZE = self._opt_session["POP_SIZE"]
+                    species_filter = self._opt_session["species_filter"]
+
+                    def species_matches(species_str: str) -> bool:
+                        if species_filter is None:
+                            return True
+                        s = species_str.lower()
+                        for want in species_filter:
+                            if s == want:
+                                return True
+                            if ' ' not in want and (s == want or s.endswith(' ' + want)):
+                                return True
+                        return False
+
+                    def get_candidates():
+                        return [rec for rec in self.saved_hybrids.values() if species_matches(rec["species"])]
+
+                    def get_priority_pairs(candidates):
+                        pairs = []
+                        n = len(candidates)
+                        for i in range(n):
+                            for j in range(i+1, n):
+                                pairs.append((candidates[i], candidates[j]))
+                        return pairs
+
+                    bred_total = 0
+                    steps = 0
+                    while steps < chunk and done < generations:
+                        candidates = list(self.saved_hybrids.values())
+                        if len(candidates) < 2:
+                            for _ in range(POP_SIZE - len(candidates)):
+                                sp = random.choice(list(phenotype_genotypes.keys()))
+                                # create_random_individual inline to avoid closure issues
+                                geno = random.choice(phenotype_genotypes[sp])
+                                t = top_expression(geno["top"])
+                                m = mid_expression(geno["mid"])
+                                b = bottom_expression(geno["bottom"])
+                                stats, _ = generate_individual_stats(sp, t, m, b)
+                                name = generate_unique_name(sp)
+                                self.saved_hybrids[name.lower()] = {"name": name, "genotype": geno, "species": sp, "stats": stats}
+                            candidates = list(self.saved_hybrids.values())
+
+                        candidates.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
+                        pairs = get_priority_pairs(candidates)
+                        random.shuffle(pairs)
+                        bred = 0
+                        if pairs:
+                            pair_count = min(len(pairs), max(1, POP_SIZE//2))
+                            used = set()
+                            for i in range(pair_count):
+                                p1, p2 = pairs[i]
+                                n1, n2 = p1["name"].lower(), p2["name"].lower()
+                                if n1 in used or n2 in used:
+                                    continue
+                                result = breed_from_saved(n1, n2, silent=True)
+                                if result is not None:
+                                    offspring, _ = result
+                                    bred += 1
+                                    used.add(n1)
+                                    used.add(n2)
+                        all_records = list(self.saved_hybrids.values())
+                        all_records.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
+                        keep = all_records[:POP_SIZE]
+                        keep_names = set(r["name"].lower() for r in keep)
+                        for name in list(self.saved_hybrids.keys()):
+                            if name not in keep_names:
+                                self.saved_hybrids.pop(name, None)
+                        done += 1
+                        steps += 1
+                        bred_total += bred
+                        output += f"Generation {done}: bred {bred} pair(s).\n"
+
+                    self._opt_session["done"] = done
+
+                    # If finished, print result and clean up (restore magic mode)
+                    if done >= generations:
+                        all_final = list(self.saved_hybrids.values())
+                        all_final.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
+                        best_overall = all_final[0] if all_final else None
+                        output += "\n--- OPTIMIZATION RESULT ---\n"
+                        if best_overall:
+                            output += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
+                            output += "Stats (selected):\n"
+                            for stat_name, direction in parsed_stats:
+                                val = best_overall["stats"].get(stat_name, 0)
+                                unit = STAT_UNITS.get(stat_name, "")
+                                dir_str = "+" if direction == 1 else "-"
+                                output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                        prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
+                        MAGIC_AFFINITY_MODE = prev_magic
+                        self._opt_session = None
+                        return output
+
+                    output += f"Progress: {done}/{generations} generations completed.\n"
+                    return output
+
+                if sub == "status":
+                    if not self._opt_session:
+                        return "No active optimize session.\n"
+                    parsed_stats = self._opt_session["parsed_stats"]
+                    generations = self._opt_session["generations"]
+                    done = self._opt_session["done"]
+                    def best_str():
+                        if not self.saved_hybrids:
+                            return "(no candidates)"
+                        best = max(self.saved_hybrids.values(), key=lambda r: _score_of(parsed_stats, r))
+                        return f"{best['name']} [{best['species']}]"
+                    return f"Optimize status: {done}/{generations} generations. Best so far: {best_str()}\n"
+
+                if sub == "stop":
+                    if not self._opt_session:
+                        return "No active optimize session to stop.\n"
+                    prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
+                    MAGIC_AFFINITY_MODE = prev_magic
+                    self._opt_session = None
+                    return "Optimize session stopped.\n"
+
+                # Unknown subcommand
+                return "Usage: optimize start|step|continue|status|stop ...\n"
+            # Legacy synchronous mode (may freeze UI for long runs):
             # Usage: optimize <generations> <stats_spec> [species=sp1,sp2,...]
             # stats_spec example: +Strength,-Size,IQ (assume + if no sign)
             if len(parts) < 3:
