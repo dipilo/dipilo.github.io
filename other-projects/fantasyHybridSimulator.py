@@ -661,6 +661,121 @@ MAGIC_STATS_PER_ALLELE = {
     "Dr": {"Thaumagen": 25, "Thaumacyst": 300}
 }
 
+# NEW: Toggle for showing detailed elemental magic affinities in stat blocks
+MAGIC_AFFINITY_MODE = False
+
+# NEW: Base elemental affinity weights per allele (0.0–1.0)
+# These represent natural inclination toward each element. Final values
+# are blended across alleles, influenced by Beam (raw power), and then
+# normalized to 0–100 with competitive dampening across elements.
+AFFINITY_BASE_PER_ALLELE = {
+    # Human: broadly capable generalists
+    "Hu": {"Fire": 0.50, "Water": 0.50, "Earth": 0.50, "Air": 0.50, "Beam": 0.50},
+    # Horse: grounded, earthy
+    "Ho": {"Fire": 0.30, "Water": 0.30, "Earth": 0.80, "Air": 0.20, "Beam": 0.40},
+    # Fish: water-aligned
+    "Fi": {"Fire": 0.20, "Water": 0.90, "Earth": 0.30, "Air": 0.40, "Beam": 0.45},
+    # Goat: sure-footed, earth-heavy
+    "Go": {"Fire": 0.30, "Water": 0.30, "Earth": 0.80, "Air": 0.30, "Beam": 0.45},
+    # Snake: earthy and a touch aquatic
+    "Sn": {"Fire": 0.20, "Water": 0.50, "Earth": 0.60, "Air": 0.10, "Beam": 0.40},
+    # Bull: very earthy
+    "Bu": {"Fire": 0.30, "Water": 0.30, "Earth": 0.80, "Air": 0.20, "Beam": 0.45},
+    # Bird: strongly air-aligned
+    "Bi": {"Fire": 0.30, "Water": 0.30, "Earth": 0.30, "Air": 0.90, "Beam": 0.55},
+    # Lion: fiery and a bit earthy
+    "Li": {"Fire": 0.80, "Water": 0.20, "Earth": 0.50, "Air": 0.20, "Beam": 0.60},
+    # Dragon: very strong fire and solid air/earth; beam power boosted separately
+    "Dr": {"Fire": 0.90, "Water": 0.40, "Earth": 0.60, "Air": 0.60, "Beam": 0.90}
+}
+
+def compute_magic_affinities(top_expr: str, mid_expr: str, bottom_expr: str, stats: dict) -> dict:
+    """
+    Compute elemental magic affinities with two constraints:
+    1) Reciprocal sparsity: probability of gaining additional active affinities
+       decreases as 1/(1+n) with each already-accepted affinity (ordered by value).
+    2) Hyperbolic competition: higher values in some elements dampen others via
+       a factor 1/(1 + K * sum(other_values)).
+
+    Returns numeric affinity values (0–100) for Fire/Water/Earth/Air/Beam and an
+    "Active Affinities" summary string listing elements that were accepted by the
+    reciprocal process. Beam is derived from raw magical power (Thaumagen/Thaumacyst)
+    and slightly biased by the presence of Dragon alleles.
+    """
+    elements = ["Fire", "Water", "Earth", "Air", "Beam"]
+
+    def _avg_base(element: str) -> float:
+        vals = [
+            AFFINITY_BASE_PER_ALLELE.get(allele, {}).get(element, 0.5)
+            for allele in (top_expr, mid_expr, bottom_expr)
+        ]
+        return sum(vals) / len(vals)
+
+    # Base potentials in 0..100, blended from alleles
+    base = {e: _avg_base(e) for e in elements}
+    # Mana (thaumagen/thaumacyst) is not Beam, but it should increase chances/values
+    max_thaumagen = max(v["Thaumagen"] for v in MAGIC_STATS_PER_ALLELE.values()) or 1.0
+    max_thaumacyst = max(v["Thaumacyst"] for v in MAGIC_STATS_PER_ALLELE.values()) or 1.0
+    prod = float(stats.get("Thaumagen Production Rate", 0.0))
+    cap_max = 0.0
+    cap_field = stats.get("Thaumacyst Capacity")
+    if isinstance(cap_field, str) and "/" in cap_field:
+        try:
+            cap_max = float(cap_field.split("/")[1])
+        except Exception:
+            cap_max = 0.0
+    elif isinstance(cap_field, (int, float)):
+        cap_max = float(cap_field)
+    mana_score = 0.6 * min(prod / max_thaumagen, 1.0) + 0.4 * min(cap_max / max_thaumacyst, 1.0)
+
+    # Initial potentials: allele-driven plus small noise (no direct mana or beam coupling here)
+    potentials = {}
+    for e in elements:
+        allele_base = base[e] * 100.0
+        raw = allele_base + random.uniform(-5.0, 5.0)
+        # Slight extra for Beam if Dragon allele(s) present
+        if e == "Beam":
+            dragon_bias = sum(1 for a in (top_expr, mid_expr, bottom_expr) if a == "Dr") / 3.0
+            raw *= (1.0 + 0.2 * dragon_bias)
+        potentials[e] = max(0.0, min(100.0, raw))
+
+    # Hyperbolic competition should reduce the probability of high values, not deterministically shrink them.
+    # We sample final values using a Beta(a,b) on [0,1], scaled by each element's potential.
+    # High competition -> larger b (skews toward lower samples); high mana -> larger a (skews higher) and reduces effective competition.
+    K = 0.8  # base competition strength; higher -> stronger trade-offs
+    # Very high mana reduces competition, allowing rare "all-high" outcomes
+    K_eff = K * (1.0 - 0.9 * (mana_score ** 2))
+    values = {}
+    for e in elements:
+        total_comp = sum(v for k, v in potentials.items() if k != e) / 100.0
+        # Shape parameters: a grows with mana and the element's own potential; b grows with competition
+        a = 1.0 + 2.0 * mana_score * (potentials[e] / 100.0)
+        b = 1.0 + max(0.0, K_eff) * total_comp * 5.0
+        # Sample final fraction in [0,1]
+        frac = random.betavariate(max(a, 1e-3), max(b, 1e-3))
+        val = potentials[e] * frac
+        values[e] = max(0.0, min(100.0, val))
+
+    # Reciprocal acceptance for "active" affinities; sort by adjusted strength
+    order = sorted(elements, key=lambda x: values[x], reverse=True)
+    accepted = []
+    count = 0
+    for e in order:
+        p_accept = 1.0 / (1.0 + count)
+        # favor acceptance for strong values; very low values less likely
+        p_accept *= min(1.0, values[e] / 50.0)
+        # mana increases chance to add more affinities
+        p_accept *= (1.0 + 0.75 * mana_score)
+        if random.random() < min(1.0, p_accept):
+            accepted.append(e)
+            count += 1
+
+    result = {}
+    for e in elements:
+        result[f"Affinity {e}"] = round(values[e], 2)
+    result["Active Affinities"] = ", ".join(accepted) if accepted else "None"
+    return result
+
 ######################################
 # ADD DIET MAPPING FOR EACH ALLELE
 ######################################
@@ -1261,6 +1376,15 @@ def generate_individual_stats(species, top_expr, mid_expr, bottom_expr):
     if msg2:
         mutations["Thaumacyst Capacity"] = msg2
 
+    # Optionally add detailed elemental magic affinities
+    if MAGIC_AFFINITY_MODE:
+        try:
+            affinities = compute_magic_affinities(top_expr, mid_expr, bottom_expr, stats)
+            stats.update(affinities)
+        except Exception:
+            # Fail-closed: do not break simulation if affinity calc misfires
+            pass
+
     return stats, mutations
 
 ######################################
@@ -1458,6 +1582,60 @@ def breed_from_saved(parent1_name, parent2_name, silent: bool = False):
             if key in sim_mutations:
                 combined_mutations[key] = sim_mutations[key]
 
+    # If magic affinities mode is active, blend elemental affinities from parents
+    if MAGIC_AFFINITY_MODE:
+        def ensure_affinities(record):
+            # If record has Affinity stats, keep; otherwise compute from genotype
+            have = any(k.startswith("Affinity ") for k in record.get("stats", {}))
+            if not have and "genotype" in record:
+                geno = record["genotype"]
+                t = top_expression(geno["top"])
+                m = mid_expression(geno["mid"])
+                b = bottom_expression(geno["bottom"])
+                aff = compute_magic_affinities(t, m, b, record.get("stats", {}))
+                record.setdefault("stats", {}).update(aff)
+
+        # Make sure parents have affinities computed (for older saves)
+        try:
+            p1 = saved_hybrids.get(parent1_name, parent1)
+            p2 = saved_hybrids.get(parent2_name, parent2)
+        except Exception:
+            p1, p2 = parent1, parent2
+        ensure_affinities(p1)
+        ensure_affinities(p2)
+
+        # Ensure offspring sim has affinities (in case global mode was OFF earlier)
+        if not any(k.startswith("Affinity ") for k in sim_stats.keys()):
+            aff = compute_magic_affinities(top_expr, mid_expr, bottom_expr, sim_stats)
+            sim_stats.update(aff)
+            for k, v in aff.items():
+                if k not in final_stats:
+                    final_stats[k] = v
+
+        # Blend numeric affinity values; skip the Active Affinities label for blending
+        for elem in ("Fire", "Water", "Earth", "Air", "Beam"):
+            key = f"Affinity {elem}"
+            sim_val = float(sim_stats.get(key, 0.0))
+            p1_val = float(p1.get("stats", {}).get(key, 0.0))
+            p2_val = float(p2.get("stats", {}).get(key, 0.0))
+            parents_avg_val = (p1_val + p2_val) / 2.0
+            final_stats[key] = round(weight_geno * sim_val + weight_par * parents_avg_val, 2)
+        # Recompute Active Affinities from the blended values via simple ordering + reciprocal
+        # Reuse the acceptance rule on the blended numbers for display only
+        ordered = sorted([("Fire", final_stats.get("Affinity Fire", 0.0)),
+                          ("Water", final_stats.get("Affinity Water", 0.0)),
+                          ("Earth", final_stats.get("Affinity Earth", 0.0)),
+                          ("Air", final_stats.get("Affinity Air", 0.0)),
+                          ("Beam", final_stats.get("Affinity Beam", 0.0))], key=lambda x: x[1], reverse=True)
+        accepted = []
+        count = 0
+        for name, val in ordered:
+            p_acc = (1.0 / (1.0 + count)) * min(1.0, val / 50.0)
+            if random.random() < min(1.0, p_acc):
+                accepted.append(name)
+                count += 1
+        final_stats["Active Affinities"] = ", ".join(accepted) if accepted else "None"
+
     # 9. Build & save the offspring record with the truly complete statblock
     offspring = {
         "name": generate_unique_name(species_variant),
@@ -1513,6 +1691,7 @@ class HybridCLI:
 
     def process_command(self, command_line: str) -> str:
         global saved_hybrids
+        global MAGIC_AFFINITY_MODE
         output = ""
         parts = shlex.split(command_line)
         if not parts:
@@ -1523,6 +1702,7 @@ class HybridCLI:
             output += (
                 "Commands:\n"
                 "  toggle                    - Toggle save mode ON/OFF\n"
+                "  magic [on|off|status]     - Toggle or set elemental magic affinity display\n"
                 "  list                      - List available known species and saved hybrids\n"
                 "  breed [arg1] [arg2]       - Breed two species or saved hybrids\n"
                 "                             e.g., breed naga pegasus or breed \"Silver Griffin\" \"Mystic Stag\"\n"
@@ -1637,6 +1817,28 @@ class HybridCLI:
                         output += f"  {stat:15s}: {val} {unit}".rstrip() + "\n"
                         if stat in mutations:
                             output += f"                <-- {mutations[stat]}\n"
+        elif cmd == "magic":
+            # Toggle or set the elemental magic affinity display mode
+            # Usage: magic            -> toggle
+            #        magic on|off     -> set explicitly
+            #        magic status     -> report current state
+            if len(parts) == 1:
+                MAGIC_AFFINITY_MODE = not MAGIC_AFFINITY_MODE
+                state = "ON" if MAGIC_AFFINITY_MODE else "OFF"
+                output += f"Magic affinities display toggled {state}.\n"
+            else:
+                sub = parts[1].lower()
+                if sub in ("on", "enable", "enabled"):
+                    MAGIC_AFFINITY_MODE = True
+                    output += "Magic affinities display: ON\n"
+                elif sub in ("off", "disable", "disabled"):
+                    MAGIC_AFFINITY_MODE = False
+                    output += "Magic affinities display: OFF\n"
+                elif sub in ("status", "state"):
+                    state = "ON" if MAGIC_AFFINITY_MODE else "OFF"
+                    output += f"Magic affinities display is {state}.\n"
+                else:
+                    output += "Usage: magic [on|off|status]\n"
         elif cmd == "optimize":
             # Usage: optimize <generations> <stats_spec> [species=sp1,sp2,...]
             # stats_spec example: +Strength,-Size,IQ (assume + if no sign)
@@ -2037,6 +2239,7 @@ if __name__ == '__main__':
     print(
         "Commands:\n"
         "  toggle                    - Toggle save mode ON/OFF\n"
+        "  magic [on|off|status]     - Toggle or set elemental magic affinity display\n"
         "  list                      - List available known species and saved hybrids\n"
         "  breed [arg1] [arg2]       - Breed two species or saved hybrids (enclose names with spaces in quotes)\n"
         "  random                    - Generate a random species (with a unique name if save mode is ON)\n"
