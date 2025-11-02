@@ -86,6 +86,93 @@ window.run_command = run_command
           consoleDiv.scrollTop = consoleDiv.scrollHeight;
         }
 
+        function runCommandOnce(cmd) {
+          try {
+            const result = window.run_command(cmd);
+            appendToConsole(result.toString());
+            return result.toString();
+          } catch (err) {
+            console.error(err);
+            appendToConsole("Error: " + err);
+            return "";
+          }
+        }
+
+        function scheduleRunLoop(stepCmd, isDone) {
+          // Run small chunks repeatedly with a tiny delay to allow the UI to paint between chunks
+          function tick() {
+            const out = runCommandOnce(stepCmd);
+            if (isDone(out)) return;
+            // If the session ended unexpectedly, stop
+            if (/No active optimize session/i.test(out)) return;
+            setTimeout(tick, 20);
+          }
+          setTimeout(tick, 0);
+        }
+
+        function handleOptimizeRun(cmd) {
+          // Convert to start, then repeatedly call step until completion
+          const startCmd = cmd.replace(/^optimize\s+run\s+/i, "optimize start ");
+          const startOut = runCommandOnce(startCmd);
+          // If start failed, stop
+          if (/Usage:\s*optimize start/i.test(startOut)) return;
+          scheduleRunLoop("optimize step", (out) => /--- OPTIMIZATION RESULT ---/.test(out));
+        }
+
+        function handleOptimizeContinueAuto(cmd) {
+          // Instead of letting Python do 'auto' in one shot (which blocks), loop step in JS
+          const startOut = runCommandOnce("optimize status");
+          if (/No active optimize session/i.test(startOut)) {
+            appendToConsole("No active optimize session. Use 'optimize start' first.");
+            return;
+          }
+          scheduleRunLoop("optimize step", (out) => /--- OPTIMIZATION RESULT ---/.test(out));
+        }
+
+        function handleOptimizeUntil(cmd) {
+          // Parse: optimize until <condition> [<gens>] <stats> [species ...] [chunk=N]
+          const m = cmd.match(/^optimize\s+until\s+(\S+)\s*(.*)$/i);
+          if (!m) {
+            appendToConsole("Usage: optimize until <condition> [<gens>] <stats> [species ...] [chunk=N]");
+            return;
+          }
+          const condition = m[1];
+          const rest = m[2].trim();
+          const parts = rest ? rest.split(/\s+/) : [];
+          let gens = "100000";
+          let after = [];
+          if (parts.length > 0 && /^\d+$/.test(parts[0])) {
+            gens = parts[0];
+            after = parts.slice(1);
+          } else {
+            after = parts;
+          }
+          if (after.length < 1) {
+            appendToConsole("Usage: optimize until <condition> [<gens>] <stats> [species ...] [chunk=N]");
+            return;
+          }
+          // stats token is first token in 'after'
+          const statsToken = after[0];
+          const tail = after.slice(1).join(" ");
+          const startCmd = `optimize start ${gens} ${statsToken}` + (tail ? ` ${tail}` : "");
+          const startOut = runCommandOnce(startCmd);
+          if (/Usage:\s*optimize start/i.test(startOut)) return;
+          function isGoal() {
+            const chk = runCommandOnce(`optimize check ${condition}`);
+            return /GOAL:\s*true/i.test(chk);
+          }
+          function tick() {
+            const out = runCommandOnce("optimize step");
+            if (/--- OPTIMIZATION RESULT ---/.test(out)) return; // already finished
+            if (isGoal()) {
+              const fin = runCommandOnce("optimize finalize");
+              return;
+            }
+            setTimeout(tick, 20);
+          }
+          setTimeout(tick, 0);
+        }
+
         // Focus the input field once the page loads
         cmdInput.focus();
 
@@ -97,14 +184,21 @@ window.run_command = run_command
             if (!cmd) return;
             appendToConsole(cmd, true);
             cmdInput.value = "";
-            try {
-              // Call the Python function directly from JS
-              const result = window.run_command(cmd);
-              appendToConsole(result.toString());
-            } catch (err) {
-              console.error(err);
-              appendToConsole("Error: " + err);
+            const lower = cmd.toLowerCase();
+            if (/^optimize\s+run\b/.test(lower)) {
+              handleOptimizeRun(cmd);
+              return;
             }
+            if (/^optimize\s+(continue|step)\b.*\bauto\b/.test(lower)) {
+              handleOptimizeContinueAuto(cmd);
+              return;
+            }
+            if (/^optimize\s+until\b/.test(lower)) {
+              handleOptimizeUntil(cmd);
+              return;
+            }
+            // Default: single call
+            runCommandOnce(cmd);
           }
         });
       });

@@ -1715,6 +1715,8 @@ class HybridCLI:
                 "  optimize until <condition> [<gens>] <stats> [species ...] [chunk=N] - Run until goal or until gens done\n"
                 "     Conditions: variant=<Name> | species=<name> | stat:Size>=340 (use STAT names; case-insensitive)\n"
                 "     Notes: species can be positional (no 'species=' needed); last bare integer sets chunk size.\n"
+                "  optimize check <condition> - Return whether the goal condition is currently satisfied (true/false)\n"
+                "  optimize finalize         - Print result summary and end the active session (if any)\n"
                 "  optimize status            - Show current optimize session progress and best candidate\n"
                 "  optimize stop              - Stop the active session\n"
                 "    Tips: stats can include Affinity Fire/Water/Earth/Air/Beam (or just fire, water, etc.)\n"
@@ -1926,8 +1928,139 @@ class HybridCLI:
                     output += "Usage: magic [on|off|status]\n"
         elif cmd == "optimize":
             # Chunked session controls to avoid long blocking runs in UI contexts
-            if len(parts) > 1 and parts[1].lower() in ("start", "step", "continue", "status", "stop", "run", "until"):
+            if len(parts) > 1 and parts[1].lower() in ("start", "step", "continue", "status", "stop", "run", "until", "check", "finalize"):
                 sub = parts[1].lower()
+                # Helper reused by 'until' and 'check'
+                def _check_condition(cond: str) -> bool:
+                    cl = cond.lower()
+                    if cl.startswith("variant="):
+                        want = cl.split("=", 1)[1].strip()
+                        for rec in self.saved_hybrids.values():
+                            sp = rec.get("species", "").lower()
+                            if sp.startswith(want + " "):
+                                return True
+                        return False
+                    if cl.startswith("species="):
+                        want = cl.split("=", 1)[1].strip()
+                        for rec in self.saved_hybrids.values():
+                            if rec.get("species", "").lower() == want:
+                                return True
+                        return False
+                    if cl.startswith("stat:"):
+                        # Format: stat:Name>=value | <= | == | > | <
+                        expr = cl[5:]
+                        op = None
+                        for candidate in (">=","<=","==",">","<"):
+                            if candidate in expr:
+                                op = candidate
+                                break
+                        if not op:
+                            return False
+                        left, right = expr.split(op, 1)
+                        stat_name = left.strip()
+                        try:
+                            threshold = float(right.strip())
+                        except Exception:
+                            return False
+                        # Canonicalize stat name to exact key
+                        canon = None
+                        for k in STAT_UNITS.keys():
+                            if k.lower() == stat_name:
+                                canon = k
+                                break
+                        if canon is None:
+                            canon = stat_name
+                        def _num(v):
+                            if isinstance(v, (int, float)):
+                                return float(v)
+                            if isinstance(v, bool):
+                                return 1.0 if v else 0.0
+                            if isinstance(v, str):
+                                if '/' in v:
+                                    try:
+                                        return float(v.split('/')[-1])
+                                    except Exception:
+                                        pass
+                                buf = ''.join(ch for ch in v if (ch.isdigit() or ch in '.-'))
+                                try:
+                                    return float(buf) if buf else 0.0
+                                except Exception:
+                                    return 0.0
+                            return 0.0
+                        for rec in self.saved_hybrids.values():
+                            val = _num(rec.get("stats", {}).get(canon, 0))
+                            if ((op == ">=" and val >= threshold) or
+                                (op == ">"  and val >  threshold) or
+                                (op == "<=" and val <= threshold) or
+                                (op == "<"  and val <  threshold) or
+                                (op == "==" and abs(val-threshold) < 1e-9)):
+                                return True
+                        return False
+                    return False
+
+                if sub == "check":
+                    if len(parts) < 3:
+                        return "Usage: optimize check <condition>\n"
+                    cond = parts[2]
+                    ok = _check_condition(cond)
+                    return ("GOAL: true\n" if ok else "GOAL: false\n")
+
+                if sub == "finalize":
+                    if not self._opt_session:
+                        return "No active optimize session to finalize.\n"
+                    parsed_stats = self._opt_session["parsed_stats"]
+                    target_species = self._opt_session.get("target_species")
+                    baseline_stats = self._opt_session.get("baseline_stats", {})
+                    baseline_N = self._opt_session.get("baseline_N", 100)
+                    all_final = list(self.saved_hybrids.values())
+                    def _score_of_local(record):
+                        return _score_of(parsed_stats, record)
+                    all_final.sort(key=_score_of_local, reverse=True)
+                    best_overall = all_final[0] if all_final else None
+                    best_species = None
+                    if target_species:
+                        species_final = [rec for rec in all_final if rec["species"].lower() == target_species]
+                        if species_final:
+                            best_species = species_final[0]
+                    else:
+                        best_species = best_overall
+                    out = "\n--- OPTIMIZATION RESULT ---\n"
+                    if target_species and baseline_stats:
+                        out += f"Random {target_species} baseline (N={baseline_N}):\n"
+                        for stat_name, _ in parsed_stats:
+                            if stat_name in baseline_stats:
+                                b = baseline_stats[stat_name]
+                                unit = STAT_UNITS.get(stat_name, "")
+                                out += f"  {stat_name}: min={b['min']:.3f}, avg={b['avg']:.3f}, max={b['max']:.3f} {unit}\n"
+                    if best_overall and (not best_species or best_overall["name"] == best_species["name"]):
+                        out += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
+                        out += "Stats (selected):\n"
+                        for stat_name, direction in parsed_stats:
+                            val = best_overall["stats"].get(stat_name, 0)
+                            unit = STAT_UNITS.get(stat_name, "")
+                            dir_str = "+" if direction == 1 else "-"
+                            out += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                    else:
+                        if best_overall:
+                            out += f"Best Overall: {best_overall['name']} (Species: {best_overall['species']})\n"
+                            out += "Stats (selected):\n"
+                            for stat_name, direction in parsed_stats:
+                                val = best_overall["stats"].get(stat_name, 0)
+                                unit = STAT_UNITS.get(stat_name, "")
+                                dir_str = "+" if direction == 1 else "-"
+                                out += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                        if best_species:
+                            out += f"Best in Species: {best_species['name']} (Species: {best_species['species']})\n"
+                            out += "Stats (selected):\n"
+                            for stat_name, direction in parsed_stats:
+                                val = best_species["stats"].get(stat_name, 0)
+                                unit = STAT_UNITS.get(stat_name, "")
+                                dir_str = "+" if direction == 1 else "-"
+                                out += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                    prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
+                    MAGIC_AFFINITY_MODE = prev_magic
+                    self._opt_session = None
+                    return out
 
                 def _canon_stat(name: str) -> str:
                     lower = name.lower().strip()
@@ -2371,73 +2504,6 @@ class HybridCLI:
                                 parts_until = [parts[0], "start", gens_token] + rest
                                 start_out = self.process_command(" ".join(parts_until))
                                 output += start_out
-
-                                def _check_condition(cond: str) -> bool:
-                                    cl = cond.lower()
-                                    if cl.startswith("variant="):
-                                        want = cl.split("=", 1)[1].strip()
-                                        for rec in self.saved_hybrids.values():
-                                            sp = rec.get("species", "").lower()
-                                            if sp.startswith(want + " "):
-                                                return True
-                                        return False
-                                    if cl.startswith("species="):
-                                        want = cl.split("=", 1)[1].strip()
-                                        for rec in self.saved_hybrids.values():
-                                            if rec.get("species", "").lower() == want:
-                                                return True
-                                        return False
-                                    if cl.startswith("stat:"):
-                                        # Format: stat:Name>=value | <= | ==
-                                        expr = cl[5:]
-                                        op = None
-                                        for candidate in (">=","<=","==",">","<"):
-                                            if candidate in expr:
-                                                op = candidate
-                                                break
-                                        if not op:
-                                            return False
-                                        left, right = expr.split(op, 1)
-                                        stat_name = left.strip()
-                                        try:
-                                            threshold = float(right.strip())
-                                        except Exception:
-                                            return False
-                                        # Canonicalize stat name to exact key
-                                        canon = None
-                                        for k in STAT_UNITS.keys():
-                                            if k.lower() == stat_name:
-                                                canon = k
-                                                break
-                                        if canon is None:
-                                            canon = stat_name
-                                        def _num(v):
-                                            if isinstance(v, (int, float)):
-                                                return float(v)
-                                            if isinstance(v, bool):
-                                                return 1.0 if v else 0.0
-                                            if isinstance(v, str):
-                                                if '/' in v:
-                                                    try:
-                                                        return float(v.split('/')[-1])
-                                                    except Exception:
-                                                        pass
-                                                buf = ''.join(ch for ch in v if (ch.isdigit() or ch in '.-'))
-                                                try:
-                                                    return float(buf) if buf else 0.0
-                                                except Exception:
-                                                    return 0.0
-                                            return 0.0
-                                        for rec in self.saved_hybrids.values():
-                                            val = _num(rec.get("stats", {}).get(canon, 0))
-                                            if ((op == ">=" and val >= threshold) or
-                                                (op == ">"  and val >  threshold) or
-                                                (op == "<=" and val <= threshold) or
-                                                (op == "<"  and val <  threshold) or
-                                                (op == "==" and abs(val-threshold) < 1e-9)):
-                                                return True
-                                        return False
-                                    return False
 
                                 safety = 100000
                                 while self._opt_session and safety > 0:
