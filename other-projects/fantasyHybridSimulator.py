@@ -2458,154 +2458,53 @@ class HybridCLI:
                         best_species = None
                         if target_species:
                             species_final = [rec for rec in all_final if rec["species"].lower() == target_species]
-                            # Add 'run' subcommand: start then auto-continue until complete
-                            if sub == "run":
-                                # Syntax mirrors 'start'
-                                # optimize run <generations> <stats_spec> [species=..] [chunk=N]
-                                parts_run = parts.copy()
-                                parts_run[1] = "start"
-                                start_out = self.process_command(" ".join(parts_run))
-                                output += start_out
-                                # Now auto-continue to completion
-                                safety = 100000
-                                while self._opt_session and safety > 0:
-                                    step_out = self.process_command("optimize step")
-                                    output += step_out
-                                    safety -= 1
-                                return output
+                            if species_final:
+                                best_species = species_final[0]
+                        else:
+                            best_species = best_overall
 
-                            # Add 'until' subcommand: run until a goal condition is satisfied or gens done
-                            if sub == "until":
-                                # Usage: optimize until <condition> [<generations>] <stats_spec> [species ...] [chunk=N]
-                                if len(parts) < 4:
-                                    return (
-                                        "Usage: optimize until <condition> [<generations>] <stats_spec> [species ...] [chunk=N]\n"
-                                        "  Conditions: variant=<Name> | species=<name> | stat:Size>=340\n"
-                                    )
-                                condition = parts[2]
-                                remaining = parts[3:]
-                                DEFAULT_GENS = 100000
-                                # Determine if remaining[0] is an integer generations value
-                                gens_token = None
-                                rest = []
-                                if remaining:
-                                    try:
-                                        _ = int(remaining[0])
-                                        gens_token = remaining[0]
-                                        rest = remaining[1:]
-                                    except Exception:
-                                        gens_token = str(DEFAULT_GENS)
-                                        rest = remaining
-                                else:
-                                    gens_token = str(DEFAULT_GENS)
-                                    rest = []
+                        output += "\n--- OPTIMIZATION RESULT ---\n"
+                        baseline_stats = self._opt_session.get("baseline_stats", {})
+                        baseline_N = self._opt_session.get("baseline_N", 100)
+                        if target_species and baseline_stats:
+                            output += f"Random {target_species} baseline (N={baseline_N}):\n"
+                            for stat_name, _ in parsed_stats:
+                                if stat_name in baseline_stats:
+                                    b = baseline_stats[stat_name]
+                                    unit = STAT_UNITS.get(stat_name, "")
+                                    output += f"  {stat_name}: min={b['min']:.3f}, avg={b['avg']:.3f}, max={b['max']:.3f} {unit}\n"
 
-                                parts_until = [parts[0], "start", gens_token] + rest
-                                start_out = self.process_command(" ".join(parts_until))
-                                output += start_out
+                        if best_overall and (not best_species or best_overall["name"] == best_species["name"]):
+                            output += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
+                            output += "Stats (selected):\n"
+                            for stat_name, direction in parsed_stats:
+                                val = best_overall["stats"].get(stat_name, 0)
+                                unit = STAT_UNITS.get(stat_name, "")
+                                dir_str = "+" if direction == 1 else "-"
+                                output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                        else:
+                            if best_overall:
+                                output += f"Best Overall: {best_overall['name']} (Species: {best_overall['species']})\n"
+                                output += "Stats (selected):\n"
+                                for stat_name, direction in parsed_stats:
+                                    val = best_overall["stats"].get(stat_name, 0)
+                                    unit = STAT_UNITS.get(stat_name, "")
+                                    dir_str = "+" if direction == 1 else "-"
+                                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                            if best_species:
+                                output += f"Best in Species: {best_species['name']} (Species: {best_species['species']})\n"
+                                output += "Stats (selected):\n"
+                                for stat_name, direction in parsed_stats:
+                                    val = best_species["stats"].get(stat_name, 0)
+                                    unit = STAT_UNITS.get(stat_name, "")
+                                    dir_str = "+" if direction == 1 else "-"
+                                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                        prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
+                        MAGIC_AFFINITY_MODE = prev_magic
+                        self._opt_session = None
+                        return output
 
-                                safety = 100000
-                                while self._opt_session and safety > 0:
-                                    if _check_condition(condition):
-                                        # Print final result snapshot similar to completion
-                                        parsed_stats = self._opt_session["parsed_stats"]
-                                        all_final = list(self.saved_hybrids.values())
-                                        all_final.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
-                                        best_overall = all_final[0] if all_final else None
-                                        target_species = self._opt_session.get("target_species")
-                                        best_species = None
-                                        if target_species:
-                                            species_final = [rec for rec in all_final if rec["species"].lower() == target_species]
-                                            if species_final:
-                                                best_species = species_final[0]
-                                        else:
-                                            best_species = best_overall
-                                        output += "\n--- GOAL REACHED ---\n"
-                                        if best_overall and (not best_species or best_overall["name"] == best_species["name"]):
-                                            output += f"Best: {best_overall['name']} (Species: {best_overall['species']})\n"
-                                            output += "Stats (selected):\n"
-                                            for stat_name, direction in parsed_stats:
-                                                val = best_overall["stats"].get(stat_name, 0)
-                                                unit = STAT_UNITS.get(stat_name, "")
-                                                dir_str = "+" if direction == 1 else "-"
-                                                output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-                                        else:
-                                            if best_overall:
-                                                output += f"Best Overall: {best_overall['name']} (Species: {best_overall['species']})\n"
-                                                output += "Stats (selected):\n"
-                                                for stat_name, direction in parsed_stats:
-                                                    val = best_overall["stats"].get(stat_name, 0)
-                                                    unit = STAT_UNITS.get(stat_name, "")
-                                                    dir_str = "+" if direction == 1 else "-"
-                                                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-                                            if best_species:
-                                                output += f"Best in Species: {best_species['name']} (Species: {best_species['species']})\n"
-                                                output += "Stats (selected):\n"
-                                                for stat_name, direction in parsed_stats:
-                                                    val = best_species["stats"].get(stat_name, 0)
-                                                    unit = STAT_UNITS.get(stat_name, "")
-                                                    dir_str = "+" if direction == 1 else "-"
-                                                    output += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
-                                        prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
-                                        MAGIC_AFFINITY_MODE = prev_magic
-                                        self._opt_session = None
-                                        return output
-                                    step_out = self.process_command("optimize step")
-                                    output += step_out
-                                    safety -= 1
-                                return output
-
-                            # Unknown subcommand
-                            return "Usage: optimize start|step|continue|run|until|status|stop ...\n"
-                        # If not using subcommands, show usage
-                        return (
-                            "Usage: optimize start|step|continue|run|until|status|stop ...\n"
-                        )
-
-            # Create session with default small chunk
-            self._opt_session = {
-                "generations": generations,
-                "done": 0,
-                "stats_spec": stats_spec,
-                "parsed_stats": parsed_stats,
-                "species_filter": species_filter,
-                "target_species": target_species,
-                "baseline_stats": baseline_stats,
-                "baseline_N": baseline_N,
-                "baseline_by_species": ({target_species: {k: v["avg"] for k, v in baseline_stats.items()}} if target_species and baseline_stats else {}),
-                "POP_SIZE": POP_SIZE,
-                "chunk": 5,
-                "prev_magic": prev_magic,
-            }
-
-            output += "Optimize session started. Use 'optimize step' (optionally with chunk=N) to progress.\n"
-            if target_species and baseline_stats:
-                output += f"Random {target_species} baseline (N={baseline_N}):\n"
-                for stat_name, _ in parsed_stats:
-                    if stat_name in baseline_stats:
-                        b = baseline_stats[stat_name]
-                        unit = STAT_UNITS.get(stat_name, "")
-                        output += f"  {stat_name}: min={b['min']:.3f}, avg={b['avg']:.3f}, max={b['max']:.3f} {unit}\n"
-            output += f"Progress: 0/{generations} generations completed.\n"
-            # Auto-advance: run in steps until completion, using the session's chunk
-            # This keeps output chunked while completing in one command.
-            safety = 100000
-            while self._opt_session and safety > 0:
-                step_out = self.process_command("optimize step")
-                # Suppress any stray legacy usage lines that might appear interleaved
-                if "Usage: optimize <generations>" in step_out:
-                    filtered = []
-                    for line in step_out.splitlines():
-                        if line.startswith("Usage: optimize <generations>"):
-                            continue
-                        if line.startswith("Example: optimize "):
-                            continue
-                        filtered.append(line)
-                    step_out = "\n".join(filtered) + ("\n" if step_out.endswith("\n") else "")
-                output += step_out
-                # process_command('optimize step') will clear the session on completion
-                safety -= 1
-            return output
+            # end optimize command handler
         elif cmd == "random":
             genotype, sp = random.choice(all_full_genotypes)
             output += "--- RANDOM SPECIES GENERATED ---\n"
