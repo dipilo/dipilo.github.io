@@ -404,6 +404,100 @@ for top_geno in all_gene_genotypes():
 ######################################
 # 5. CROSS-BREEDING FUNCTIONS
 ######################################
+# Linkage and polygenic settings
+LINKAGE_R_TOP_MID = 0.20   # recombination fraction between top and mid loci
+LINKAGE_R_MID_BOTTOM = 0.20  # recombination fraction between mid and bottom loci
+
+# Polygenic trait configuration
+POLY_P = 6          # number of polygenic loci per trait on each haplotype
+POLY_R = 0.10       # recombination fraction between adjacent polygenic loci
+POLY_TRAIT_SCALES = {
+    # modest additive contributions; tuned small to avoid runaway values
+    "Size": 2.0,            # roughly +/- a few cm across many loci
+    "Strength": 1.5,
+    "IQ": 0.5,
+    "EQ": 0.5,
+    "Land Speed": 0.8,
+    "Swim Speed": 0.8,
+    "Flight Speed": 0.8,
+}
+
+def phase_genotype(geno: dict) -> dict:
+    """Create a phased haplotype view from an unordered genotype tuple per locus.
+    Returns a dict like { 'top': (a0,a1), 'mid': (b0,b1), 'bottom': (c0,c1) } preserving order.
+    """
+    def order_pair(p):
+        if isinstance(p, tuple) and len(p) == 2:
+            lst = list(p)
+            random.shuffle(lst)
+            return (lst[0], lst[1])
+        return p
+    return {
+        "top": order_pair(geno["top"]),
+        "mid": order_pair(geno["mid"]),
+        "bottom": order_pair(geno["bottom"]),
+    }
+
+def pick_with_mutation(allele: str) -> str:
+    """Apply per-allele mutation distribution once to a chosen allele."""
+    dist = allele_mutation_distribution(allele)
+    choices, probs = zip(*dist.items())
+    return random.choices(choices, weights=probs, k=1)[0]
+
+def gamete_from_haplotypes(haps: dict) -> dict:
+    """Build a gamete across ordered loci using phased haplotypes and recombination between loci."""
+    order = ["top", "mid", "bottom"]
+    cur = random.choice([0, 1])
+    out = {}
+    for i, locus in enumerate(order):
+        allele = haps[locus][cur]
+        out[locus] = pick_with_mutation(allele)
+        # switch between loci with linkage probabilities
+        if locus == "top":
+            if random.random() < LINKAGE_R_TOP_MID:
+                cur = 1 - cur
+        elif locus == "mid":
+            if random.random() < LINKAGE_R_MID_BOTTOM:
+                cur = 1 - cur
+    return out
+
+def init_poly_haps() -> dict:
+    """Initialize per-trait polygenic haplotypes: for each trait, two arrays of length POLY_P."""
+    poly = {}
+    for trait in POLY_TRAIT_SCALES.keys():
+        hap0 = [random.gauss(0.0, 0.2) for _ in range(POLY_P)]
+        hap1 = [random.gauss(0.0, 0.2) for _ in range(POLY_P)]
+        poly[trait] = (hap0, hap1)
+    return poly
+
+def recombine_poly_gamete(hap0: list[float], hap1: list[float]) -> list[float]:
+    cur = random.choice([0, 1])
+    out = []
+    for i in range(POLY_P):
+        out.append(hap0[i] if cur == 0 else hap1[i])
+        if i < POLY_P - 1 and random.random() < POLY_R:
+            cur = 1 - cur
+    return out
+
+def apply_polygenic(stats: dict, poly_haps: dict):
+    """Additive polygenic contribution to selected traits.
+    poly_haps: { trait: (hap0:list, hap1:list), ... }
+    """
+    if not poly_haps:
+        return
+    for trait, scale in POLY_TRAIT_SCALES.items():
+        if trait not in stats:
+            continue
+        h = poly_haps.get(trait)
+        if not h:
+            continue
+        hap0, hap1 = h
+        contrib = (sum(hap0) + sum(hap1)) * scale
+        try:
+            stats[trait] = max(0.0, float(stats[trait]) + contrib)
+        except Exception:
+            # if it's not numeric (e.g., speed missing), skip
+            pass
 def cross_gene(g1, g2):
     outcomes = defaultdict(float)
     for allele1 in g1:
@@ -441,12 +535,13 @@ def cross_breed_random(sp1, sp2):
     }
 
 def cross_breed_from_genotype(geno1, geno2):
-    top_allele1 = random.choice(geno1["top"])
-    top_allele2 = random.choice(geno2["top"])
-    mid_allele1 = random.choice(geno1["mid"])
-    mid_allele2 = random.choice(geno2["mid"])
-    bottom_allele1 = random.choice(geno1["bottom"])
-    bottom_allele2 = random.choice(geno2["bottom"])
+    # Backward-compatible helper (no phased haplotypes provided):
+    top_allele1 = random_inherited_allele(geno1["top"])
+    top_allele2 = random_inherited_allele(geno2["top"])
+    mid_allele1 = random_inherited_allele(geno1["mid"])
+    mid_allele2 = random_inherited_allele(geno2["mid"])
+    bottom_allele1 = random_inherited_allele(geno1["bottom"])
+    bottom_allele2 = random_inherited_allele(geno2["bottom"])
     offspring_top = tuple(sorted((top_allele1, top_allele2)))
     offspring_mid = tuple(sorted((mid_allele1, mid_allele2)))
     offspring_bottom = tuple(sorted((bottom_allele1, bottom_allele2)))
@@ -1416,13 +1511,30 @@ def breed_from_saved(parent1_name, parent2_name, silent: bool = False):
         print("Saved parents do not have genotype info. Cannot breed using genotype simulation.")
         return None
 
-    # 1. Generate offspring genotype + species
+    # 1. Generate offspring genotype + species using phased haplotypes and recombination
+    # Prepare phased haplotypes for parents (fallback to random phasing if missing)
+    hap1 = parent1.get("haplotypes") or phase_genotype(geno1)
+    hap2 = parent2.get("haplotypes") or phase_genotype(geno2)
+
     MAX_ATTEMPTS = 10
     attempt = 0
     offspring_geno, species = None, None
+    child_haps = None
     while attempt < MAX_ATTEMPTS:
-        offspring_geno, species = cross_breed_from_genotype(geno1, geno2)
+        g1 = gamete_from_haplotypes(hap1)
+        g2 = gamete_from_haplotypes(hap2)
+        offspring_top = tuple(sorted((g1["top"], g2["top"])) )
+        offspring_mid = tuple(sorted((g1["mid"], g2["mid"])) )
+        offspring_bottom = tuple(sorted((g1["bottom"], g2["bottom"])) )
+        species = overall_phenotype(offspring_top, offspring_mid, offspring_bottom)
         if species is not None:
+            offspring_geno = {"top": offspring_top, "mid": offspring_mid, "bottom": offspring_bottom}
+            # Store child's phased haplotypes as the two gametes in order
+            child_haps = {
+                "top": (g1["top"], g2["top"]),
+                "mid": (g1["mid"], g2["mid"]),
+                "bottom": (g1["bottom"], g2["bottom"]),
+            }
             break
         attempt += 1
     if species is None:
@@ -1435,6 +1547,24 @@ def breed_from_saved(parent1_name, parent2_name, silent: bool = False):
     mid_expr    = mid_expression(offspring_geno["mid"])
     bottom_expr = bottom_expression(offspring_geno["bottom"])
     sim_stats, sim_mutations = generate_individual_stats(species, top_expr, mid_expr, bottom_expr)
+
+    # Polygenic inheritance: recombine each parent's polygenic haplotypes per trait
+    child_poly = {}
+    p1_poly = parent1.get("poly_haps")
+    p2_poly = parent2.get("poly_haps")
+    if p1_poly and p2_poly:
+        for trait in POLY_TRAIT_SCALES.keys():
+            h1 = p1_poly.get(trait)
+            h2 = p2_poly.get(trait)
+            if h1 and h2:
+                g1_poly = recombine_poly_gamete(h1[0], h1[1])
+                g2_poly = recombine_poly_gamete(h2[0], h2[1])
+                child_poly[trait] = (g1_poly, g2_poly)
+    if not child_poly:
+        child_poly = init_poly_haps()
+
+    # Apply polygenic contributions to simulated stats
+    apply_polygenic(sim_stats, child_poly)
 
     # 3. Compute base size/strength for variant thresholds
     base_size = (
@@ -1640,8 +1770,10 @@ def breed_from_saved(parent1_name, parent2_name, silent: bool = False):
     offspring = {
         "name": generate_unique_name(species_variant),
         "genotype": offspring_geno,
+        "haplotypes": child_haps or phase_genotype(offspring_geno),
         "species": species_variant,
         "stats": final_stats,     # now contains both core and detailed stats
+        "poly_haps": child_poly,
         "mode": "saved_breed",
         "parents": [parent1_name, parent2_name]
     }
@@ -2245,12 +2377,18 @@ class HybridCLI:
                         m = mid_expression(geno["mid"])
                         b = bottom_expression(geno["bottom"])
                         stats, _ = generate_individual_stats(sp, t, m, b)
+                        # Initialize phased haplotypes and polygenic haplotypes
+                        haps = phase_genotype(geno)
+                        poly = init_poly_haps()
+                        apply_polygenic(stats, poly)
                         name = generate_unique_name(sp)
                         record = {
                             "name": name,
                             "genotype": geno,
+                            "haplotypes": haps,
                             "species": sp,
-                            "stats": stats
+                            "stats": stats,
+                            "poly_haps": poly,
                         }
                         self.saved_hybrids[name.lower()] = record
                         return name, geno
@@ -2519,6 +2657,10 @@ class HybridCLI:
                 mid_expression(genotype["mid"]),
                 bottom_expression(genotype["bottom"])
             )
+            # Initialize haplotypes and polygenes; apply contributions
+            haps = phase_genotype(genotype)
+            poly = init_poly_haps()
+            apply_polygenic(stats, poly)
             output += f"Species: {sp}\n"
 
             if self.SAVE_MODE:
@@ -2526,8 +2668,10 @@ class HybridCLI:
                 record = {
                     "name": new_name,
                     "genotype": genotype,
+                    "haplotypes": haps,
                     "species": sp,
-                    "stats": stats
+                    "stats": stats,
+                    "poly_haps": poly,
                 }
                 # session-only save
                 self.saved_hybrids[new_name.lower()] = record
