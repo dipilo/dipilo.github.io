@@ -1725,7 +1725,6 @@ class HybridCLI:
                 "                             e.g., breed naga pegasus or breed \"Silver Griffin\" \"Mystic Stag\"\n"
                 "  random                    - Generate a random species (with a unique name if save mode is ON)\n"
                 "  simulate [n]              - Run random generation n times and list frequency of species produced\n"
-                "  optimize <gens> <stats> [species=sp1,sp2,...] - Evolve over generations to maximize/minimize stats; accepts variants\n"
                 "  help                      - Show this help message\n"
                 "  quit                      - Exit the simulator\n"
             )
