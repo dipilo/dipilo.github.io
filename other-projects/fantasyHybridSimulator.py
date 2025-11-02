@@ -2059,7 +2059,7 @@ class HybridCLI:
                     output += "Usage: magic [on|off|status]\n"
         elif cmd == "optimize":
             # Chunked session controls to avoid long blocking runs in UI contexts
-            if len(parts) > 1 and parts[1].lower() in ("start", "step", "continue", "status", "stop", "run", "until", "check", "finalize"):
+            if len(parts) > 1 and parts[1].lower() in ("start", "step", "continue", "status", "stop", "run", "until", "check", "finalize", "report"):
                 sub = parts[1].lower()
                 # Helper reused by 'until' and 'check'
                 def _check_condition(cond: str) -> bool:
@@ -2191,6 +2191,142 @@ class HybridCLI:
                     prev_magic = self._opt_session.get("prev_magic", MAGIC_AFFINITY_MODE)
                     MAGIC_AFFINITY_MODE = prev_magic
                     self._opt_session = None
+                    return out
+
+                if sub == "report":
+                    if len(parts) < 3:
+                        return "Usage: optimize report <condition>\n"
+                    condition = parts[2]
+                    # Helper to parse condition for reporting
+                    def _parse_condition_for_report(cond: str):
+                        cl = cond.lower()
+                        if cl.startswith("variant="):
+                            return ("variant", cl.split("=",1)[1].strip(), None, None)
+                        if cl.startswith("species="):
+                            return ("species", cl.split("=",1)[1].strip(), None, None)
+                        if cl.startswith("stat:"):
+                            expr = cl[5:]
+                            for op in (">=","<=","==",">","<"):
+                                if op in expr:
+                                    left, right = expr.split(op,1)
+                                    stat_name = left.strip()
+                                    try:
+                                        thr = float(right.strip())
+                                    except Exception:
+                                        thr = None
+                                    canon = None
+                                    for k in STAT_UNITS.keys():
+                                        if k.lower() == stat_name:
+                                            canon = k
+                                            break
+                                    if canon is None:
+                                        canon = stat_name
+                                    return ("stat", canon, op, thr)
+                        return ("unknown", None, None, None)
+
+                    kind, a, op, thr = _parse_condition_for_report(condition)
+                    # Use current session parsed stats if available for selection display
+                    parsed_stats = None
+                    target_species = None
+                    if self._opt_session:
+                        parsed_stats = self._opt_session.get("parsed_stats")
+                        target_species = self._opt_session.get("target_species")
+
+                    def _best_records():
+                        recs = list(self.saved_hybrids.values())
+                        if not recs:
+                            return []
+                        ps = parsed_stats or []
+                        baselines = None
+                        if self._opt_session:
+                            baselines = self._opt_session.get("baselines")
+                        def _score(r):
+                            if not ps:
+                                return 0.0
+                            total = 0.0
+                            for stat_name, direction in ps:
+                                val = r.get("stats", {}).get(stat_name, 0)
+                                base = 0.0
+                                if baselines and r.get("species") in baselines:
+                                    base = baselines[r["species"]].get(stat_name, 0.0)
+                                try:
+                                    v = float(val)
+                                except Exception:
+                                    # try to parse "x / y" style or strings with units
+                                    try:
+                                        v = float(str(val).split('/')[-1])
+                                    except Exception:
+                                        v = 0.0
+                                total += direction * (v - base)
+                            return total
+                        recs.sort(key=_score, reverse=True)
+                        return recs
+                    best_list = _best_records()
+                    best_overall = best_list[0] if best_list else None
+
+                    out = "\n--- GOAL NOT REACHED ---\n"
+                    out += f"Condition: {condition}\n"
+                    if kind == "variant":
+                        want = str(a)
+                        cnt = sum(1 for rec in self.saved_hybrids.values() if rec.get("species","" ).lower().startswith(want+" "))
+                        out += f"Found candidates with variant '{want}': {cnt}\n"
+                    elif kind == "species":
+                        want = str(a)
+                        cnt = sum(1 for rec in self.saved_hybrids.values() if rec.get("species","" ).lower()==want)
+                        out += f"Found candidates with species '{want}': {cnt}\n"
+                    elif kind == "stat" and thr is not None:
+                        def _num(v):
+                            if isinstance(v, (int,float)):
+                                return float(v)
+                            if isinstance(v, bool):
+                                return 1.0 if v else 0.0
+                            if isinstance(v, str):
+                                if '/' in v:
+                                    try:
+                                        return float(v.split('/')[-1])
+                                    except Exception:
+                                        pass
+                                buf = ''.join(ch for ch in v if (ch.isdigit() or ch in '.-'))
+                                try:
+                                    return float(buf) if buf else 0.0
+                                except Exception:
+                                    return 0.0
+                            return 0.0
+                        best_val = 0.0
+                        if best_overall:
+                            best_val = _num(best_overall.get("stats",{}).get(a,0))
+                        gap = None
+                        if op == ">=" or op == ">":
+                            gap = max(0.0, (thr - best_val))
+                        elif op == "<=" or op == "<":
+                            gap = max(0.0, (best_val - thr))
+                        elif op == "==":
+                            gap = abs(best_val - thr)
+                        unit = STAT_UNITS.get(a, "")
+                        out += f"Best {a}: {best_val:.3f} {unit}\n"
+                        out += f"Goal {op} {thr:.3f} {unit}\n"
+                        if gap is not None:
+                            out += f"Gap: {gap:.3f} {unit}\n"
+                    if best_overall:
+                        out += f"Best Overall: {best_overall['name']} (Species: {best_overall['species']})\n"
+                        if parsed_stats:
+                            out += "Stats (selected):\n"
+                            for stat_name, direction in parsed_stats:
+                                val = best_overall["stats"].get(stat_name, 0)
+                                unit = STAT_UNITS.get(stat_name, "")
+                                dir_str = "+" if direction == 1 else "-"
+                                out += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
+                        if target_species:
+                            species_best = next((rec for rec in best_list if rec["species"].lower()==target_species), None)
+                            if species_best:
+                                out += f"Best in Species: {species_best['name']} (Species: {species_best['species']})\n"
+                                if parsed_stats:
+                                    out += "Stats (selected):\n"
+                                    for stat_name, direction in parsed_stats:
+                                        val = species_best["stats"].get(stat_name, 0)
+                                        unit = STAT_UNITS.get(stat_name, "")
+                                        dir_str = "+" if direction == 1 else "-"
+                                        out += f"  {dir_str}{stat_name}: {val} {unit}".rstrip() + "\n"
                     return out
 
                 def _canon_stat(name: str) -> str:

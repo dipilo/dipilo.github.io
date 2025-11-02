@@ -163,7 +163,13 @@ window.run_command = run_command
           }
           function tick() {
             const out = runCommandOnce("optimize step");
-            if (/--- OPTIMIZATION RESULT ---/.test(out)) return; // already finished
+            if (/--- OPTIMIZATION RESULT ---/.test(out)) {
+              // Finished without explicitly meeting the goal. Print a closeness report.
+              if (!isGoal()) {
+                runCommandOnce(`optimize report ${condition}`);
+              }
+              return;
+            }
             if (isGoal()) {
               const fin = runCommandOnce("optimize finalize");
               return;
