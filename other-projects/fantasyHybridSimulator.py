@@ -1841,8 +1841,8 @@ class HybridCLI:
                 "  toggle                    - Toggle save mode ON/OFF\n"
                 "  magic [on|off|status]     - Toggle or set elemental magic affinity display\n"
                 "  litter [on|off|status|cap=N] - Toggle litter reproduction and/or set a safety cap per pairing\n"
-                "  optimize start <gens> <stats> [species ...] [chunk=N] - Start a chunked evolution session (non-blocking)\n"
-                "  optimize step|continue [chunk=N|auto] - Run N generations or 'auto' (all remaining) in the active session\n"
+                "  optimize start <gens> <stats> [species ...] [chunk=N] [log=N] [score=raw|norm] - Start a chunked evolution session (non-blocking)\n"
+                "  optimize step|continue [chunk=N|auto] [log=N] [score=raw|norm] - Run N generations or 'auto' (all remaining) in the active session\n"
                 "  optimize run <gens> <stats> [species ...] [chunk=N] - Start, then auto-continue until completion\n"
                 "  optimize until <condition> [<gens>] <stats> [species ...] [chunk=N] - Run until goal or until gens done\n"
                 "     Conditions: variant=<Name> | species=<name> | stat:Size>=340 (use STAT names; case-insensitive)\n"
@@ -2061,46 +2061,76 @@ class HybridCLI:
             # Chunked session controls to avoid long blocking runs in UI contexts
             if len(parts) > 1 and parts[1].lower() in ("start", "step", "continue", "status", "stop", "run", "until", "check", "finalize", "report"):
                 sub = parts[1].lower()
-                # Helper reused by 'until' and 'check'
+                # Helper reused by 'check' and 'report' to parse conditions
+                def _parse_condition_generic(cond: str):
+                    cl = cond.strip()
+                    cl_lower = cl.lower()
+                    # Explicit prefixes
+                    if cl_lower.startswith("variant="):
+                        return ("variant", cl_lower.split("=",1)[1].strip(), None, None)
+                    if cl_lower.startswith("species="):
+                        return ("species", cl_lower.split("=",1)[1].strip(), None, None)
+                    if cl_lower.startswith("stat:"):
+                        expr = cl_lower[5:]
+                        for op in (">=","<=","==",">","<"):
+                            if op in expr:
+                                left, right = expr.split(op,1)
+                                stat_name = left.strip()
+                                try:
+                                    thr = float(right.strip())
+                                except Exception:
+                                    return ("unknown", None, None, None)
+                                canon = None
+                                for k in STAT_UNITS.keys():
+                                    if k.lower() == stat_name:
+                                        canon = k
+                                        break
+                                if canon is None:
+                                    canon = stat_name
+                                return ("stat", canon, op, thr)
+                        return ("unknown", None, None, None)
+                    # No prefix: detect stat expression like "Size>=340"
+                    for op in (">=","<=","==",">","<"):
+                        if op in cl:
+                            left, right = cl.split(op,1)
+                            stat_name = left.strip().lower()
+                            try:
+                                thr = float(right.strip())
+                            except Exception:
+                                return ("unknown", None, None, None)
+                            canon = None
+                            for k in STAT_UNITS.keys():
+                                if k.lower() == stat_name:
+                                    canon = k
+                                    break
+                            if canon is None:
+                                canon = left.strip()
+                            return ("stat", canon, op, thr)
+                    # Not a stat expression: species or variant?
+                    token = cl_lower.strip()
+                    if token in phenotype_genotypes:
+                        return ("species", token, None, None)
+                    # Fallback to variant prefix
+                    if token:
+                        return ("variant", token, None, None)
+                    return ("unknown", None, None, None)
+
                 def _check_condition(cond: str) -> bool:
-                    cl = cond.lower()
-                    if cl.startswith("variant="):
-                        want = cl.split("=", 1)[1].strip()
+                    kind, a, op, threshold = _parse_condition_generic(cond)
+                    if kind == "variant":
+                        want = a
                         for rec in self.saved_hybrids.values():
                             sp = rec.get("species", "").lower()
                             if sp.startswith(want + " "):
                                 return True
                         return False
-                    if cl.startswith("species="):
-                        want = cl.split("=", 1)[1].strip()
+                    if kind == "species":
+                        want = a
                         for rec in self.saved_hybrids.values():
                             if rec.get("species", "").lower() == want:
                                 return True
                         return False
-                    if cl.startswith("stat:"):
-                        # Format: stat:Name>=value | <= | == | > | <
-                        expr = cl[5:]
-                        op = None
-                        for candidate in (">=","<=","==",">","<"):
-                            if candidate in expr:
-                                op = candidate
-                                break
-                        if not op:
-                            return False
-                        left, right = expr.split(op, 1)
-                        stat_name = left.strip()
-                        try:
-                            threshold = float(right.strip())
-                        except Exception:
-                            return False
-                        # Canonicalize stat name to exact key
-                        canon = None
-                        for k in STAT_UNITS.keys():
-                            if k.lower() == stat_name:
-                                canon = k
-                                break
-                        if canon is None:
-                            canon = stat_name
+                    if kind == "stat":
                         def _num(v):
                             if isinstance(v, (int, float)):
                                 return float(v)
@@ -2119,7 +2149,7 @@ class HybridCLI:
                                     return 0.0
                             return 0.0
                         for rec in self.saved_hybrids.values():
-                            val = _num(rec.get("stats", {}).get(canon, 0))
+                            val = _num(rec.get("stats", {}).get(a, 0))
                             if ((op == ">=" and val >= threshold) or
                                 (op == ">"  and val >  threshold) or
                                 (op == "<=" and val <= threshold) or
@@ -2197,34 +2227,7 @@ class HybridCLI:
                     if len(parts) < 3:
                         return "Usage: optimize report <condition>\n"
                     condition = parts[2]
-                    # Helper to parse condition for reporting
-                    def _parse_condition_for_report(cond: str):
-                        cl = cond.lower()
-                        if cl.startswith("variant="):
-                            return ("variant", cl.split("=",1)[1].strip(), None, None)
-                        if cl.startswith("species="):
-                            return ("species", cl.split("=",1)[1].strip(), None, None)
-                        if cl.startswith("stat:"):
-                            expr = cl[5:]
-                            for op in (">=","<=","==",">","<"):
-                                if op in expr:
-                                    left, right = expr.split(op,1)
-                                    stat_name = left.strip()
-                                    try:
-                                        thr = float(right.strip())
-                                    except Exception:
-                                        thr = None
-                                    canon = None
-                                    for k in STAT_UNITS.keys():
-                                        if k.lower() == stat_name:
-                                            canon = k
-                                            break
-                                    if canon is None:
-                                        canon = stat_name
-                                    return ("stat", canon, op, thr)
-                        return ("unknown", None, None, None)
-
-                    kind, a, op, thr = _parse_condition_for_report(condition)
+                    kind, a, op, thr = _parse_condition_generic(condition)
                     # Use current session parsed stats if available for selection display
                     parsed_stats = None
                     target_species = None
@@ -2237,27 +2240,39 @@ class HybridCLI:
                         if not recs:
                             return []
                         ps = parsed_stats or []
-                        baselines = None
-                        if self._opt_session:
-                            baselines = self._opt_session.get("baselines")
+                        sess = self._opt_session or {}
+                        score_mode = sess.get("score_mode", "norm")
+                        baselines = sess.get("baseline_by_species") if score_mode == "norm" else None
+                        def _num(v):
+                            if isinstance(v, (int,float)):
+                                return float(v)
+                            if isinstance(v, bool):
+                                return 1.0 if v else 0.0
+                            if isinstance(v, str):
+                                if '/' in v:
+                                    try:
+                                        return float(v.split('/')[-1])
+                                    except Exception:
+                                        pass
+                                buf = ''.join(ch for ch in v if (ch.isdigit() or ch in '.-'))
+                                try:
+                                    return float(buf) if buf else 0.0
+                                except Exception:
+                                    return 0.0
+                            return 0.0
                         def _score(r):
                             if not ps:
                                 return 0.0
                             total = 0.0
                             for stat_name, direction in ps:
-                                val = r.get("stats", {}).get(stat_name, 0)
-                                base = 0.0
-                                if baselines and r.get("species") in baselines:
-                                    base = baselines[r["species"]].get(stat_name, 0.0)
-                                try:
-                                    v = float(val)
-                                except Exception:
-                                    # try to parse "x / y" style or strings with units
-                                    try:
-                                        v = float(str(val).split('/')[-1])
-                                    except Exception:
-                                        v = 0.0
-                                total += direction * (v - base)
+                                v = _num(r.get("stats", {}).get(stat_name, 0))
+                                if baselines:
+                                    base = baselines.get(r.get("species", ""), {}).get(stat_name, 1.0)
+                                    if base <= 1e-9:
+                                        base = 1.0
+                                    total += direction * (v / base)
+                                else:
+                                    total += direction * v
                             return total
                         recs.sort(key=_score, reverse=True)
                         return recs
@@ -2397,20 +2412,24 @@ class HybridCLI:
                     return 0.0
 
                 def _score_of(parsed_stats, record):
-                    # Normalized scoring: per-stat value divided by species baseline average (percent-over-base)
-                    # This makes cross-species comparisons fairer.
+                    # Supports raw or normalized scoring based on session config
                     tup = []
                     sess = self._opt_session if self._opt_session else {}
+                    mode = sess.get("score_mode", "norm")
+                    if mode == "raw":
+                        for stat_name, direction in parsed_stats:
+                            raw_val = _numeric_value(record["stats"].get(stat_name, 0))
+                            tup.append(direction * raw_val)
+                        return tuple(tup)
+                    # Normalized: per-stat value divided by species baseline average
                     baseline_by_species = sess.get("baseline_by_species", {})
                     baseline_N = sess.get("baseline_N", 100)
-
                     def _get_baseline_avg(species: str, stat_name: str) -> float:
                         sp = species.lower()
                         if sp not in baseline_by_species:
                             baseline_by_species[sp] = {}
                         if stat_name in baseline_by_species[sp]:
                             return baseline_by_species[sp][stat_name]
-                        # Compute and cache average baseline for this species/stat
                         if sp in phenotype_genotypes:
                             vals = []
                             for _ in range(baseline_N):
@@ -2423,13 +2442,11 @@ class HybridCLI:
                             avg = (sum(vals) / len(vals)) if vals else 0.0
                         else:
                             avg = 0.0
-                        # guard against zero/near-zero baselines
                         if avg <= 1e-9:
                             avg = 1.0
                         baseline_by_species[sp][stat_name] = avg
                         sess["baseline_by_species"] = baseline_by_species
                         return avg
-
                     species = record.get("species", "").lower()
                     for stat_name, direction in parsed_stats:
                         raw_val = _numeric_value(record["stats"].get(stat_name, 0))
@@ -2441,9 +2458,9 @@ class HybridCLI:
                 if sub == "start":
                     if len(parts) < 4:
                         output += (
-                            "Usage: optimize start <generations> <stats_spec> [species=sp1,sp2,...] [chunk=N]\n"
+                            "Usage: optimize start <generations> <stats_spec> [species=sp1,sp2,...] [chunk=N] [log=N] [score=raw|norm]\n"
                             "Examples:\n"
-                            "  optimize start 50 +Strength,IQ species=griffin chunk=5\n"
+                            "  optimize start 50 +Strength,IQ species=griffin chunk=5 log=100\n"
                             "  optimize start 1000 size centaur 50   (positional: gens stats species chunk)\n"
                         )
                         return output
@@ -2455,9 +2472,11 @@ class HybridCLI:
                     stats_spec = parts[3]
                     species_filter = None
                     chunk = 5
+                    log_every = 100
                     # Accept both prefixed and positional tokens after stats_spec
                     pos_species: list[str] = []
                     last_numeric: int | None = None
+                    score_mode = "norm"  # default: normalized cross-species scoring
                     for token in parts[4:]:
                         tl = token.lower()
                         if tl.startswith("species="):
@@ -2466,6 +2485,15 @@ class HybridCLI:
                         elif tl.startswith("chunk="):
                             try:
                                 chunk = max(1, int(token.split("=", 1)[1]))
+                            except Exception:
+                                pass
+                        elif tl.startswith("score="):
+                            val = token.split("=",1)[1].strip().lower()
+                            if val in ("raw","norm"):
+                                score_mode = val
+                        elif tl.startswith("log="):
+                            try:
+                                log_every = max(1, int(token.split("=", 1)[1]))
                             except Exception:
                                 pass
                         else:
@@ -2572,6 +2600,8 @@ class HybridCLI:
                         "baseline_by_species": {},
                         "POP_SIZE": POP_SIZE,
                         "chunk": chunk,
+                        "log_every": log_every,
+                        "score_mode": score_mode,
                         "prev_magic": prev_magic,
                     }
                     # Preload normalized baseline map with target species averages (if any)
@@ -2593,8 +2623,10 @@ class HybridCLI:
                 if sub in ("step", "continue"):
                     if not self._opt_session:
                         return "No active optimize session. Start one with: optimize start <gens> <stats_spec> ...\n"
-                    # Allow overriding chunk
+                    # Allow overriding chunk / logging / scoring
                     chunk = self._opt_session["chunk"]
+                    log_every = self._opt_session.get("log_every", 100)
+                    score_mode = self._opt_session.get("score_mode", "norm")
                     # Accept either chunk=N or a bare integer as positional
                     for token in parts[2:]:
                         tl = token.lower()
@@ -2609,6 +2641,15 @@ class HybridCLI:
                                 chunk = max(1, int(token.split("=", 1)[1]))
                             except Exception:
                                 pass
+                        elif tl.startswith("log="):
+                            try:
+                                log_every = max(1, int(token.split("=", 1)[1]))
+                            except Exception:
+                                pass
+                        elif tl.startswith("score="):
+                            val = token.split("=",1)[1].strip().lower()
+                            if val in ("raw","norm"):
+                                score_mode = val
                         else:
                             try:
                                 val = int(token)
@@ -2616,6 +2657,8 @@ class HybridCLI:
                             except Exception:
                                 pass
                     self._opt_session["chunk"] = chunk
+                    self._opt_session["log_every"] = log_every
+                    self._opt_session["score_mode"] = score_mode
 
                     parsed_stats = self._opt_session["parsed_stats"]
                     generations = self._opt_session["generations"]
@@ -2648,7 +2691,8 @@ class HybridCLI:
                     bred_total = 0
                     steps = 0
                     while steps < chunk and done < generations:
-                        candidates = list(self.saved_hybrids.values())
+                        # Consider only candidates matching species filter
+                        candidates = get_candidates()
                         if len(candidates) < 2:
                             for _ in range(POP_SIZE - len(candidates)):
                                 sp = random.choice(list(phenotype_genotypes.keys()))
@@ -2660,47 +2704,44 @@ class HybridCLI:
                                 stats, _ = generate_individual_stats(sp, t, m, b)
                                 name = generate_unique_name(sp)
                                 self.saved_hybrids[name.lower()] = {"name": name, "genotype": geno, "species": sp, "stats": stats}
-                            candidates = list(self.saved_hybrids.values())
+                            candidates = get_candidates()
 
                         candidates.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
-                        pairs = get_priority_pairs(candidates)
-                        random.shuffle(pairs)
+                        # Breed only among the best parents for the selected stats
+                        elite = candidates[:max(2, POP_SIZE)]
                         bred = 0
-                        if pairs:
-                            pair_count = min(len(pairs), max(1, POP_SIZE//2))
-                            used = set()
-                            for i in range(pair_count):
-                                p1, p2 = pairs[i]
-                                n1, n2 = p1["name"].lower(), p2["name"].lower()
-                                if n1 in used or n2 in used:
-                                    continue
-                                # Litter-aware breeding: possibly multiple offspring per pair
-                                produced_any = False
-                                litter_count = 1
-                                if getattr(self, "LITTER_MODE", False):
-                                    def _num(v):
+                        used = set()
+                        for i in range(0, len(elite)-1, 2):
+                            p1, p2 = elite[i], elite[i+1]
+                            n1, n2 = p1["name"].lower(), p2["name"].lower()
+                            if n1 in used or n2 in used:
+                                continue
+                            produced_any = False
+                            litter_count = 1
+                            if getattr(self, "LITTER_MODE", False):
+                                def _num(v):
+                                    try:
+                                        return float(v)
+                                    except Exception:
                                         try:
-                                            return float(v)
+                                            s = str(v)
+                                            if '/' in s:
+                                                return float(s.split('/')[1])
+                                            return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
                                         except Exception:
-                                            try:
-                                                s = str(v)
-                                                if '/' in s:
-                                                    return float(s.split('/')[1])
-                                                return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
-                                            except Exception:
-                                                return 0.0
-                                    lit1 = _num(p1.get("stats", {}).get("Litter Size", 1))
-                                    lit2 = _num(p2.get("stats", {}).get("Litter Size", 1))
-                                    avg = (lit1 + lit2) / 2.0 if (lit1 and lit2) else max(lit1, lit2, 1)
-                                    litter_count = max(1, min(getattr(self, "LITTER_CAP", 10), int(round(avg))))
-                                for _ in range(litter_count):
-                                    result = breed_from_saved(n1, n2, silent=True)
-                                    if result is not None:
-                                        produced_any = True
-                                if produced_any:
-                                    bred += 1
-                                    used.add(n1)
-                                    used.add(n2)
+                                            return 0.0
+                                lit1 = _num(p1.get("stats", {}).get("Litter Size", 1))
+                                lit2 = _num(p2.get("stats", {}).get("Litter Size", 1))
+                                avg = (lit1 + lit2) / 2.0 if (lit1 and lit2) else max(lit1, lit2, 1)
+                                litter_count = max(1, min(getattr(self, "LITTER_CAP", 10), int(round(avg))))
+                            for _ in range(litter_count):
+                                result = breed_from_saved(n1, n2, silent=True)
+                                if result is not None:
+                                    produced_any = True
+                            if produced_any:
+                                bred += 1
+                                used.add(n1)
+                                used.add(n2)
                         all_records = list(self.saved_hybrids.values())
                         all_records.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
                         keep = all_records[:POP_SIZE]
@@ -2718,7 +2759,8 @@ class HybridCLI:
                         done += 1
                         steps += 1
                         bred_total += bred
-                        output += f"Generation {done}: bred {bred} pair(s).\n"
+                        if (done % log_every) == 0 or done >= generations:
+                            output += f"Generation {done}: bred {bred} pair(s).\n"
 
                     self._opt_session["done"] = done
 
@@ -2777,6 +2819,8 @@ class HybridCLI:
                         MAGIC_AFFINITY_MODE = prev_magic
                         self._opt_session = None
                         return output
+                    else:
+                        output += f"Progress: {done}/{generations} generations completed.\n"
 
             # end optimize command handler
         elif cmd == "random":

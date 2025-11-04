@@ -119,6 +119,16 @@ window.run_command = run_command
           scheduleRunLoop("optimize step", (out) => /--- OPTIMIZATION RESULT ---/.test(out));
         }
 
+          function handleOptimizeRunFast(cmd) {
+            // Start, then finish in one Python call (UI may freeze, but it's faster)
+            const startCmd = cmd.replace(/^optimize\s+run\s+fast\s+/i, "optimize start ");
+            const startOut = runCommandOnce(startCmd);
+            if (/Usage:\s*optimize start/i.test(startOut)) return;
+            appendToConsole("[fast] Running to completion in Python (UI may be unresponsive)...");
+            const out = runCommandOnce("optimize continue auto");
+            // When done, Python will print the final result.
+          }
+
         function handleOptimizeContinueAuto(cmd) {
           // Instead of letting Python do 'auto' in one shot (which blocks), loop step in JS
           const startOut = runCommandOnce("optimize status");
@@ -129,6 +139,16 @@ window.run_command = run_command
           scheduleRunLoop("optimize step", (out) => /--- OPTIMIZATION RESULT ---/.test(out));
         }
 
+          function handleOptimizeContinueFast(cmd) {
+            const startOut = runCommandOnce("optimize status");
+            if (/No active optimize session/i.test(startOut)) {
+              appendToConsole("No active optimize session. Use 'optimize start' first.");
+              return;
+            }
+            appendToConsole("[fast] Finishing to completion in Python (UI may be unresponsive)...");
+            runCommandOnce("optimize continue auto");
+          }
+
         function handleOptimizeUntil(cmd) {
           // Parse: optimize until <condition> [<gens>] <stats> [species ...] [chunk=N]
           const m = cmd.match(/^optimize\s+until\s+(\S+)\s*(.*)$/i);
@@ -136,7 +156,7 @@ window.run_command = run_command
             appendToConsole("Usage: optimize until <condition> [<gens>] <stats> [species ...] [chunk=N]");
             return;
           }
-          const condition = m[1];
+          let condition = m[1];
           const rest = m[2].trim();
           const parts = rest ? rest.split(/\s+/) : [];
           let gens = "100000";
@@ -191,8 +211,16 @@ window.run_command = run_command
             appendToConsole(cmd, true);
             cmdInput.value = "";
             const lower = cmd.toLowerCase();
+            if (/^optimize\s+run\s+fast\b/.test(lower)) {
+              handleOptimizeRunFast(cmd);
+              return;
+            }
             if (/^optimize\s+run\b/.test(lower)) {
               handleOptimizeRun(cmd);
+              return;
+            }
+            if (/^optimize\s+(continue|step)\s+fast\b/.test(lower)) {
+              handleOptimizeContinueFast(cmd);
               return;
             }
             if (/^optimize\s+(continue|step)\b.*\bauto\b/.test(lower)) {
