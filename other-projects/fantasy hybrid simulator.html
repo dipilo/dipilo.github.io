@@ -78,6 +78,241 @@ window.run_command = run_command
       document.addEventListener("DOMContentLoaded", () => {
         const consoleDiv = document.getElementById("console");
         const cmdInput = document.getElementById("commandInput");
+        // Suggestion UI
+        const suggestBox = document.createElement('div');
+        suggestBox.id = 'suggestions';
+        suggestBox.style.position = 'relative';
+        cmdInput.parentElement.insertBefore(suggestBox, cmdInput.nextSibling);
+
+        const suggestList = document.createElement('div');
+        suggestList.style.background = '#121212';
+        suggestList.style.border = '1px solid #333';
+        suggestList.style.borderTop = 'none';
+        suggestList.style.borderRadius = '0 0 6px 6px';
+        suggestList.style.color = '#ddd';
+        suggestList.style.fontFamily = 'Consolas, monospace';
+        suggestList.style.fontSize = '0.95rem';
+        suggestList.style.maxHeight = '220px';
+        suggestList.style.overflowY = 'auto';
+        suggestList.style.display = 'none';
+        suggestList.style.padding = '4px 0';
+        suggestList.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+        suggestBox.appendChild(suggestList);
+
+        const preview = document.createElement('div');
+        preview.style.marginTop = '4px';
+        preview.style.color = '#aaa';
+        preview.style.fontFamily = 'Consolas, monospace';
+        preview.style.fontSize = '0.9rem';
+        suggestBox.appendChild(preview);
+
+        let suggestionItems = [];
+        let activeIndex = -1;
+        let cachedSpecies = null;
+        async function ensureSpecies() {
+          if (cachedSpecies) return cachedSpecies;
+          try {
+            const out = runCommandOnce('list');
+            const lines = out.split(/\r?\n/);
+            const species = [];
+            let inSection = false;
+            for (const ln of lines) {
+              if (/^Available species/i.test(ln)) { inSection = true; continue; }
+              if (inSection) {
+                if (!ln.trim()) break;
+                if (/^\s{2,}\S/.test(ln)) {
+                  const name = ln.trim();
+                  species.push(name);
+                } else {
+                  // likely reached next section
+                  break;
+                }
+              }
+            }
+            cachedSpecies = species;
+          } catch (e) {
+            cachedSpecies = [];
+          }
+          return cachedSpecies;
+        }
+
+        const BASE_COMMANDS = [
+          {t: 'help', d: 'Show help'},
+          {t: 'toggle', d: 'Toggle save mode'},
+          {t: 'magic on', d: 'Enable magic affinities'},
+          {t: 'magic off', d: 'Disable magic affinities'},
+          {t: 'magic status', d: 'Show magic status'},
+          {t: 'litter on', d: 'Enable litter reproduction'},
+          {t: 'litter off', d: 'Disable litter reproduction'},
+          {t: 'litter status', d: 'Show litter status'},
+          {t: 'litter cap=3', d: 'Set litter cap'},
+          {t: 'list', d: 'List species (and saved hybrids in save mode)'},
+          {t: 'breed <parent1> <parent2>', d: 'Breed two species or saved hybrids'},
+          {t: 'random', d: 'Generate a random species'},
+          {t: 'simulate 100', d: 'Run N random generations'},
+          {t: 'optimize start <gens> <stats> [species ...] [chunk=N] [log=N] [score=raw|norm] [intensity=N]', d: 'Start a session'},
+          {t: 'optimize step [chunk=N|auto] [log=N] [score=raw|norm] [intensity=N]', d: 'Advance the session'},
+          {t: 'optimize continue auto', d: 'Run all remaining generations'},
+          {t: 'optimize run <gens> <stats> ...', d: 'Start then run to completion (non-blocking UI loop)'},
+          {t: 'optimize run fast <gens> <stats> ...', d: 'Start then run to completion (blocking, faster)'},
+          {t: 'optimize until <condition> [<gens>] <stats> ...', d: 'Run until goal or time out'},
+          {t: 'optimize check <condition>', d: 'Check if goal is currently met'},
+          {t: 'optimize finalize', d: 'Print result and end session'},
+          {t: 'optimize status', d: 'Show session progress'},
+          {t: 'optimize stop', d: 'Stop the session'},
+          {t: 'optimize report <condition>', d: 'Closeness summary if the goal is not met'},
+        ];
+
+        function startsWithI(a, b) { return a.toLowerCase().startsWith(b.toLowerCase()); }
+        function includesI(a, b) { return a.toLowerCase().includes(b.toLowerCase()); }
+
+        function formatSuggestion(item, q) {
+          const el = document.createElement('div');
+          el.style.padding = '4px 8px';
+          el.style.cursor = 'pointer';
+          el.dataset.text = item.t;
+          el.innerHTML = `<span style="color:#ddd">${item.t}</span>` + (item.d ? ` <span style="color:#666">— ${item.d}</span>` : '');
+          el.addEventListener('mouseover', () => setActive(Array.from(suggestList.children).indexOf(el)));
+          el.addEventListener('mousedown', (e) => { e.preventDefault(); applySuggestion(item.t); });
+          return el;
+        }
+
+        function setActive(idx) {
+          activeIndex = idx;
+          Array.from(suggestList.children).forEach((c, i) => {
+            c.style.background = i === activeIndex ? '#1f1f1f' : 'transparent';
+          });
+        }
+
+        function applySuggestion(text) {
+          cmdInput.value = text;
+          hideSuggestions();
+          // Keep focus for continued editing
+          cmdInput.focus();
+          updatePreview(text);
+        }
+
+        function hideSuggestions() {
+          suggestList.style.display = 'none';
+          suggestList.innerHTML = '';
+          suggestionItems = [];
+          activeIndex = -1;
+        }
+
+        function showSuggestions(items) {
+          suggestList.innerHTML = '';
+          suggestionItems = items.slice(0, 10);
+          for (const it of suggestionItems) {
+            suggestList.appendChild(formatSuggestion(it));
+          }
+          suggestList.style.display = suggestionItems.length ? 'block' : 'none';
+          setActive(suggestionItems.length ? 0 : -1);
+        }
+
+        function updatePreview(text) {
+          const t = text.trim();
+          if (!t) { preview.textContent = ''; return; }
+          if (/^optimize\s+start\b/i.test(t)) {
+            preview.textContent = 'optimize start <gens> <stats> [species ...] [chunk=N] [log=N] [score=raw|norm] [intensity=N]';
+            return;
+          }
+          if (/^optimize\s+(step|continue)\b/i.test(t)) {
+            preview.textContent = 'optimize step|continue [chunk=N|auto] [log=N] [score=raw|norm] [intensity=N]';
+            return;
+          }
+          if (/^optimize\s+until\b/i.test(t)) {
+            preview.textContent = 'optimize until <condition> [<gens>] <stats> [species ...] [chunk=N] [log=N] [score=raw|norm] [intensity=N]';
+            return;
+          }
+          if (/^breed\b/i.test(t)) {
+            preview.textContent = 'breed <parent1> <parent2>   (species name or saved hybrid name)';
+            return;
+          }
+          preview.textContent = '';
+        }
+
+        async function computeSuggestions(q) {
+          const text = q.trim();
+          updatePreview(q);
+          if (!text) return BASE_COMMANDS.slice(0, 10);
+          const parts = text.split(/\s+/);
+          // Base command suggestions
+          if (parts.length === 1) {
+            const p = parts[0];
+            return BASE_COMMANDS.filter(c => startsWithI(c.t, p) || includesI(c.t, p)).slice(0, 10);
+          }
+          // Contextual suggestions
+          const cmd = parts[0].toLowerCase();
+          if (cmd === 'optimize') {
+            const sub = (parts[1] || '').toLowerCase();
+            if (!sub) {
+              return [
+                {t:'optimize start ', d:'Begin a new session'},
+                {t:'optimize step ', d:'Advance N or chunk'},
+                {t:'optimize continue auto', d:'Finish remaining gens'},
+                {t:'optimize run ', d:'Start then auto loop'},
+                {t:'optimize run fast ', d:'Start then finish fast (blocking)'},
+                {t:'optimize until ', d:'Run until condition or timeout'},
+                {t:'optimize check ', d:'Check goal now'},
+                {t:'optimize finalize', d:'Print result & end'},
+                {t:'optimize status', d:'Progress'},
+                {t:'optimize stop', d:'Stop session'},
+              ];
+            }
+            if (sub === 'start') {
+              // Suggest tokens after 'start'
+              const tail = parts.slice(2).join(' ');
+              const suggestions = [];
+              if (!/\d/.test(parts[2] || '')) suggestions.push({t: text + '100000 ', d:'Generations'});
+              if (!(parts[3])) suggestions.push({t: text + 'size ', d:'+/- stat names, comma-separated'});
+              suggestions.push({t: text + 'species=', d:'species=<name1>,<name2>'});
+              suggestions.push({t: text + 'chunk=1000', d:'Generations per step call'});
+              suggestions.push({t: text + 'log=1000', d:'Print every N generations'});
+              suggestions.push({t: text + 'score=raw', d:'Raw score (absolute)'});
+              suggestions.push({t: text + 'score=norm', d:'Normalized score (per-species)'});
+              suggestions.push({t: text + 'intensity=3', d:'More offspring per elite pair'});
+              // Species suggestions if typing species=
+              if (/species=([^\s]*)$/i.test(text)) {
+                const m = text.match(/species=([^\s]*)$/i);
+                const frag = (m && m[1] || '').split(',').pop().toLowerCase();
+                const sp = await ensureSpecies();
+                const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t: text.replace(/species=[^\s]*$/i, `species=${m[1].replace(/[^,]*$/, s)}`), d: 'species'}));
+                return spSugs.length ? spSugs : suggestions;
+              }
+              return suggestions;
+            }
+            if (sub === 'until' || sub === 'check' || sub === 'report') {
+              if (parts.length === 2) {
+                return [
+                  {t: 'optimize until stat:Size>=340 ', d:'Stat goal'},
+                  {t: 'optimize until giant ', d:'Variant goal'},
+                  {t: 'optimize until species=centaur ', d:'Species goal'},
+                ];
+              }
+              if (sub === 'until') {
+                const suggestions = [];
+                if (parts.length === 3) {
+                  suggestions.push({t: text + ' 250000 size ', d:'Add gens and stats'});
+                }
+                if (/species=([^\s]*)$/i.test(text)) {
+                  const m = text.match(/species=([^\s]*)$/i);
+                  const frag = (m && m[1] || '').split(',').pop().toLowerCase();
+                  const sp = await ensureSpecies();
+                  const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t: text.replace(/species=[^\s]*$/i, `species=${m[1].replace(/[^,]*$/, s)}`), d: 'species'}));
+                  if (spSugs.length) return spSugs;
+                }
+                return suggestions;
+              }
+              return [];
+            }
+          }
+          if (cmd === 'breed') {
+            const sp = await ensureSpecies();
+            const last = parts[parts.length-1] || '';
+            return sp.filter(s => s.toLowerCase().startsWith(last.toLowerCase())).slice(0, 8).map(s => ({t: parts.slice(0, -1).join(' ') + ' ' + s, d:'species'}));
+          }
+          return [];
+        }
 
         function appendToConsole(text, isUser = false) {
           const line = document.createElement("div");
@@ -202,6 +437,25 @@ window.run_command = run_command
         // Focus the input field once the page loads
         cmdInput.focus();
 
+        async function refreshSuggestions() {
+          const q = cmdInput.value;
+          const items = await computeSuggestions(q);
+          showSuggestions(items);
+        }
+
+        cmdInput.addEventListener('input', () => {
+          refreshSuggestions();
+        });
+
+        // Keyboard navigation for suggestions
+        cmdInput.addEventListener('keydown', (e) => {
+          if (suggestList.style.display !== 'none') {
+            if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(activeIndex + 1, suggestionItems.length - 1)); return; }
+            if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(activeIndex - 1, 0)); return; }
+            if (e.key === 'Tab') { e.preventDefault(); if (activeIndex >= 0 && suggestionItems[activeIndex]) { applySuggestion(suggestionItems[activeIndex].t); } return; }
+          }
+        });
+
         // Listen for Enter key on the command input field
         cmdInput.addEventListener("keydown", (e) => {
           if (e.key === "Enter") {
@@ -210,6 +464,7 @@ window.run_command = run_command
             if (!cmd) return;
             appendToConsole(cmd, true);
             cmdInput.value = "";
+            hideSuggestions();
             const lower = cmd.toLowerCase();
             if (/^optimize\s+run\s+fast\b/.test(lower)) {
               handleOptimizeRunFast(cmd);
@@ -235,6 +490,10 @@ window.run_command = run_command
             runCommandOnce(cmd);
           }
         });
+
+        // Initial load
+        cmdInput.addEventListener('focus', () => refreshSuggestions());
+        updatePreview('');
       });
     </script>
   </main>
