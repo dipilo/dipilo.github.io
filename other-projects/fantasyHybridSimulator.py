@@ -2512,6 +2512,9 @@ class HybridCLI:
                     if not parsed_stats:
                         output += "No valid stats specified.\n"
                         return output
+                    # Default score mode: raw when optimizing a single stat, otherwise normalized
+                    if score_mode is None:
+                        score_mode = "raw" if len(parsed_stats) == 1 else "norm"
 
                     # Affinity optimization: auto-enable magic mode when targeting any affinity
                     prev_magic = MAGIC_AFFINITY_MODE
