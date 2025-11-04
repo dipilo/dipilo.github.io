@@ -211,7 +211,7 @@ window.run_command = run_command
             return;
           }
           if (/^optimize\s+until\b/i.test(t)) {
-            preview.textContent = 'optimize until <condition> [<gens>] <stats> [species ...] [chunk=N] [log=N] [score=raw|norm] [intensity=N]';
+            preview.textContent = 'optimize until <condition> [<gens>] <stats> [species ...] [chunk=N] [log=N] [score=raw|norm]';
             return;
           }
           if (/^breed\b/i.test(t)) {
@@ -226,28 +226,31 @@ window.run_command = run_command
           updatePreview(q);
           if (!text) return BASE_COMMANDS.slice(0, 10);
           const parts = text.split(/\s+/);
-          // Base command suggestions
+          // Single token: if it's 'optimize' (or a prefix), show subcommands; otherwise base commands
           if (parts.length === 1) {
-            const p = parts[0];
-            return BASE_COMMANDS.filter(c => startsWithI(c.t, p) || includesI(c.t, p)).slice(0, 10);
+            const p = parts[0].toLowerCase();
+            if ('optimize'.startsWith(p)) {
+              const all = ['start','step','continue','run','run fast','until','check','finalize','status','stop'];
+              return all.map(s => ({t: `optimize ${s}`, d: 'optimization'}));
+            }
+            if (p === 'optimize') {
+              const all = ['start','step','continue','run','run fast','until','check','finalize','status','stop'];
+              return all.map(s => ({t: `optimize ${s}`, d: 'optimization'}));
+            }
+            return BASE_COMMANDS.filter(c => startsWithI(c.t, parts[0]) || includesI(c.t, parts[0])).slice(0, 10);
           }
           // Contextual suggestions
           const cmd = parts[0].toLowerCase();
           if (cmd === 'optimize') {
             const sub = (parts[1] || '').toLowerCase();
+            // No or partial subcommand -> suggest all/filtered subcommands
+            const allSubs = ['start','step','continue','run','run fast','until','check','finalize','status','stop'];
             if (!sub) {
-              return [
-                {t:'start', d:'Begin a new session'},
-                {t:'step', d:'Advance N or chunk'},
-                {t:'continue', d:'Finish remaining gens'},
-                {t:'run', d:'Start then auto loop (non-blocking)'},
-                {t:'run fast', d:'Start then finish fast (blocking)'},
-                {t:'until', d:'Run until condition or timeout'},
-                {t:'check', d:'Check goal now'},
-                {t:'finalize', d:'Print result & end'},
-                {t:'status', d:'Progress'},
-                {t:'stop', d:'Stop session'},
-              ];
+              return allSubs.map(s => ({t:`optimize ${s}`, d:'optimization'}));
+            }
+            if (!['start','step','continue','run','until','check','finalize','status','stop'].includes(sub) && !('run fast'.startsWith(sub))) {
+              // Replace just the last token with the subcommand completion
+              return allSubs.filter(s => s.startsWith(sub)).map(s => ({t:s, d:'optimization'}));
             }
             if (sub === 'start') {
               // Variable-aware suggestions after 'start'
@@ -316,9 +319,16 @@ window.run_command = run_command
                   const sugs = statNames.filter(n => n.toLowerCase().startsWith(nameFrag.toLowerCase())).slice(0,6).map(n => ({t:`stat:${n}>=`, d:'operator'}));
                   return sugs.length ? sugs : ops.map(op => ({t:`stat:${after || 'Size'}${op}`, d:'operator'}));
                 }
-                // For variant-like: echo variant=<typed>
-                if (cond) return [{t:`variant=${cond}`, d:'variant prefix'}];
-                return [{t:'stat:Size>=', d:'Stat goal'}, {t:'species=', d:'Species goal'}, {t:'variant=', d:'Variant goal'}];
+                // For free text: offer both variant and species options
+                const frag = cond.toLowerCase();
+                const VARIANT_NAMES = ['Giant','Cyclopse','Fairy','Elven','Dwarven','Unicorn'];
+                const varSugs = VARIANT_NAMES.filter(v => v.toLowerCase().startsWith(frag))
+                  .slice(0,8).map(v => ({t:`variant=${v.toLowerCase()}`, d:'variant'}));
+                const sp = await ensureSpecies();
+                const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag))
+                  .slice(0,8).map(s => ({t:`species=${s}`, d:'species'}));
+                const out = [...varSugs, ...spSugs];
+                return out.length ? out : [{t:`variant=${cond}`, d:'variant prefix'}];
               }
               return [];
             }
