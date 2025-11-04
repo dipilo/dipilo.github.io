@@ -1838,9 +1838,7 @@ class HybridCLI:
         if cmd == "help":
             output += (
                 "Commands:\n"
-                "  toggle                         - Toggle save mode ON/OFF\n"
-                "  magic [on|off|status]          - Toggle or set elemental magic affinity display\n"
-                "  litter [on|off|status|cap=N]   - Toggle litter reproduction and/or set a safety cap per pairing\n"
+                "  toggle                         - Toggle features; litter accepts cap\n"
                 "  optimize start                 - Start a chunked evolution session (non-blocking)\n"
                 "  optimize step|continue         - Run N generations or 'auto' (all remaining) in the active session\n"
                 "  optimize run                   - Start, then auto-continue until completion\n"
@@ -1858,11 +1856,67 @@ class HybridCLI:
                 "  quit                           - Exit the simulator\n"
             )
         elif cmd == "toggle":
-            self.SAVE_MODE = not self.SAVE_MODE
-            if self.SAVE_MODE:
-                self.saved_hybrids.clear()
-            mode_status = "ON" if self.SAVE_MODE else "OFF"
-            output += f"Save mode is now {mode_status}.\n"
+            # Usage:
+            #  toggle save [on|off|status]
+            #  toggle magic [on|off|status]
+            #  toggle litter [on|off|status|cap=N]
+            if len(parts) == 1:
+                output += (
+                    "Usage: toggle [save|magic|litter] [on|off|status] [cap=N]\n"
+                )
+            else:
+                target = parts[1].lower()
+                arg = parts[2].lower() if len(parts) > 2 else "toggle"
+                if target == "save":
+                    if arg in ("on","enable","enabled"):
+                        self.SAVE_MODE = True
+                        self.saved_hybrids.clear()
+                        output += "Save mode: ON.\n"
+                    elif arg in ("off","disable","disabled"):
+                        self.SAVE_MODE = False
+                        output += "Save mode: OFF.\n"
+                    elif arg in ("status","state"):
+                        output += f"Save mode is {'ON' if self.SAVE_MODE else 'OFF'}.\n"
+                    else:
+                        self.SAVE_MODE = not self.SAVE_MODE
+                        if self.SAVE_MODE:
+                            self.saved_hybrids.clear()
+                        output += f"Save mode toggled {'ON' if self.SAVE_MODE else 'OFF'}.\n"
+                elif target == "magic":
+                    global MAGIC_AFFINITY_MODE
+                    if arg in ("on","enable","enabled"):
+                        MAGIC_AFFINITY_MODE = True
+                        output += "Magic affinities display: ON\n"
+                    elif arg in ("off","disable","disabled"):
+                        MAGIC_AFFINITY_MODE = False
+                        output += "Magic affinities display: OFF\n"
+                    elif arg in ("status","state"):
+                        output += f"Magic affinities display is {'ON' if MAGIC_AFFINITY_MODE else 'OFF'}.\n"
+                    else:
+                        MAGIC_AFFINITY_MODE = not MAGIC_AFFINITY_MODE
+                        output += f"Magic affinities display toggled {'ON' if MAGIC_AFFINITY_MODE else 'OFF'}.\n"
+                elif target == "litter":
+                    if arg in ("on","enable","enabled"):
+                        self.LITTER_MODE = True
+                        output += f"Litter mode: ON (Cap={self.LITTER_CAP})\n"
+                    elif arg in ("off","disable","disabled"):
+                        self.LITTER_MODE = False
+                        output += "Litter mode: OFF\n"
+                    elif arg.startswith("cap="):
+                        try:
+                            cap = int(arg.split("=",1)[1])
+                            self.LITTER_CAP = max(1, cap)
+                            output += f"Litter cap set to {self.LITTER_CAP}.\n"
+                        except Exception:
+                            output += "Invalid cap value. Use toggle litter cap=N\n"
+                    elif arg in ("status","state"):
+                        output += f"Litter mode is {'ON' if self.LITTER_MODE else 'OFF'}. Cap={self.LITTER_CAP}.\n"
+                    else:
+                        # toggle
+                        self.LITTER_MODE = not self.LITTER_MODE
+                        output += f"Litter mode toggled {'ON' if self.LITTER_MODE else 'OFF'}. (Cap={self.LITTER_CAP})\n"
+                else:
+                    output += "Usage: toggle [save|magic|litter] [on|off|status] [cap=N]\n"
         elif cmd == "list":
             output += "Available species (from known definitions):\n"
             for sp in sorted(phenotype_genotypes.keys()):
@@ -2473,7 +2527,7 @@ class HybridCLI:
                     # Accept both prefixed and positional tokens after stats_spec
                     pos_species: list[str] = []
                     last_numeric: int | None = None
-                    score_mode = "norm"  # default: normalized cross-species scoring
+                    score_mode = None  # default decided after parsing stats
                     for token in parts[4:]:
                         tl = token.lower()
                         if tl.startswith("species="):
@@ -2499,7 +2553,20 @@ class HybridCLI:
                                 val = int(token)
                                 last_numeric = val
                             except Exception:
-                                if token:
+                                # prefixless shortcuts
+                                if tl in ("raw","norm"):
+                                    score_mode = tl
+                                elif tl.startswith("chunk") and tl[5:].isdigit():
+                                    try:
+                                        chunk = max(1, int(tl[5:]))
+                                    except Exception:
+                                        pass
+                                elif tl.startswith("log") and tl[3:].isdigit():
+                                    try:
+                                        log_every = max(1, int(tl[3:]))
+                                    except Exception:
+                                        pass
+                                elif token:
                                     pos_species.append(token.lower())
                     if last_numeric is not None:
                         chunk = max(1, last_numeric)
@@ -2655,7 +2722,19 @@ class HybridCLI:
                                 val = int(token)
                                 chunk = max(1, val)
                             except Exception:
-                                pass
+                                # prefixless shortcuts
+                                if tl in ("raw","norm"):
+                                    score_mode = tl
+                                elif tl.startswith("chunk") and tl[5:].isdigit():
+                                    try:
+                                        chunk = max(1, int(tl[5:]))
+                                    except Exception:
+                                        pass
+                                elif tl.startswith("log") and tl[3:].isdigit():
+                                    try:
+                                        log_every = max(1, int(tl[3:]))
+                                    except Exception:
+                                        pass
                     self._opt_session["chunk"] = chunk
                     self._opt_session["log_every"] = log_every
                     self._opt_session["score_mode"] = score_mode

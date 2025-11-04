@@ -138,29 +138,12 @@ window.run_command = run_command
 
         const BASE_COMMANDS = [
           {t: 'help', d: 'Show help'},
-          {t: 'toggle', d: 'Toggle save mode'},
-          {t: 'magic on', d: 'Enable magic affinities'},
-          {t: 'magic off', d: 'Disable magic affinities'},
-          {t: 'magic status', d: 'Show magic status'},
-          {t: 'litter on', d: 'Enable litter reproduction'},
-          {t: 'litter off', d: 'Disable litter reproduction'},
-          {t: 'litter status', d: 'Show litter status'},
-          {t: 'litter cap=3', d: 'Set litter cap'},
+          {t: 'toggle', d: 'Toggle save/magic/litter'},
           {t: 'list', d: 'List species (and saved hybrids in save mode)'},
-          {t: 'breed <parent1> <parent2>', d: 'Breed two species or saved hybrids'},
+          {t: 'breed', d: 'Breed two species or saved hybrids'},
           {t: 'random', d: 'Generate a random species'},
-          {t: 'simulate 100', d: 'Run N random generations'},
-          {t: 'optimize start <gens> <stats> [species ...] [chunk=N] [log=N] [score=raw|norm] [intensity=N]', d: 'Start a session'},
-          {t: 'optimize step [chunk=N|auto] [log=N] [score=raw|norm] [intensity=N]', d: 'Advance the session'},
-          {t: 'optimize continue auto', d: 'Run all remaining generations'},
-          {t: 'optimize run <gens> <stats> ...', d: 'Start then run to completion (non-blocking UI loop)'},
-          {t: 'optimize run fast <gens> <stats> ...', d: 'Start then run to completion (blocking, faster)'},
-          {t: 'optimize until <condition> [<gens>] <stats> ...', d: 'Run until goal or time out'},
-          {t: 'optimize check <condition>', d: 'Check if goal is currently met'},
-          {t: 'optimize finalize', d: 'Print result and end session'},
-          {t: 'optimize status', d: 'Show session progress'},
-          {t: 'optimize stop', d: 'Stop the session'},
-          {t: 'optimize report <condition>', d: 'Closeness summary if the goal is not met'},
+          {t: 'simulate', d: 'Run N random generations'},
+          {t: 'optimize', d: 'Optimization commands'},
         ];
 
         function startsWithI(a, b) { return a.toLowerCase().startsWith(b.toLowerCase()); }
@@ -185,7 +168,14 @@ window.run_command = run_command
         }
 
         function applySuggestion(text) {
-          cmdInput.value = text;
+          // Replace the last token in the input with the suggestion text
+          const v = cmdInput.value;
+          const m = v.match(/^(.*?)([^\s]*)$/);
+          if (m) {
+            cmdInput.value = m[1] + text;
+          } else {
+            cmdInput.value = text;
+          }
           hideSuggestions();
           // Keep focus for continued editing
           cmdInput.focus();
@@ -247,61 +237,88 @@ window.run_command = run_command
             const sub = (parts[1] || '').toLowerCase();
             if (!sub) {
               return [
-                {t:'optimize start ', d:'Begin a new session'},
-                {t:'optimize step ', d:'Advance N or chunk'},
-                {t:'optimize continue auto', d:'Finish remaining gens'},
-                {t:'optimize run ', d:'Start then auto loop'},
-                {t:'optimize run fast ', d:'Start then finish fast (blocking)'},
-                {t:'optimize until ', d:'Run until condition or timeout'},
-                {t:'optimize check ', d:'Check goal now'},
-                {t:'optimize finalize', d:'Print result & end'},
-                {t:'optimize status', d:'Progress'},
-                {t:'optimize stop', d:'Stop session'},
+                {t:'start', d:'Begin a new session'},
+                {t:'step', d:'Advance N or chunk'},
+                {t:'continue', d:'Finish remaining gens'},
+                {t:'run', d:'Start then auto loop (non-blocking)'},
+                {t:'run fast', d:'Start then finish fast (blocking)'},
+                {t:'until', d:'Run until condition or timeout'},
+                {t:'check', d:'Check goal now'},
+                {t:'finalize', d:'Print result & end'},
+                {t:'status', d:'Progress'},
+                {t:'stop', d:'Stop session'},
               ];
             }
             if (sub === 'start') {
-              // Suggest tokens after 'start'
-              const tail = parts.slice(2).join(' ');
-              const suggestions = [];
-              if (!/\d/.test(parts[2] || '')) suggestions.push({t: text + '100000 ', d:'Generations'});
-              if (!(parts[3])) suggestions.push({t: text + 'size ', d:'+/- stat names, comma-separated'});
-              suggestions.push({t: text + 'species=', d:'species=<name1>,<name2>'});
-              suggestions.push({t: text + 'chunk=1000', d:'Generations per step call'});
-              suggestions.push({t: text + 'log=1000', d:'Print every N generations'});
-              suggestions.push({t: text + 'score=raw', d:'Raw score (absolute)'});
-              suggestions.push({t: text + 'score=norm', d:'Normalized score (per-species)'});
-              suggestions.push({t: text + 'intensity=3', d:'More offspring per elite pair'});
-              // Species suggestions if typing species=
-              if (/species=([^\s]*)$/i.test(text)) {
-                const m = text.match(/species=([^\s]*)$/i);
+              // Variable-aware suggestions after 'start'
+              const after = parts.slice(2);
+              // If gens missing, suggest a number
+              if (!after[0] || !/^\d+$/.test(after[0])) {
+                return [{t:'100000', d:'Generations'}];
+              }
+              // If stats missing, suggest example
+              if (!after[1]) {
+                return [
+                  {t:'size', d:'Stat spec (e.g., size or +Strength,IQ)'},
+                ];
+              }
+              // Past stats: suggest species=..., species names, raw/norm, chunk/log
+              const tail = after.slice(2).join(' ');
+              const last = after[after.length-1] || '';
+              const opts = [];
+              // score mode
+              if (!/\b(raw|norm)\b/i.test(tail)) {
+                if ('raw'.startsWith(last.toLowerCase())) opts.push({t:'raw', d:'Score by absolute values'});
+                if ('norm'.startsWith(last.toLowerCase())) opts.push({t:'norm', d:'Score normalized by species baseline'});
+              }
+              // chunk/log prefixes or compact forms
+              if ('chunk'.startsWith(last.toLowerCase())) opts.push({t:'chunk=1000', d:'Generations per step call'});
+              if ('log'.startsWith(last.toLowerCase())) opts.push({t:'log=1000', d:'Print every N generations'});
+              // species selector
+              if (/^species=/i.test(last) || last.toLowerCase() === 'species=') {
+                const m = last.match(/^species=([^\s]*)/i);
                 const frag = (m && m[1] || '').split(',').pop().toLowerCase();
                 const sp = await ensureSpecies();
-                const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t: text.replace(/species=[^\s]*$/i, `species=${m[1].replace(/[^,]*$/, s)}`), d: 'species'}));
-                return spSugs.length ? spSugs : suggestions;
+                const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t: `species=${s}`, d: 'species'}));
+                return spSugs.length ? spSugs : [{t:'species=', d:'species=<name1>,<name2>'}];
               }
-              return suggestions;
+              if ('species='.startsWith(last.toLowerCase())) return [{t:'species=', d:'species=<name1>,<name2>'}];
+              // if last token looks like species fragment, suggest species names
+              const sp = await ensureSpecies();
+              const spFrag = last.toLowerCase();
+              const spList = sp.filter(s => s.toLowerCase().startsWith(spFrag)).slice(0, 8).map(s => ({t:s, d:'species'}));
+              return opts.concat(spList);
             }
             if (sub === 'until' || sub === 'check' || sub === 'report') {
+              // We're completing <condition>
               if (parts.length === 2) {
                 return [
-                  {t: 'optimize until stat:Size>=340 ', d:'Stat goal'},
-                  {t: 'optimize until giant ', d:'Variant goal'},
-                  {t: 'optimize until species=centaur ', d:'Species goal'},
+                  {t:'stat:Size>=', d:'Stat goal (>=, <=, ==, >, <)'},
+                  {t:'species=', d:'Species goal'},
+                  {t:'variant=', d:'Variant goal (prefix)'},
                 ];
               }
               if (sub === 'until') {
-                const suggestions = [];
-                if (parts.length === 3) {
-                  suggestions.push({t: text + ' 250000 size ', d:'Add gens and stats'});
-                }
-                if (/species=([^\s]*)$/i.test(text)) {
-                  const m = text.match(/species=([^\s]*)$/i);
-                  const frag = (m && m[1] || '').split(',').pop().toLowerCase();
+                const cond = parts[2] || '';
+                // Suggest concrete condition pieces based on prefix
+                if (/^species=/i.test(cond)) {
+                  const frag = cond.replace(/^species=/i, '').toLowerCase();
                   const sp = await ensureSpecies();
-                  const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t: text.replace(/species=[^\s]*$/i, `species=${m[1].replace(/[^,]*$/, s)}`), d: 'species'}));
-                  if (spSugs.length) return spSugs;
+                  return sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t:`species=${s}`, d:'species'}));
                 }
-                return suggestions;
+                if (/^stat:/i.test(cond)) {
+                  const after = cond.slice(5);
+                  const ops = ['>=','<=','==','>','<'];
+                  // Suggest stat names from known STAT_UNITS if available via a quick probe
+                  // We can’t access STAT_UNITS here; provide common examples
+                  const statNames = ['Size','Strength','Agility','IQ','Endurance'];
+                  const nameFrag = after.split(/(>=|<=|==|>|<)/)[0];
+                  const sugs = statNames.filter(n => n.toLowerCase().startsWith(nameFrag.toLowerCase())).slice(0,6).map(n => ({t:`stat:${n}>=`, d:'operator'}));
+                  return sugs.length ? sugs : ops.map(op => ({t:`stat:${after || 'Size'}${op}`, d:'operator'}));
+                }
+                // For variant-like: echo variant=<typed>
+                if (cond) return [{t:`variant=${cond}`, d:'variant prefix'}];
+                return [{t:'stat:Size>=', d:'Stat goal'}, {t:'species=', d:'Species goal'}, {t:'variant=', d:'Variant goal'}];
               }
               return [];
             }
@@ -309,7 +326,7 @@ window.run_command = run_command
           if (cmd === 'breed') {
             const sp = await ensureSpecies();
             const last = parts[parts.length-1] || '';
-            return sp.filter(s => s.toLowerCase().startsWith(last.toLowerCase())).slice(0, 8).map(s => ({t: parts.slice(0, -1).join(' ') + ' ' + s, d:'species'}));
+            return sp.filter(s => s.toLowerCase().startsWith(last.toLowerCase())).slice(0, 8).map(s => ({t: s, d:'species'}));
           }
           return [];
         }
