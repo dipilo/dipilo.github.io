@@ -223,6 +223,7 @@ window.run_command = run_command
 
         async function computeSuggestions(q) {
           const text = q.trim();
+          const endsWithSpace = /\s$/.test(q);
           updatePreview(q);
           if (!text) return BASE_COMMANDS.slice(0, 10);
           const parts = text.split(/\s+/);
@@ -303,11 +304,55 @@ window.run_command = run_command
               }
               if (sub === 'until') {
                 const cond = parts[2] || '';
+                // If condition looks complete and user added a space, suggest next variables
+                if (endsWithSpace && cond) {
+                  // After <condition>, suggest gens and stats
+                  const after = parts.slice(3); // tokens after condition
+                  if (after.length === 0) {
+                    return [
+                      {t:'250000', d:'Generations (optional)'},
+                      {t:'size', d:'Required stat spec (e.g., size or +Strength,IQ)'},
+                    ];
+                  } else if (after.length === 1) {
+                    // If first token after cond is a number, suggest stats; otherwise suggest number
+                    const tok = after[0];
+                    if (/^\d+$/.test(tok)) {
+                      return [
+                        {t:'size', d:'Required stat spec'},
+                      ];
+                    } else {
+                      return [
+                        {t:'250000', d:'Generations (optional)'},
+                        {t:'size', d:'Required stat spec'},
+                      ];
+                    }
+                  } else {
+                    // After stats: offer optional flags
+                    const last = (after[after.length-1] || '').toLowerCase();
+                    const opts = [];
+                    if ('raw'.startsWith(last)) opts.push({t:'raw', d:'Score by absolute values'});
+                    if ('norm'.startsWith(last)) opts.push({t:'norm', d:'Normalized score'});
+                    if ('chunk'.startsWith(last)) opts.push({t:'chunk=1000', d:'Generations per step call'});
+                    if ('log'.startsWith(last)) opts.push({t:'log=1000', d:'Print every N generations'});
+                    if ('species='.startsWith(last)) opts.push({t:'species=', d:'Optional species filter'});
+                    if (last.startsWith('species=')) {
+                      const frag = last.replace(/^species=/,'');
+                      const sp = await ensureSpecies();
+                      return sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0,8).map(s => ({t:`species=${s}`, d:'species'}));
+                    }
+                    return opts;
+                  }
+                }
                 // Suggest concrete condition pieces based on prefix
                 if (/^species=/i.test(cond)) {
                   const frag = cond.replace(/^species=/i, '').toLowerCase();
                   const sp = await ensureSpecies();
                   return sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t:`species=${s}`, d:'species'}));
+                }
+                if (/^variant=/i.test(cond)) {
+                  const frag = cond.replace(/^variant=/i, '').toLowerCase();
+                  const VARIANT_NAMES = ['Giant','Cyclopse','Fairy','Elven','Dwarven','Unicorn'];
+                  return VARIANT_NAMES.filter(v => v.toLowerCase().startsWith(frag)).slice(0,8).map(v => ({t:`variant=${v.toLowerCase()}`, d:'variant'}));
                 }
                 if (/^stat:/i.test(cond)) {
                   const after = cond.slice(5);
