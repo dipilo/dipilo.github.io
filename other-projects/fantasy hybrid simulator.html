@@ -373,7 +373,10 @@ window.run_command = run_command
                 const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag))
                   .slice(0,8).map(s => ({t:`species=${s}`, d:'species'}));
                 const out = [...varSugs, ...spSugs];
-                return out.length ? out : [{t:`variant=${cond}`, d:'variant prefix'}];
+                if (out.length) return out;
+                // Avoid suggesting duplicated prefix like variant=variant=foo
+                if (/^(variant|species)=/i.test(cond)) return [];
+                return [{t:`variant=${cond}`, d:'variant prefix'}];
               }
               return [];
             }

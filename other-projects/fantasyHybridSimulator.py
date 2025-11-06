@@ -2585,10 +2585,12 @@ class HybridCLI:
                     if any(name.lower().startswith("affinity ") for name, _ in parsed_stats):
                         MAGIC_AFFINITY_MODE = True
 
-                    # Start fresh population
+                    # Initialize population: reuse existing session entries if present; otherwise seed fresh
                     self.SAVE_MODE = True
-                    self.saved_hybrids.clear()
                     saved_hybrids = self.saved_hybrids
+                    existing_count = len(self.saved_hybrids)
+                    if existing_count > 0:
+                        output += f"Reusing {existing_count} existing entries as initial population.\n"
 
                     # Build phenotype helpers
                     def species_matches(species_str: str) -> bool:
@@ -2625,7 +2627,7 @@ class HybridCLI:
                         return name, geno
 
                     POP_SIZE = 20
-                    # Seed POP_SIZE randoms unrestricted (keeps code simpler for session mode)
+                    # Top up to POP_SIZE randoms unrestricted (keeps code simpler for session mode)
                     while len(self.saved_hybrids) < POP_SIZE:
                         sp = random.choice(list(phenotype_genotypes.keys()))
                         create_random_individual(sp)
