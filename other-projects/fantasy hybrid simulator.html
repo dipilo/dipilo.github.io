@@ -366,6 +366,14 @@ window.run_command = run_command
                 } else {
                   gensToken = null;
                 }
+                // If user is currently typing gens (no stats yet and no trailing space), suggest a default
+                const editingGens = (gensToken !== null) && (parts.length === idx) && !endsWithSpace;
+                if (editingGens) {
+                  return [
+                    {t:'250000', d:'Generations (optional)'},
+                    {t:'100000', d:'Generations (optional)'}
+                  ];
+                }
                 const statsTok = parts[idx] || '';
                 const editingStats = (parts.length === idx + 1) && !endsWithSpace;
                 if (!statsTok || editingStats) {
@@ -394,6 +402,14 @@ window.run_command = run_command
                   const sp = await ensureSpecies();
                   const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag.toLowerCase())).slice(0,8).map(s => ({t:`species=${s}`, d:'species'}));
                   return spSugs.length ? spSugs : [{t:'species=', d:'species=<name1>,<name2>'}];
+                }
+                // If user is typing a bare token (likely a species name), offer species matches too
+                if (last && !last.includes('=')) {
+                  const sp = await ensureSpecies();
+                  const spBare = sp.filter(s => s.toLowerCase().startsWith(lastLower)).slice(0,8).map(s => ({t:s, d:'species'}));
+                  const spPref = sp.filter(s => s.toLowerCase().startsWith(lastLower)).slice(0,8).map(s => ({t:`species=${s}`, d:'species'}));
+                  // Put species suggestions first, then existing option matches
+                  return spBare.concat(spPref).concat(opts);
                 }
                 return opts;
               }
