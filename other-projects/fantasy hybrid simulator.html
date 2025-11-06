@@ -146,6 +146,14 @@ window.run_command = run_command
           {t: 'optimize', d: 'Optimization commands'},
         ];
 
+        // Canonical lists for contextual completion
+        const VARIANT_NAMES = ['Giant','Cyclopse','Fairy','Elven','Dwarven','Unicorn'];
+        // Stats accepted by the backend (STAT_UNITS keys) + Affinity stats
+        const STATS_ALL = [
+          'IQ','EQ','Dexterity','Strength','Land Speed','Swim Speed','Jump Height','Flight Speed','Climbing','Bite','Size','Venom','Fire Breathing','Petrification','Charm','Gestation Period','Litter Size','Maturation Age','Lifespan','Growth Rate','Lion Head IQ','Goat Head IQ','Snake Head IQ','Lion Head EQ','Goat Head EQ','Snake Head EQ','Lion Head Diet','Goat Head Diet','Snake Head Diet','Visual Field','Visual Acuity','Smell Strength','Smell Acuity','Smell Distance','Hearing Range','Hearing Distance','Thaumagen Production Rate','Thaumacyst Capacity',
+          'Affinity Fire','Affinity Water','Affinity Earth','Affinity Air','Affinity Beam'
+        ];
+
         function startsWithI(a, b) { return a.toLowerCase().startsWith(b.toLowerCase()); }
         function includesI(a, b) { return a.toLowerCase().includes(b.toLowerCase()); }
 
@@ -246,13 +254,6 @@ window.run_command = run_command
             const sub = (parts[1] || '').toLowerCase();
             // No or partial subcommand -> suggest all/filtered subcommands
             const allSubs = ['start','step','continue','run','run fast','until','check','finalize','status','stop'];
-            if (!sub) {
-              return allSubs.map(s => ({t:`optimize ${s}`, d:'optimization'}));
-            }
-            if (!['start','step','continue','run','until','check','finalize','status','stop'].includes(sub) && !('run fast'.startsWith(sub))) {
-              // Replace just the last token with the subcommand completion
-              return allSubs.filter(s => s.startsWith(sub)).map(s => ({t:s, d:'optimization'}));
-            }
             if (sub === 'start') {
               // Variable-aware suggestions after 'start'
               const after = parts.slice(2);
@@ -260,13 +261,19 @@ window.run_command = run_command
               if (!after[0] || !/^\d+$/.test(after[0])) {
                 return [{t:'100000', d:'Generations'}];
               }
-              // If stats missing, suggest example
-              if (!after[1]) {
-                return [
-                  {t:'size', d:'Stat spec (e.g., size or +Strength,IQ)'},
-                ];
+              // If editing stats (3rd token) or stats missing, provide stat-name completions only
+              const editingStats = after.length === 1 || (!endsWithSpace && parts.length === 4);
+              if (editingStats) {
+                const rawStats = after[1] || '';
+                // Stats are comma-separated; suggest for the last fragment, preserve any leading +/-
+                const fragFull = rawStats.split(',').pop() || '';
+                const sign = (fragFull[0] === '+' || fragFull[0] === '-') ? fragFull[0] : '';
+                const frag = (sign ? fragFull.slice(1) : fragFull).toLowerCase();
+                const sugs = STATS_ALL.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 12).map(s => ({t: `${sign}${s}`, d:'stat'}));
+                // If no fragment typed yet, show top stats
+                return sugs.length ? sugs : STATS_ALL.slice(0,12).map(s => ({t:`${sign}${s}`, d:'stat'}));
               }
-              // Past stats: suggest species=..., species names, raw/norm, chunk/log
+              // Past stats: suggest raw/norm, chunk/log, and optional species filter
               const tail = after.slice(2).join(' ');
               const last = after[after.length-1] || '';
               const opts = [];
@@ -287,6 +294,9 @@ window.run_command = run_command
                 return spSugs.length ? spSugs : [{t:'species=', d:'species=<name1>,<name2>'}];
               }
               if ('species='.startsWith(last.toLowerCase())) return [{t:'species=', d:'species=<name1>,<name2>'}];
+              return opts;
+            }
+              if ('species='.startsWith(last.toLowerCase())) return [{t:'species=', d:'species=<name1>,<name2>'}];
               // if last token looks like species fragment, suggest species names
               const sp = await ensureSpecies();
               const spFrag = last.toLowerCase();
@@ -297,34 +307,50 @@ window.run_command = run_command
               // We're completing <condition>
               if (parts.length === 2) {
                 return [
-                  {t:'stat:Size>=', d:'Stat goal (>=, <=, ==, >, <)'},
+                  {t:'stat:', d:'Stat goal (then pick a stat)'},
                   {t:'species=', d:'Species goal'},
                   {t:'variant=', d:'Variant goal (prefix)'},
                 ];
               }
               if (sub === 'until') {
                 const cond = parts[2] || '';
+                const frag = cond.toLowerCase();
+                // If starting stat:, suggest stat names and then operators
+                if (/^stat:/i.test(cond)) {
+                  const after = cond.slice(5);
+                  const ops = ['>=','<=','==','>','<'];
+                  // if operator not present yet, suggest stat names
+                  if (!/(>=|<=|==|>|<)/.test(after)) {
+                    const nameFrag = after.toLowerCase();
+                    const candidates = STATS_ALL.filter(n => n.toLowerCase().startsWith(nameFrag)).slice(0,12);
+                    return candidates.length ? candidates.map(n => ({t:`stat:${n}`, d:'stat'})) : STATS_ALL.slice(0,12).map(n => ({t:`stat:${n}`, d:'stat'}));
+                  }
+                  // operator is present but maybe no threshold; suggest operators matching
+                  const opFragMatch = after.match(/(>=|<=|==|>|<)$/);
+                  if (opFragMatch) {
+                    return ops.filter(o => o.startsWith(opFragMatch[1])).map(o => ({t:`stat:${after.replace(/(>=|<=|==|>|<)$/, o)}`, d:'operator'}));
+                  }
+                  return [];
+                }
                 // If condition looks complete and user added a space, suggest next variables
                 if (endsWithSpace && cond) {
                   // After <condition>, suggest gens and stats
                   const after = parts.slice(3); // tokens after condition
                   if (after.length === 0) {
-                    return [
-                      {t:'250000', d:'Generations (optional)'},
-                      {t:'size', d:'Required stat spec (e.g., size or +Strength,IQ)'},
-                    ];
+                    // Offer gens and first stat suggestions
+                    const topStats = STATS_ALL.slice(0,10).map(s => ({t:s, d:'stat'}));
+                    return [{t:'250000', d:'Generations (optional)'}].concat(topStats);
                   } else if (after.length === 1) {
                     // If first token after cond is a number, suggest stats; otherwise suggest number
                     const tok = after[0];
                     if (/^\d+$/.test(tok)) {
-                      return [
-                        {t:'size', d:'Required stat spec'},
-                      ];
+                      const frag = '';
+                      const sugs = STATS_ALL.slice(0,12).map(s => ({t:s, d:'stat'}));
+                      return sugs;
                     } else {
-                      return [
-                        {t:'250000', d:'Generations (optional)'},
-                        {t:'size', d:'Required stat spec'},
-                      ];
+                      const numOpt = {t:'250000', d:'Generations (optional)'};
+                      const statOpts = STATS_ALL.slice(0,12).map(s => ({t:s, d:'stat'}));
+                      return [numOpt].concat(statOpts);
                     }
                   } else {
                     // After stats: offer optional flags
@@ -343,40 +369,28 @@ window.run_command = run_command
                     return opts;
                   }
                 }
-                // Suggest concrete condition pieces based on prefix
+                // Condition prefix branches
                 if (/^species=/i.test(cond)) {
-                  const frag = cond.replace(/^species=/i, '').toLowerCase();
+                  const frag2 = cond.replace(/^species=/i, '').toLowerCase();
                   const sp = await ensureSpecies();
-                  return sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0, 8).map(s => ({t:`species=${s}`, d:'species'}));
+                  return sp.filter(s => s.toLowerCase().startsWith(frag2)).slice(0, 8).map(s => ({t:`species=${s}`, d:'species'}));
                 }
                 if (/^variant=/i.test(cond)) {
-                  const frag = cond.replace(/^variant=/i, '').toLowerCase();
-                  const VARIANT_NAMES = ['Giant','Cyclopse','Fairy','Elven','Dwarven','Unicorn'];
-                  return VARIANT_NAMES.filter(v => v.toLowerCase().startsWith(frag)).slice(0,8).map(v => ({t:`variant=${v.toLowerCase()}`, d:'variant'}));
+                  const frag2 = cond.replace(/^variant=/i, '').toLowerCase();
+                  return VARIANT_NAMES.filter(v => v.toLowerCase().startsWith(frag2)).slice(0,8).map(v => ({t:`variant=${v.toLowerCase()}`, d:'variant'}));
                 }
-                if (/^stat:/i.test(cond)) {
-                  const after = cond.slice(5);
-                  const ops = ['>=','<=','==','>','<'];
-                  // Suggest stat names from known STAT_UNITS if available via a quick probe
-                  // We can’t access STAT_UNITS here; provide common examples
-                  const statNames = ['Size','Strength','Agility','IQ','Endurance'];
-                  const nameFrag = after.split(/(>=|<=|==|>|<)/)[0];
-                  const sugs = statNames.filter(n => n.toLowerCase().startsWith(nameFrag.toLowerCase())).slice(0,6).map(n => ({t:`stat:${n}>=`, d:'operator'}));
-                  return sugs.length ? sugs : ops.map(op => ({t:`stat:${after || 'Size'}${op}`, d:'operator'}));
-                }
-                // For free text: offer both variant and species options
-                const frag = cond.toLowerCase();
-                const VARIANT_NAMES = ['Giant','Cyclopse','Fairy','Elven','Dwarven','Unicorn'];
-                const varSugs = VARIANT_NAMES.filter(v => v.toLowerCase().startsWith(frag))
-                  .slice(0,8).map(v => ({t:`variant=${v.toLowerCase()}`, d:'variant'}));
+                // Free text in condition: suggest stat:, species=..., variant=..., bare species and bare variant prefixes
                 const sp = await ensureSpecies();
-                const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag))
-                  .slice(0,8).map(s => ({t:`species=${s}`, d:'species'}));
-                const out = [...varSugs, ...spSugs];
-                if (out.length) return out;
-                // Avoid suggesting duplicated prefix like variant=variant=foo
-                if (/^(variant|species)=/i.test(cond)) return [];
-                return [{t:`variant=${cond}`, d:'variant prefix'}];
+                const starters = [];
+                if ('stat:'.startsWith(frag)) starters.push({t:'stat:', d:'Stat goal'});
+                if ('species='.startsWith(frag)) starters.push({t:'species=', d:'Species goal'});
+                if ('variant='.startsWith(frag)) starters.push({t:'variant=', d:'Variant goal'});
+                const varSugs = VARIANT_NAMES.filter(v => v.toLowerCase().startsWith(frag)).slice(0,8).map(v => ({t:`variant=${v.toLowerCase()}`, d:'variant'}));
+                const bareVar = VARIANT_NAMES.filter(v => v.toLowerCase().startsWith(frag)).slice(0,5).map(v => ({t:v.toLowerCase(), d:'variant (bare)'}));
+                const spSugs = sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0,8).map(s => ({t:`species=${s}`, d:'species'}));
+                const bareSp = sp.filter(s => s.toLowerCase().startsWith(frag)).slice(0,5).map(s => ({t:s, d:'species (bare)'}));
+                const out = starters.concat(varSugs, spSugs, bareVar, bareSp);
+                return out;
               }
               return [];
             }
