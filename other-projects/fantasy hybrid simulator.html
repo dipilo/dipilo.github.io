@@ -211,11 +211,11 @@ window.run_command = run_command
           const t = text.trim();
           if (!t) { preview.textContent = ''; return; }
           if (/^optimize\s+start\b/i.test(t)) {
-            preview.textContent = 'optimize start <gens> <stats> [species ...] [chunk=N] [log=N] [score=raw|norm] [intensity=N]';
+            preview.textContent = 'optimize start <gens> <stats> [species ...] [chunk=N] [log=N] [score=raw|norm]';
             return;
           }
           if (/^optimize\s+(step|continue)\b/i.test(t)) {
-            preview.textContent = 'optimize step|continue [chunk=N|auto] [log=N] [score=raw|norm] [intensity=N]';
+            preview.textContent = 'optimize step|continue [chunk=N|auto] [log=N] [score=raw|norm]';
             return;
           }
           if (/^optimize\s+until\b/i.test(t)) {
@@ -230,7 +230,7 @@ window.run_command = run_command
         }
 
         async function computeSuggestions(q) {
-          const text = q.trim();
+          if (cmd === 'optimize') {
           const endsWithSpace = /\s$/.test(q);
           updatePreview(q);
           if (!text) return BASE_COMMANDS.slice(0, 10);
@@ -276,14 +276,7 @@ window.run_command = run_command
               // Past stats: suggest raw/norm, chunk/log, and optional species filter
               const tail = after.slice(2).join(' ');
               const last = after[after.length-1] || '';
-              const opts = [];
-              // score mode
-              if (!/\b(raw|norm)\b/i.test(tail)) {
-                if ('raw'.startsWith(last.toLowerCase())) opts.push({t:'raw', d:'Score by absolute values'});
-                if ('norm'.startsWith(last.toLowerCase())) opts.push({t:'norm', d:'Score normalized by species baseline'});
-              }
-              // chunk/log prefixes or compact forms
-              if ('chunk'.startsWith(last.toLowerCase())) opts.push({t:'chunk=1000', d:'Generations per step call'});
+            
               if ('log'.startsWith(last.toLowerCase())) opts.push({t:'log=1000', d:'Print every N generations'});
               // species selector
               if (/^species=/i.test(last) || last.toLowerCase() === 'species=') {

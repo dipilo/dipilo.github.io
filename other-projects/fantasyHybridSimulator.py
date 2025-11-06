@@ -2774,55 +2774,126 @@ class HybridCLI:
                     while steps < chunk and done < generations:
                         # Consider only candidates matching species filter
                         candidates = get_candidates()
+                        # If a single-species target is active and we have <2 eligible parents,
+                        # do NOT top up. We'll fall back to cross-species pairs most likely to yield the target.
+                        fallback_to_cross_species = False
+                        target_species = self._opt_session.get("target_species")
                         if len(candidates) < 2:
-                            for _ in range(POP_SIZE - len(candidates)):
-                                sp = random.choice(list(phenotype_genotypes.keys()))
-                                # create_random_individual inline to avoid closure issues
-                                geno = random.choice(phenotype_genotypes[sp])
-                                t = top_expression(geno["top"])
-                                m = mid_expression(geno["mid"])
-                                b = bottom_expression(geno["bottom"])
-                                stats, _ = generate_individual_stats(sp, t, m, b)
-                                name = generate_unique_name(sp)
-                                self.saved_hybrids[name.lower()] = {"name": name, "genotype": geno, "species": sp, "stats": stats}
-                            candidates = get_candidates()
+                            if target_species:
+                                fallback_to_cross_species = True
+                            else:
+                                # Unfiltered mode: keep population healthy with random additions
+                                max_new = max(0, POP_SIZE - len(self.saved_hybrids))
+                                for _ in range(max_new):
+                                    sp_choice = random.choice(list(phenotype_genotypes.keys()))
+                                    geno = random.choice(phenotype_genotypes[sp_choice])
+                                    t = top_expression(geno["top"])
+                                    m = mid_expression(geno["mid"])
+                                    b = bottom_expression(geno["bottom"])
+                                    stats, _ = generate_individual_stats(sp_choice, t, m, b)
+                                    name = generate_unique_name(sp_choice)
+                                    self.saved_hybrids[name.lower()] = {
+                                        "name": name,
+                                        "genotype": geno,
+                                        "species": sp_choice,
+                                        "stats": stats,
+                                    }
+                                candidates = get_candidates()
 
-                        candidates.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
-                        # Breed only among the best parents for the selected stats
-                        elite = candidates[:max(2, POP_SIZE)]
                         bred = 0
                         used = set()
-                        for i in range(0, len(elite)-1, 2):
-                            p1, p2 = elite[i], elite[i+1]
-                            n1, n2 = p1["name"].lower(), p2["name"].lower()
-                            if n1 in used or n2 in used:
-                                continue
-                            produced_any = False
-                            litter_count = 1
-                            if getattr(self, "LITTER_MODE", False):
-                                def _num(v):
-                                    try:
-                                        return float(v)
-                                    except Exception:
+                        pairs_attempted = 0
+                        if not fallback_to_cross_species:
+                            candidates.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
+                            # Breed only among the best parents for the selected stats
+                            elite = candidates[:max(2, POP_SIZE)]
+                            for i in range(0, len(elite)-1, 2):
+                                p1, p2 = elite[i], elite[i+1]
+                                n1, n2 = p1["name"].lower(), p2["name"].lower()
+                                if n1 in used or n2 in used:
+                                    continue
+                                pairs_attempted += 1
+                                produced_any = False
+                                litter_count = 1
+                                if getattr(self, "LITTER_MODE", False):
+                                    def _num(v):
                                         try:
-                                            s = str(v)
-                                            if '/' in s:
-                                                return float(s.split('/')[1])
-                                            return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
+                                            return float(v)
                                         except Exception:
-                                            return 0.0
-                                lit1 = _num(p1.get("stats", {}).get("Litter Size", 1))
-                                lit2 = _num(p2.get("stats", {}).get("Litter Size", 1))
-                                avg = (lit1 + lit2) / 2.0 if (lit1 and lit2) else max(lit1, lit2, 1)
-                                litter_count = max(1, min(getattr(self, "LITTER_CAP", 10), int(round(avg))))
-                            for _ in range(litter_count):
-                                result = breed_from_saved(n1, n2, silent=True)
-                                if result is not None:
-                                    produced_any = True
-                            if produced_any:
-                                bred += 1
-                                used.add(n1)
-                                used.add(n2)
+                                            try:
+                                                s = str(v)
+                                                if '/' in s:
+                                                    return float(s.split('/')[1])
+                                                return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
+                                            except Exception:
+                                                return 0.0
+                                    lit1 = _num(p1.get("stats", {}).get("Litter Size", 1))
+                                    lit2 = _num(p2.get("stats", {}).get("Litter Size", 1))
+                                    avg = (lit1 + lit2) / 2.0 if (lit1 and lit2) else max(lit1, lit2, 1)
+                                    litter_count = max(1, min(getattr(self, "LITTER_CAP", 10), int(round(avg))))
+                                for _ in range(litter_count):
+                                    result = breed_from_saved(n1, n2, silent=True)
+                                    if result is not None:
+                                        produced_any = True
+                                if produced_any:
+                                    bred += 1
+                                    used.add(n1)
+                                    used.add(n2)
+                        else:
+                            # Cross-species fallback: choose pairs most likely to yield the target species
+                            all_recs = list(self.saved_hybrids.values())
+                            n_all = len(all_recs)
+                            def _est_target_prob(r1, r2, trials=8):
+                                g1 = r1.get("genotype")
+                                g2 = r2.get("genotype")
+                                if not g1 or not g2:
+                                    return 0.0
+                                hits = 0
+                                for _ in range(trials):
+                                    child_geno, sp = cross_breed_from_genotype(g1, g2)
+                                    if sp and sp.lower() == target_species:
+                                        hits += 1
+                                return hits / float(trials)
+                            pair_scores = []
+                            for i in range(n_all):
+                                for j in range(i+1, n_all):
+                                    r1, r2 = all_recs[i], all_recs[j]
+                                    p = _est_target_prob(r1, r2)
+                                    if p > 0.0:
+                                        pair_scores.append((p, r1, r2))
+                            pair_scores.sort(key=lambda x: x[0], reverse=True)
+                            top_pairs = pair_scores[:max(1, POP_SIZE//2)] if pair_scores else []
+                            for p, r1, r2 in top_pairs:
+                                n1, n2 = r1["name"].lower(), r2["name"].lower()
+                                if n1 in used or n2 in used:
+                                    continue
+                                pairs_attempted += 1
+                                produced_any = False
+                                litter_count = 1
+                                if getattr(self, "LITTER_MODE", False):
+                                    def _num(v):
+                                        try:
+                                            return float(v)
+                                        except Exception:
+                                            try:
+                                                s = str(v)
+                                                if '/' in s:
+                                                    return float(s.split('/')[1])
+                                                return float(''.join(ch for ch in s if (ch.isdigit() or ch in '.-')))
+                                            except Exception:
+                                                return 0.0
+                                    lit1 = _num(r1.get("stats", {}).get("Litter Size", 1))
+                                    lit2 = _num(r2.get("stats", {}).get("Litter Size", 1))
+                                    avg = (lit1 + lit2) / 2.0 if (lit1 and lit2) else max(lit1, lit2, 1)
+                                    litter_count = max(1, min(getattr(self, "LITTER_CAP", 10), int(round(avg))))
+                                for _ in range(litter_count):
+                                    result = breed_from_saved(n1, n2, silent=True)
+                                    if result is not None:
+                                        produced_any = True
+                                if produced_any:
+                                    bred += 1
+                                    used.add(n1)
+                                    used.add(n2)
                         all_records = list(self.saved_hybrids.values())
                         all_records.sort(key=lambda r: _score_of(parsed_stats, r), reverse=True)
                         keep = all_records[:POP_SIZE]
@@ -2841,7 +2912,21 @@ class HybridCLI:
                         steps += 1
                         bred_total += bred
                         if (done % log_every) == 0 or done >= generations:
-                            output += f"Generation {done}: bred {bred} pair(s).\n"
+                            extra = ""
+                            if bred == 0:
+                                if fallback_to_cross_species:
+                                    if pairs_attempted == 0:
+                                        extra = f" (no likely cross-species pairs for target '{target_species}')"
+                                    else:
+                                        extra = f" (no viable offspring from cross-species attempts toward '{target_species}')"
+                                else:
+                                    if len(candidates) < 2:
+                                        extra = " (no eligible parents for current species filter)"
+                                    elif pairs_attempted > 0:
+                                        extra = " (no viable offspring produced in attempted pairings)"
+                            elif fallback_to_cross_species:
+                                extra = f" (cross-species toward '{target_species}')"
+                            output += f"Generation {done}: bred {bred} pair(s){extra}.\n"
 
                     self._opt_session["done"] = done
 
