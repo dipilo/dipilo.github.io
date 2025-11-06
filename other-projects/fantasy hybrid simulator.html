@@ -229,8 +229,8 @@ window.run_command = run_command
           preview.textContent = '';
         }
 
-        async function computeSuggestions(q) {
-          if (cmd === 'optimize') {
+  async function computeSuggestions(q) {
+          const text = q.trim();
           const endsWithSpace = /\s$/.test(q);
           updatePreview(q);
           if (!text) return BASE_COMMANDS.slice(0, 10);
@@ -276,7 +276,14 @@ window.run_command = run_command
               // Past stats: suggest raw/norm, chunk/log, and optional species filter
               const tail = after.slice(2).join(' ');
               const last = after[after.length-1] || '';
-            
+              const opts = [];
+              // score mode
+              if (!/\b(raw|norm)\b/i.test(tail)) {
+                if ('raw'.startsWith(last.toLowerCase())) opts.push({t:'raw', d:'Score by absolute values'});
+                if ('norm'.startsWith(last.toLowerCase())) opts.push({t:'norm', d:'Score normalized by species baseline'});
+              }
+              // chunk/log prefixes or compact forms
+              if ('chunk'.startsWith(last.toLowerCase())) opts.push({t:'chunk=1000', d:'Generations per step call'});
               if ('log'.startsWith(last.toLowerCase())) opts.push({t:'log=1000', d:'Print every N generations'});
               // species selector
               if (/^species=/i.test(last) || last.toLowerCase() === 'species=') {
@@ -288,13 +295,6 @@ window.run_command = run_command
               }
               if ('species='.startsWith(last.toLowerCase())) return [{t:'species=', d:'species=<name1>,<name2>'}];
               return opts;
-            }
-              if ('species='.startsWith(last.toLowerCase())) return [{t:'species=', d:'species=<name1>,<name2>'}];
-              // if last token looks like species fragment, suggest species names
-              const sp = await ensureSpecies();
-              const spFrag = last.toLowerCase();
-              const spList = sp.filter(s => s.toLowerCase().startsWith(spFrag)).slice(0, 8).map(s => ({t:s, d:'species'}));
-              return opts.concat(spList);
             }
             if (sub === 'until' || sub === 'check' || sub === 'report') {
               // We're completing <condition>
@@ -396,14 +396,14 @@ window.run_command = run_command
           return [];
         }
 
-        function appendToConsole(text, isUser = false) {
+  function appendToConsole(text, isUser = false) {
           const line = document.createElement("div");
           line.textContent = (isUser ? "> " : "") + text;
           consoleDiv.appendChild(line);
           consoleDiv.scrollTop = consoleDiv.scrollHeight;
-        }
+  }
 
-        function runCommandOnce(cmd) {
+  function runCommandOnce(cmd) {
           try {
             const result = window.run_command(cmd);
             appendToConsole(result.toString());
@@ -413,9 +413,9 @@ window.run_command = run_command
             appendToConsole("Error: " + err);
             return "";
           }
-        }
+  }
 
-        function scheduleRunLoop(stepCmd, isDone) {
+  function scheduleRunLoop(stepCmd, isDone) {
           // Run small chunks repeatedly with a tiny delay to allow the UI to paint between chunks
           function tick() {
             const out = runCommandOnce(stepCmd);
@@ -425,16 +425,16 @@ window.run_command = run_command
             setTimeout(tick, 20);
           }
           setTimeout(tick, 0);
-        }
+  }
 
-        function handleOptimizeRun(cmd) {
+  function handleOptimizeRun(cmd) {
           // Convert to start, then repeatedly call step until completion
           const startCmd = cmd.replace(/^optimize\s+run\s+/i, "optimize start ");
           const startOut = runCommandOnce(startCmd);
           // If start failed, stop
           if (/Usage:\s*optimize start/i.test(startOut)) return;
           scheduleRunLoop("optimize step", (out) => /--- OPTIMIZATION RESULT ---/.test(out));
-        }
+  }
 
           function handleOptimizeRunFast(cmd) {
             // Start, then finish in one Python call (UI may freeze, but it's faster)
@@ -446,7 +446,7 @@ window.run_command = run_command
             // When done, Python will print the final result.
           }
 
-        function handleOptimizeContinueAuto(cmd) {
+  function handleOptimizeContinueAuto(cmd) {
           // Instead of letting Python do 'auto' in one shot (which blocks), loop step in JS
           const startOut = runCommandOnce("optimize status");
           if (/No active optimize session/i.test(startOut)) {
@@ -454,7 +454,7 @@ window.run_command = run_command
             return;
           }
           scheduleRunLoop("optimize step", (out) => /--- OPTIMIZATION RESULT ---/.test(out));
-        }
+  }
 
           function handleOptimizeContinueFast(cmd) {
             const startOut = runCommandOnce("optimize status");
@@ -466,7 +466,7 @@ window.run_command = run_command
             runCommandOnce("optimize continue auto");
           }
 
-        function handleOptimizeUntil(cmd) {
+  function handleOptimizeUntil(cmd) {
           // Parse: optimize until <condition> [<gens>] <stats> [species ...] [chunk=N]
           const m = cmd.match(/^optimize\s+until\s+(\S+)\s*(.*)$/i);
           if (!m) {
