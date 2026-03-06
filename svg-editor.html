@@ -618,6 +618,36 @@
             font-size: 12px;
             color: #7f8c8d;
         }
+
+        .transform-box {
+            fill: none;
+            stroke: #2471a3;
+            stroke-width: 1.5;
+            stroke-dasharray: 5 4;
+            vector-effect: non-scaling-stroke;
+            pointer-events: all;
+            cursor: move;
+        }
+
+        .transform-handle {
+            fill: #ffffff;
+            stroke: #2471a3;
+            stroke-width: 1.5;
+            vector-effect: non-scaling-stroke;
+            cursor: pointer;
+        }
+
+        .rotate-zone {
+            fill: none;
+            stroke: transparent;
+            stroke-width: 24;
+            cursor: grab;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .rotate-zone:active {
+            cursor: grabbing;
+        }
     </style>
 </head>
 <body>
@@ -640,9 +670,13 @@
                             <button id="toolSelect" class="tool-btn" data-tool="select">Select</button>
                             <button id="toolRect" class="tool-btn" data-tool="rect">Rect</button>
                             <button id="toolCircle" class="tool-btn" data-tool="circle">Circle</button>
+                            <button id="toolTriangle" class="tool-btn" data-tool="triangle">Triangle</button>
+                            <button id="toolDiamond" class="tool-btn" data-tool="diamond">Diamond</button>
+                            <button id="toolStar" class="tool-btn" data-tool="star">Star</button>
                             <button id="toolPath" class="tool-btn" data-tool="path">Path</button>
                             <button id="toolLine" class="tool-btn" data-tool="line">Line</button>
                             <button id="toolText" class="tool-btn" data-tool="text">Text</button>
+                            <button id="toolFill" class="tool-btn" data-tool="fill">Fill</button>
                             <button id="toolPen" class="tool-btn active" data-tool="pen">Pen</button>
                             <button id="toolEraser" class="tool-btn" data-tool="eraser">Erase</button>
                             <button id="toolCrop" class="tool-btn" data-tool="crop">Crop</button>
@@ -877,6 +911,11 @@
                 this.pathPoints = [];
                 this.gridSize = 20;
                 this.previewElements = [];
+                this.transformOverlay = null;
+                this.transformState = null;
+                this.isPointerDragging = false;
+                this.suppressNextClick = false;
+                this.clipboardElement = null;
 
                 // Layers
                 this.layersRoot = null;
@@ -896,6 +935,7 @@
                     startY: 0,
                     rectEl: null
                 };
+                this.cropOffset = { x: 0, y: 0 };
                 
                 // NEW: Mirror mode state
                 this.mirrorMode = 'none';
@@ -1142,7 +1182,7 @@
 
                 // Clear selection if it was inside deleted layer
                 if (this.selectedElement && !this.svg.contains(this.selectedElement)) {
-                    this.selectedElement = null;
+                    this.clearSelection();
                 }
 
                 this.renderLayersList();
@@ -1175,8 +1215,7 @@
                         }
                         
                         if (this.selectedElement) {
-                            this.selectedElement.style.outline = 'none';
-                            this.selectedElement = null;
+                            this.clearSelection();
                         }
                         
                         const finishBtn = document.getElementById('finishPath');
@@ -1193,6 +1232,8 @@
                         // Cursor hint
                         if (this.currentTool === 'select') {
                             this.svg.style.cursor = 'default';
+                        } else if (this.currentTool === 'fill') {
+                            this.svg.style.cursor = 'cell';
                         } else if (this.currentTool === 'eraser') {
                             this.svg.style.cursor = 'crosshair';
                         } else {
@@ -1229,6 +1270,7 @@
                 this.svg.addEventListener('mousemove', this.handleMouseMove);
                 this.svg.addEventListener('mouseup', this.handleMouseUp);
                 this.svg.addEventListener('click', this.handleClick);
+                document.addEventListener('keydown', this.handleKeyDown);
 
                 // Layer UI
                 const addLayerBtn = document.getElementById('addLayer');
@@ -1281,6 +1323,7 @@
                     if (this.selectedElement) {
                         this.selectedElement.setAttribute('fill', e.target.value);
                         this.updateSVGCode();
+                        this.renderTransformOverlay();
                     }
                 });
                 fillColorText.addEventListener('input', (e) => {
@@ -1288,6 +1331,7 @@
                     if (this.selectedElement) {
                         this.selectedElement.setAttribute('fill', e.target.value);
                         this.updateSVGCode();
+                        this.renderTransformOverlay();
                     }
                 });
                 strokeColor.addEventListener('input', (e) => {
@@ -1295,6 +1339,7 @@
                     if (this.selectedElement) {
                         this.selectedElement.setAttribute('stroke', e.target.value);
                         this.updateSVGCode();
+                        this.renderTransformOverlay();
                     }
                 });
                 strokeColorText.addEventListener('input', (e) => {
@@ -1302,6 +1347,7 @@
                     if (this.selectedElement) {
                         this.selectedElement.setAttribute('stroke', e.target.value);
                         this.updateSVGCode();
+                        this.renderTransformOverlay();
                     }
                 });
 
@@ -1309,6 +1355,7 @@
                     if (this.selectedElement) {
                         this.selectedElement.setAttribute('stroke-width', e.target.value);
                         this.scheduleSVGCodeUpdate();
+                        this.renderTransformOverlay();
                     }
                 });
 
@@ -1330,7 +1377,7 @@
                 document.getElementById('deleteSelected').addEventListener('click', () => {
                     if (this.selectedElement) {
                         this.selectedElement.remove();
-                        this.selectedElement = null;
+                        this.clearSelection();
                         this.scheduleSVGCodeUpdate();
                         this.showStatus('Element deleted', 'info');
                     }
@@ -1425,6 +1472,10 @@
             }
 
             handleMouseDown = (e) => {
+                if (this.currentTool === 'select') {
+                    if (this.beginSelectInteraction(e)) return;
+                }
+
                 if (this.currentTool === 'crop') {
                     this.startCrop(e);
                     return;
@@ -1436,7 +1487,7 @@
                     return;
                 }
 
-                if (this.currentTool === 'select' || this.currentTool === 'text') return;
+                if (this.currentTool === 'select' || this.currentTool === 'text' || this.currentTool === 'fill') return;
                 
                 this.isDrawing = true;
                 const snappedX = this.snapToGrid(e.offsetX);
@@ -1455,6 +1506,11 @@
             }
 
             handleMouseMove = (e) => {
+                if (this.currentTool === 'select' && this.transformState) {
+                    this.updateTransformInteraction(e);
+                    return;
+                }
+
                 if (!this.isDrawing) return;
 
                 if (this.currentTool === 'eraser') {
@@ -1470,7 +1526,7 @@
                 const currentX = this.snapToGrid(e.offsetX);
                 const currentY = this.snapToGrid(e.offsetY);
                 
-                if (['rect', 'circle', 'line'].includes(this.currentTool)) {
+                if (['rect', 'circle', 'triangle', 'diamond', 'star', 'line'].includes(this.currentTool)) {
                     this.updateShapePreview(currentX, currentY);
                 }
                 
@@ -1481,6 +1537,11 @@
             }
 
             handleMouseUp = (e) => {
+                if (this.currentTool === 'select' && this.transformState) {
+                    this.finishTransformInteraction();
+                    return;
+                }
+
                 if (!this.isDrawing) return;
                 this.isDrawing = false;
 
@@ -1507,7 +1568,7 @@
                     if (this.mirrorMode !== 'none') {
                         this.createMirroredPenPaths(pointsToMirror);
                     }
-                } else if (this.currentTool === 'rect' || this.currentTool === 'circle' || this.currentTool === 'line') {
+                } else if (['rect', 'circle', 'triangle', 'diamond', 'star', 'line'].includes(this.currentTool)) {
                     if (this.startX !== endX || this.startY !== endY) {
                         this.createShape(this.startX, this.startY, endX, endY);
                         
@@ -1519,6 +1580,11 @@
             }
 
             handleClick = (e) => {
+                if (this.suppressNextClick) {
+                    this.suppressNextClick = false;
+                    return;
+                }
+
                 if (this.currentTool === 'eraser') {
                     this.eraseAtEvent(e);
                     return;
@@ -1526,6 +1592,12 @@
 
                 if (this.currentTool === 'select') {
                     this.selectElement(e.target);
+                } else if (this.currentTool === 'fill') {
+                    if (this.isDrawableElement(e.target)) {
+                        this.fillElement(e.target);
+                    } else {
+                        this.fillAtPoint(e.clientX, e.clientY);
+                    }
                 } else if (this.currentTool === 'text') {
                     const text = prompt('Enter text:');
                     if (text) {
@@ -1551,8 +1623,7 @@
                 this._lastErasedElement = el;
 
                 if (this.selectedElement === el) {
-                    el.style.outline = 'none';
-                    this.selectedElement = null;
+                    this.clearSelection();
                 }
 
                 el.remove();
@@ -1565,7 +1636,7 @@
                 }
                 
                 if (element.tagName === 'svg' || element.tagName === 'g') return;
-                if (element.classList && (element.classList.contains('preview-element') || element.classList.contains('path-point'))) return;
+                if (element.classList && (element.classList.contains('preview-element') || element.classList.contains('path-point') || element.classList.contains('editor-ui'))) return;
 
                 // Activate the layer containing the selected element
                 const layerGroup = element.closest('g[data-layer-id]');
@@ -1576,6 +1647,7 @@
                 
                 this.selectedElement = element;
                 element.style.outline = '2px dashed #e74c3c';
+                this.renderTransformOverlay();
                 
                 document.getElementById('fillColor').value = element.getAttribute('fill') || '#000000';
                 document.getElementById('fillColorText').value = element.getAttribute('fill') || '#000000';
@@ -1588,6 +1660,412 @@
                     const cap = (element.getAttribute('stroke-linecap') || '').toLowerCase();
                     roundToggle.checked = cap === 'round' || this.currentTool === 'pen';
                 }
+            }
+
+            handleKeyDown = (e) => {
+                if (this.isInputFocused()) return;
+
+                const key = String(e.key || '').toLowerCase();
+                if (!e.ctrlKey && !e.metaKey) return;
+
+                if (key === 'c') {
+                    if (!this.selectedElement) return;
+                    this.copySelected();
+                    e.preventDefault();
+                    return;
+                }
+
+                if (key === 'v') {
+                    this.pasteClipboard();
+                    e.preventDefault();
+                    return;
+                }
+
+                if (key === 'd') {
+                    this.duplicateSelected();
+                    e.preventDefault();
+                }
+            }
+
+            isInputFocused() {
+                const active = document.activeElement;
+                if (!active) return false;
+                const tag = String(active.tagName || '').toLowerCase();
+                return tag === 'input' || tag === 'textarea' || active.isContentEditable;
+            }
+
+            copySelected() {
+                if (!this.selectedElement) return;
+                this.clipboardElement = this.selectedElement.cloneNode(true);
+                this.showStatus('Copied selection', 'info');
+            }
+
+            pasteClipboard() {
+                if (!this.clipboardElement) {
+                    this.showStatus('Clipboard is empty', 'warning');
+                    return;
+                }
+
+                const clone = this.clipboardElement.cloneNode(true);
+                this.offsetElement(clone, 20, 20);
+                this.appendToActiveLayer(clone);
+                this.elements.push(clone);
+                this.selectElement(clone);
+                this.scheduleSVGCodeUpdate();
+                this.showStatus('Pasted selection', 'success');
+            }
+
+            duplicateSelected() {
+                if (!this.selectedElement) {
+                    this.showStatus('No selected object to duplicate', 'warning');
+                    return;
+                }
+                this.clipboardElement = this.selectedElement.cloneNode(true);
+                this.pasteClipboard();
+            }
+
+            offsetElement(element, dx, dy) {
+                const base = element.getAttribute('transform');
+                const translate = `translate(${dx} ${dy})`;
+                element.setAttribute('transform', base ? `${base} ${translate}` : translate);
+            }
+
+            beginSelectInteraction(e) {
+                const target = e.target;
+
+                if (target && target.classList && target.classList.contains('transform-box')) {
+                    this.startTransformInteraction(e, 'move');
+                    return true;
+                }
+
+                if (target && target.dataset && target.dataset.transformHandle) {
+                    this.startTransformInteraction(e, 'resize', target.dataset.transformHandle);
+                    return true;
+                }
+
+                if (target && target.id === 'transform-rotate-zone') {
+                    this.startTransformInteraction(e, 'rotate');
+                    return true;
+                }
+
+                if (this.isDrawableElement(target)) {
+                    if (target !== this.selectedElement) {
+                        this.selectElement(target);
+                    }
+                    this.startTransformInteraction(e, 'move');
+                    return true;
+                }
+
+                if (target === this.svg) {
+                    this.clearSelection();
+                    return true;
+                }
+
+                return false;
+            }
+
+            isDrawableElement(element) {
+                if (!element) return false;
+                if (!this.svg.contains(element)) return false;
+                if (element === this.svg) return false;
+                if (element.tagName === 'g') return false;
+                if (element.classList && (element.classList.contains('preview-element') || element.classList.contains('path-point') || element.classList.contains('editor-ui'))) return false;
+                return true;
+            }
+
+            clearSelection() {
+                if (this.selectedElement) {
+                    this.selectedElement.style.outline = 'none';
+                }
+                this.selectedElement = null;
+                this.removeTransformOverlay();
+            }
+
+            getSvgPointFromClient(clientX, clientY) {
+                const pt = this.svg.createSVGPoint();
+                pt.x = clientX;
+                pt.y = clientY;
+                const matrix = this.svg.getScreenCTM();
+                if (!matrix) return { x: 0, y: 0 };
+                const converted = pt.matrixTransform(matrix.inverse());
+                return { x: converted.x, y: converted.y };
+            }
+
+            getSvgPointFromMouseEvent(e) {
+                return this.getSvgPointFromClient(e.clientX, e.clientY);
+            }
+
+            getSelectionBBox() {
+                if (!this.selectedElement) return null;
+                const rect = this.selectedElement.getBoundingClientRect();
+                if (!rect || rect.width === 0 || rect.height === 0) return null;
+
+                const p1 = this.getSvgPointFromClient(rect.left, rect.top);
+                const p2 = this.getSvgPointFromClient(rect.right, rect.top);
+                const p3 = this.getSvgPointFromClient(rect.right, rect.bottom);
+                const p4 = this.getSvgPointFromClient(rect.left, rect.bottom);
+
+                const minX = Math.min(p1.x, p2.x, p3.x, p4.x);
+                const maxX = Math.max(p1.x, p2.x, p3.x, p4.x);
+                const minY = Math.min(p1.y, p2.y, p3.y, p4.y);
+                const maxY = Math.max(p1.y, p2.y, p3.y, p4.y);
+
+                return {
+                    x: minX,
+                    y: minY,
+                    width: Math.max(1, maxX - minX),
+                    height: Math.max(1, maxY - minY)
+                };
+            }
+
+            ensureTransformOverlay() {
+                if (this.transformOverlay && this.svg.contains(this.transformOverlay)) {
+                    return this.transformOverlay;
+                }
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const group = document.createElementNS(svgNS, 'g');
+                group.id = 'transformOverlay';
+                group.classList.add('editor-ui');
+                this.svg.appendChild(group);
+                this.transformOverlay = group;
+                return group;
+            }
+
+            removeTransformOverlay() {
+                if (this.transformOverlay && this.transformOverlay.parentNode) {
+                    this.transformOverlay.remove();
+                }
+                this.transformOverlay = null;
+            }
+
+            renderTransformOverlay() {
+                if (!this.selectedElement || !this.svg.contains(this.selectedElement)) {
+                    this.removeTransformOverlay();
+                    return;
+                }
+
+                const bbox = this.getSelectionBBox();
+                if (!bbox) {
+                    this.removeTransformOverlay();
+                    return;
+                }
+
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const overlay = this.ensureTransformOverlay();
+                overlay.innerHTML = '';
+
+                const rotateZone = document.createElementNS(svgNS, 'rect');
+                rotateZone.id = 'transform-rotate-zone';
+                rotateZone.classList.add('rotate-zone', 'editor-ui');
+                const pad = 18;
+                rotateZone.setAttribute('x', bbox.x - pad);
+                rotateZone.setAttribute('y', bbox.y - pad);
+                rotateZone.setAttribute('width', bbox.width + pad * 2);
+                rotateZone.setAttribute('height', bbox.height + pad * 2);
+                overlay.appendChild(rotateZone);
+
+                const rect = document.createElementNS(svgNS, 'rect');
+                rect.classList.add('transform-box', 'editor-ui');
+                rect.setAttribute('x', bbox.x);
+                rect.setAttribute('y', bbox.y);
+                rect.setAttribute('width', bbox.width);
+                rect.setAttribute('height', bbox.height);
+                overlay.appendChild(rect);
+
+                const handles = [
+                    { key: 'nw', x: bbox.x, y: bbox.y },
+                    { key: 'n', x: bbox.x + bbox.width / 2, y: bbox.y },
+                    { key: 'ne', x: bbox.x + bbox.width, y: bbox.y },
+                    { key: 'e', x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2 },
+                    { key: 'se', x: bbox.x + bbox.width, y: bbox.y + bbox.height },
+                    { key: 's', x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height },
+                    { key: 'sw', x: bbox.x, y: bbox.y + bbox.height },
+                    { key: 'w', x: bbox.x, y: bbox.y + bbox.height / 2 }
+                ];
+
+                handles.forEach((handle) => {
+                    const h = document.createElementNS(svgNS, 'rect');
+                    h.classList.add('transform-handle', 'editor-ui');
+                    h.dataset.transformHandle = handle.key;
+                    const size = 8;
+                    h.setAttribute('x', handle.x - size / 2);
+                    h.setAttribute('y', handle.y - size / 2);
+                    h.setAttribute('width', size);
+                    h.setAttribute('height', size);
+                    overlay.appendChild(h);
+                });
+            }
+
+            startTransformInteraction(e, mode, handle = null) {
+                if (!this.selectedElement) return;
+
+                const point = this.getSvgPointFromMouseEvent(e);
+                const bbox = this.getSelectionBBox();
+                if (!bbox) return;
+
+                this.transformState = {
+                    mode,
+                    handle,
+                    startPoint: point,
+                    initialTransform: this.selectedElement.getAttribute('transform') || '',
+                    bbox,
+                    center: {
+                        x: bbox.x + bbox.width / 2,
+                        y: bbox.y + bbox.height / 2
+                    },
+                    startAngle: Math.atan2(point.y - (bbox.y + bbox.height / 2), point.x - (bbox.x + bbox.width / 2))
+                };
+
+                this.isPointerDragging = false;
+                this.isDrawing = false;
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            updateTransformInteraction(e) {
+                if (!this.transformState || !this.selectedElement) return;
+
+                const point = this.getSvgPointFromMouseEvent(e);
+                const dx = point.x - this.transformState.startPoint.x;
+                const dy = point.y - this.transformState.startPoint.y;
+                this.isPointerDragging = true;
+
+                if (this.transformState.mode === 'move') {
+                    this.applyMoveTransform(dx, dy, e);
+                } else if (this.transformState.mode === 'resize') {
+                    this.applyResizeTransform(dx, dy, e);
+                } else if (this.transformState.mode === 'rotate') {
+                    this.applyRotateTransform(point, e);
+                }
+
+                this.renderTransformOverlay();
+                e.preventDefault();
+            }
+
+            finishTransformInteraction() {
+                if (!this.transformState) return;
+                this.transformState = null;
+                this.suppressNextClick = this.isPointerDragging;
+                this.isPointerDragging = false;
+                this.scheduleSVGCodeUpdate();
+                this.renderTransformOverlay();
+            }
+
+            applyMoveTransform(dx, dy, e) {
+                const state = this.transformState;
+                let tx = dx;
+                let ty = dy;
+
+                if (e.ctrlKey || e.metaKey) {
+                    tx = Math.round(tx / 10) * 10;
+                    ty = Math.round(ty / 10) * 10;
+                }
+
+                const translate = `translate(${tx} ${ty})`;
+                this.selectedElement.setAttribute('transform', state.initialTransform ? `${state.initialTransform} ${translate}` : translate);
+            }
+
+            getHandleAxis(handle, positiveKey, negativeKey) {
+                if (handle.includes(positiveKey)) return 1;
+                if (handle.includes(negativeKey)) return -1;
+                return 0;
+            }
+
+            clampScale(scale, minScale = 0.05) {
+                if (!Number.isFinite(scale)) return 1;
+                return scale >= 0 ? Math.max(minScale, scale) : Math.min(-minScale, scale);
+            }
+
+            getResizeAnchorAndScale(bbox, handleX, handleY, dx, dy, fromCenter) {
+                let sx = 1;
+                let sy = 1;
+                let anchorX = bbox.x;
+                let anchorY = bbox.y;
+
+                if (fromCenter) {
+                    anchorX = bbox.x + bbox.width / 2;
+                    anchorY = bbox.y + bbox.height / 2;
+                    if (handleX !== 0) sx = (bbox.width + (handleX * dx * 2)) / bbox.width;
+                    if (handleY !== 0) sy = (bbox.height + (handleY * dy * 2)) / bbox.height;
+                    return { sx, sy, anchorX, anchorY };
+                }
+
+                if (handleX === 1) {
+                    anchorX = bbox.x;
+                    sx = (bbox.width + dx) / bbox.width;
+                } else if (handleX === -1) {
+                    anchorX = bbox.x + bbox.width;
+                    sx = (bbox.width - dx) / bbox.width;
+                }
+
+                if (handleY === 1) {
+                    anchorY = bbox.y;
+                    sy = (bbox.height + dy) / bbox.height;
+                } else if (handleY === -1) {
+                    anchorY = bbox.y + bbox.height;
+                    sy = (bbox.height - dy) / bbox.height;
+                }
+
+                return { sx, sy, anchorX, anchorY };
+            }
+
+            constrainScaleToUniform(sx, sy, handleX, handleY) {
+                const uniform = Math.abs(sx - 1) > Math.abs(sy - 1) ? sx : sy;
+
+                if (handleX === 0 && handleY === 0) {
+                    return { sx, sy };
+                }
+
+                if (handleX === 0) {
+                    return { sx: uniform, sy: uniform };
+                }
+
+                if (handleY === 0) {
+                    return { sx: uniform, sy: uniform };
+                }
+
+                return { sx: uniform, sy: uniform };
+            }
+
+            applyResizeTransform(dx, dy, e) {
+                const state = this.transformState;
+                const { bbox, handle } = state;
+                const handleX = this.getHandleAxis(handle, 'e', 'w');
+                const handleY = this.getHandleAxis(handle, 's', 'n');
+
+                const resizeData = this.getResizeAnchorAndScale(bbox, handleX, handleY, dx, dy, e.altKey);
+                let sx = this.clampScale(resizeData.sx);
+                let sy = this.clampScale(resizeData.sy);
+                const { anchorX, anchorY } = resizeData;
+
+                if (e.shiftKey) {
+                    const constrained = this.constrainScaleToUniform(sx, sy, handleX, handleY);
+                    sx = constrained.sx;
+                    sy = constrained.sy;
+                }
+
+                if (e.ctrlKey || e.metaKey) {
+                    sx = Math.round(sx * 10) / 10;
+                    sy = Math.round(sy * 10) / 10;
+                }
+
+                const transform = `translate(${anchorX} ${anchorY}) scale(${sx} ${sy}) translate(${-anchorX} ${-anchorY})`;
+                this.selectedElement.setAttribute('transform', state.initialTransform ? `${state.initialTransform} ${transform}` : transform);
+            }
+
+            applyRotateTransform(point, e) {
+                const state = this.transformState;
+                const angleNow = Math.atan2(point.y - state.center.y, point.x - state.center.x);
+                let deltaDeg = (angleNow - state.startAngle) * (180 / Math.PI);
+
+                if (e.shiftKey) {
+                    deltaDeg = Math.round(deltaDeg / 15) * 15;
+                } else if (e.ctrlKey || e.metaKey) {
+                    deltaDeg = Math.round(deltaDeg / 5) * 5;
+                }
+
+                const rotate = `rotate(${deltaDeg} ${state.center.x} ${state.center.y})`;
+                this.selectedElement.setAttribute('transform', state.initialTransform ? `${state.initialTransform} ${rotate}` : rotate);
             }
 
             updateShapePreview(currentX, currentY) {
@@ -1639,6 +2117,9 @@
                     element.setAttribute('cy', (y1 + y2) / 2);
                     element.setAttribute('rx', Math.abs(x2 - x1) / 2);
                     element.setAttribute('ry', Math.abs(y2 - y1) / 2);
+                } else if (this.currentTool === 'triangle' || this.currentTool === 'diamond' || this.currentTool === 'star') {
+                    element = document.createElementNS(svgNS, 'polygon');
+                    element.setAttribute('points', this.getPolygonPoints(this.currentTool, x1, y1, x2, y2));
                 } else if (this.currentTool === 'line') {
                     element = document.createElementNS(svgNS, 'line');
                     element.setAttribute('x1', x1);
@@ -1922,6 +2403,13 @@
                         element.setAttribute('ry', ry);
                         break;
                     }
+
+                    case 'triangle':
+                    case 'diamond':
+                    case 'star':
+                        element = document.createElementNS(svgNS, 'polygon');
+                        element.setAttribute('points', this.getPolygonPoints(this.currentTool, x1, y1, x2, y2));
+                        break;
                         
                     case 'line':
                         element = document.createElementNS(svgNS, 'line');
@@ -1941,6 +2429,130 @@
                     this.elements.push(element);
                     this.scheduleSVGCodeUpdate();
                 }
+            }
+
+            getPolygonPoints(tool, x1, y1, x2, y2) {
+                const minX = Math.min(x1, x2);
+                const maxX = Math.max(x1, x2);
+                const minY = Math.min(y1, y2);
+                const maxY = Math.max(y1, y2);
+                const midX = (minX + maxX) / 2;
+                const midY = (minY + maxY) / 2;
+                const width = maxX - minX;
+                const height = maxY - minY;
+
+                if (tool === 'triangle') {
+                    return `${midX},${minY} ${maxX},${maxY} ${minX},${maxY}`;
+                }
+
+                if (tool === 'diamond') {
+                    return `${midX},${minY} ${maxX},${midY} ${midX},${maxY} ${minX},${midY}`;
+                }
+
+                if (tool === 'star') {
+                    const cx = midX;
+                    const cy = midY;
+                    const outerR = Math.min(width, height) / 2;
+                    const innerR = outerR * 0.45;
+                    const points = [];
+                    for (let i = 0; i < 10; i++) {
+                        const angle = (-90 + i * 36) * (Math.PI / 180);
+                        const radius = i % 2 === 0 ? outerR : innerR;
+                        const px = cx + Math.cos(angle) * radius;
+                        const py = cy + Math.sin(angle) * radius;
+                        points.push(`${px},${py}`);
+                    }
+                    return points.join(' ');
+                }
+
+                return '';
+            }
+
+            fillElement(element) {
+                if (!element) return;
+                if (!this.svg.contains(element)) return;
+                if (element.classList && (element.classList.contains('preview-element') || element.classList.contains('path-point') || element.classList.contains('editor-ui'))) return;
+
+                if (element.tagName === 'svg' || element.tagName === 'g') return;
+
+                const fill = document.getElementById('fillColor').value;
+                const stroke = document.getElementById('strokeColor').value;
+                const tag = String(element.tagName || '').toLowerCase();
+
+                const fillable = new Set(['path', 'rect', 'circle', 'ellipse', 'polygon', 'text']);
+                if (fillable.has(tag)) {
+                    element.setAttribute('fill', fill);
+                    this.showStatus('Fill applied', 'success');
+                } else if (tag === 'line' || tag === 'polyline') {
+                    element.setAttribute('stroke', stroke);
+                    this.showStatus('Stroke applied (line-type element)', 'info');
+                } else {
+                    this.showStatus('Selected element is not fillable', 'warning');
+                    return;
+                }
+
+                this.selectedElement = element;
+                this.renderTransformOverlay();
+                this.scheduleSVGCodeUpdate();
+            }
+
+            fillAtPoint(clientX, clientY) {
+                const point = this.getSvgPointFromClient(clientX, clientY);
+                const target = this.findFillTargetAtPoint(point);
+                if (!target) {
+                    this.showStatus('No closed shape found at cursor', 'warning');
+                    return;
+                }
+                this.fillElement(target);
+            }
+
+            findFillTargetAtPoint(point) {
+                const candidates = Array.from(this.svg.querySelectorAll('#layersRoot *'))
+                    .filter((el) => this.isDrawableElement(el));
+
+                for (let index = candidates.length - 1; index >= 0; index--) {
+                    const el = candidates[index];
+                    if (!this.canElementReceiveFill(el)) continue;
+                    if (this.pointInsideElementFill(el, point)) {
+                        return el;
+                    }
+                }
+                return null;
+            }
+
+            canElementReceiveFill(element) {
+                const tag = String(element.tagName || '').toLowerCase();
+                return tag === 'path' || tag === 'rect' || tag === 'circle' || tag === 'ellipse' || tag === 'polygon';
+            }
+
+            pointInsideElementFill(element, point) {
+                if (typeof element.isPointInFill === 'function') {
+                    try {
+                        if (element.isPointInFill(point)) return true;
+                    } catch (error_) {
+                        console.warn('isPointInFill failed', error_);
+                    }
+                }
+
+                // Fallback for some stroke-only closed paths: temporarily force a transparent fill for hit-test.
+                const prevFill = element.getAttribute('fill');
+                const hadFill = element.hasAttribute('fill');
+                try {
+                    element.setAttribute('fill', '#000');
+                    if (typeof element.isPointInFill === 'function' && element.isPointInFill(point)) {
+                        return true;
+                    }
+                } catch (error_) {
+                    console.warn('Fallback fill hit-test failed', error_);
+                } finally {
+                    if (hadFill) {
+                        element.setAttribute('fill', prevFill);
+                    } else {
+                        element.removeAttribute('fill');
+                    }
+                }
+
+                return false;
             }
 
             // ==================== Crop ====================
@@ -2051,36 +2663,21 @@
                 document.getElementById('canvasWidth').value = String(width);
                 document.getElementById('canvasHeight').value = String(height);
 
-                // Translate content so crop top-left becomes origin
+                // Rebase all layer content so crop top-left becomes new origin.
+                const translate = `translate(${-x} ${-y})`;
+                this.layers.forEach((layer) => {
+                    const current = layer.group.getAttribute('transform');
+                    layer.group.setAttribute('transform', current ? `${current} ${translate}` : translate);
+                });
+
+                // Clear legacy root crop transforms/clips so repeated crops stay predictable.
+                this.cropOffset = { x: 0, y: 0 };
                 if (this.contentRoot) {
-                    this.contentRoot.setAttribute('transform', `translate(${-x} ${-y})`);
+                    this.contentRoot.removeAttribute('transform');
+                    this.contentRoot.removeAttribute('clip-path');
                 }
 
-                // Clip to new canvas
-                const defs = this.ensureDefs();
-                const svgNS = 'http://www.w3.org/2000/svg';
-                let clip = defs.querySelector('#cropClip');
-                if (!clip) {
-                    clip = document.createElementNS(svgNS, 'clipPath');
-                    clip.id = 'cropClip';
-                    defs.appendChild(clip);
-                }
-
-                let clipRect = clip.querySelector('rect');
-                if (!clipRect) {
-                    clipRect = document.createElementNS(svgNS, 'rect');
-                    clip.appendChild(clipRect);
-                }
-                clipRect.setAttribute('x', '0');
-                clipRect.setAttribute('y', '0');
-                clipRect.setAttribute('width', String(width));
-                clipRect.setAttribute('height', String(height));
-
-                if (this.contentRoot) {
-                    this.contentRoot.setAttribute('clip-path', 'url(#cropClip)');
-                }
-
-                this.selectedElement = null;
+                this.clearSelection();
                 this.clearAllPreviews();
                 this.scheduleSVGCodeUpdate();
                 this.showStatus(`Cropped to ${width}×${height}`, 'success');
@@ -2161,6 +2758,8 @@
                 this.elements = [];
                 this.selectedElement = null;
                 this.pathPoints = [];
+                this.cropOffset = { x: 0, y: 0 };
+                this.removeTransformOverlay();
                 this.clearAllPreviews();
                 this.initializeLayers();
                 this.scheduleSVGCodeUpdate();
@@ -2260,11 +2859,20 @@
             }
 
             updateSVGCode() {
-                const svgCode = this.svg.outerHTML
-                    .replaceAll(/class="preview-element"[^>]*>/g, '>')
-                    .replaceAll(/id="path-preview"[^>]*>/g, '>')
-                    .replaceAll(/id="pen-preview"[^>]*>/g, '')
-                    .replaceAll(/\s+style="outline:.*?"/g, '');
+                const clone = this.svg.cloneNode(true);
+                clone.querySelectorAll('.preview-element, .path-point, .editor-ui').forEach((el) => el.remove());
+                ['path-preview', 'pen-preview', 'crop-preview', 'transformOverlay'].forEach((id) => {
+                    const node = clone.querySelector(`#${id}`);
+                    if (node) node.remove();
+                });
+                clone.querySelectorAll('[style]').forEach((el) => {
+                    const style = el.getAttribute('style') || '';
+                    if (style.includes('outline')) {
+                        el.removeAttribute('style');
+                    }
+                });
+                const serializer = new XMLSerializer();
+                const svgCode = serializer.serializeToString(clone);
                 document.getElementById('svgCode').value = this.formatXML(svgCode);
                 this.updateCodeSize();
             }
@@ -2327,18 +2935,7 @@
             }
 
             showStatus(message, type = 'info') {
-                const container = document.getElementById('statusContainer');
-                if (!container) return;
-                
-                const status = document.createElement('div');
-                status.className = `status-message ${type}`;
-                status.textContent = message;
-                
-                container.appendChild(status);
-                
-                setTimeout(() => {
-                    status.remove();
-                }, 5000);
+                console.info(`[${type}] ${message}`);
             }
         }
 
