@@ -509,6 +509,8 @@
             padding: 10px;
             position: sticky;
             top: 90px;
+            width: 76px;
+            box-sizing: border-box;
         }
 
         .tool-rail-buttons {
@@ -525,6 +527,9 @@
             background: #ecf0f1;
             color: #2c3e50;
             border: 1px solid #dde3e6;
+            text-align: center;
+            display: block;
+            box-sizing: border-box;
         }
 
         .tool-rail .tool-btn:hover {
@@ -782,7 +787,8 @@
                                 <button id="sampleBtn">Load Sample</button>
                                 <button id="extractBitmapBtn" class="success">Extract &amp; Convert Images</button>
                                 <button id="optimizeBtn" class="success">Optimize</button>
-                                <button id="downloadBtn">Download</button>
+                                <button id="downloadBtn">Download SVG</button>
+                                <button id="exportImageBtn">Export as Image</button>
                             </div>
                             <input type="file" id="fileInput" accept=".svg" class="hidden">
                         </div>
@@ -3008,6 +3014,32 @@
                     this.downloadSVG();
                 });
 
+                document.getElementById('exportImageBtn').addEventListener('click', () => {
+                    const formats = ['PNG', 'JPG', 'WebP'];
+                    const picker = document.createElement('div');
+                    picker.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1px solid #ddd;border-radius:10px;padding:20px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2);min-width:220px;';
+                    picker.innerHTML = `
+                        <p style="margin:0 0 12px;font-weight:600;color:#2c3e50;font-size:14px;">Export as Image</p>
+                        <div style="display:grid;gap:8px;">
+                            ${formats.map(f => `<button data-fmt="${f.toLowerCase()}" style="padding:10px;border-radius:6px;background:#ecf0f1;border:1px solid #dde3e6;cursor:pointer;font-size:14px;color:#2c3e50;">${f}</button>`).join('')}
+                        </div>
+                        <button id="_exportCancel" style="margin-top:12px;width:100%;padding:8px;border-radius:6px;background:transparent;border:1px solid #bdc3c7;cursor:pointer;font-size:13px;color:#7f8c8d;">Cancel</button>
+                    `;
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9998;';
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(picker);
+                    const close = () => { picker.remove(); overlay.remove(); };
+                    overlay.addEventListener('click', close);
+                    picker.querySelector('#_exportCancel').addEventListener('click', close);
+                    picker.querySelectorAll('[data-fmt]').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            close();
+                            this.exportAsImage(btn.dataset.fmt);
+                        });
+                    });
+                });
+
                 document.getElementById('copyCode').addEventListener('click', async () => {
                     const code = document.getElementById('svgCode').value;
                     try {
@@ -3448,18 +3480,82 @@
                     drawingApp.showStatus('No SVG to download', 'warning');
                     return;
                 }
-                
                 const blob = new Blob([svg], {type: 'image/svg+xml'});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'optimized-icon.svg';
+                a.download = 'image.svg';
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
                 URL.revokeObjectURL(url);
-                
                 drawingApp.showStatus('SVG downloaded successfully', 'success');
+            }
+
+            exportAsImage(format) {
+                const svg = document.getElementById('svgCode').value.trim();
+                if (!svg) {
+                    drawingApp.showStatus('No SVG to export', 'warning');
+                    return;
+                }
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(svg, 'image/svg+xml');
+                const svgEl = doc.documentElement;
+                if (svgEl.tagName === 'parsererror' || svgEl.querySelector('parsererror')) {
+                    drawingApp.showStatus('Invalid SVG — cannot export', 'error');
+                    return;
+                }
+
+                let w = Number.parseInt(svgEl.getAttribute('width'), 10) || 400;
+                let h = Number.parseInt(svgEl.getAttribute('height'), 10) || 400;
+                const vb = svgEl.getAttribute('viewBox');
+                if (vb) {
+                    const parts = vb.trim().split(/[\s,]+/);
+                    if (parts.length === 4) {
+                        w = Number.parseInt(parts[2], 10) || w;
+                        h = Number.parseInt(parts[3], 10) || h;
+                    }
+                }
+
+                const scale = 2;
+                const canvas = document.createElement('canvas');
+                canvas.width = w * scale;
+                canvas.height = h * scale;
+                const ctx = canvas.getContext('2d');
+
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                    if (format !== 'png') {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(url);
+
+                    const mimeMap = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
+                    const mime = mimeMap[format] || 'image/png';
+                    const quality = format === 'jpg' ? 0.92 : undefined;
+
+                    canvas.toBlob((outBlob) => {
+                        const outUrl = URL.createObjectURL(outBlob);
+                        const a = document.createElement('a');
+                        a.href = outUrl;
+                        a.download = `image.${format}`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(outUrl);
+                        drawingApp.showStatus(`Exported as ${format.toUpperCase()}`, 'success');
+                    }, mime, quality);
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    drawingApp.showStatus('Export failed — could not render SVG', 'error');
+                };
+                img.src = url;
             }
 
             formatXML(xml) {
