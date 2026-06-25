@@ -834,6 +834,8 @@
             background-size: 20px 20px;
             background-position: 0 0;
         }
+        /* Make hollow shapes (fill:none) selectable by clicking their interior, not just the stroke. */
+        #layersRoot * { pointer-events: all; }
 
         /* Right dock */
         .right-dock {
@@ -897,6 +899,12 @@
             font-size: 12.5px; color: #c7ccd2;
             padding: 3px 9px; border: 1px solid var(--border-2); border-radius: 999px; background: var(--panel-2);
         }
+        .none-toggle {
+            display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
+            font-size: 12px; font-weight: 500; color: var(--muted); min-width: auto !important;
+            padding: 3px 8px; border: 1px solid var(--border-2); border-radius: 999px; background: var(--panel-2);
+        }
+        .none-toggle input { margin: 0; }
 
         input[type="text"], input[type="number"], select, textarea {
             background: #1f2024; border: 1px solid var(--border-2); color: var(--text);
@@ -1033,13 +1041,15 @@
                     <div class="controls-group">
                         <label for="fillColor">Fill</label>
                         <input type="color" id="fillColor" value="#3498db">
-                        <input type="text" id="fillColorText" value="#3498db" placeholder="#000000" aria-label="Fill color (hex)" style="flex:1;min-width:90px;">
+                        <input type="text" id="fillColorText" value="#3498db" placeholder="#000000" aria-label="Fill color (hex)" style="width:78px;">
+                        <label class="none-toggle" title="No fill (hollow shape)"><input type="checkbox" id="noFill"> None</label>
                     </div>
 
                     <div class="controls-group">
                         <label for="strokeColor">Stroke</label>
                         <input type="color" id="strokeColor" value="#2c3e50">
-                        <input type="text" id="strokeColorText" value="#2c3e50" placeholder="#000000" aria-label="Stroke color (hex)" style="flex:1;min-width:90px;">
+                        <input type="text" id="strokeColorText" value="#2c3e50" placeholder="#000000" aria-label="Stroke color (hex)" style="width:78px;">
+                        <label class="none-toggle" title="No stroke"><input type="checkbox" id="noStroke"> None</label>
                     </div>
 
                     <div class="controls-group">
@@ -1314,6 +1324,34 @@
             getRoundStrokesEnabled() {
                 const toggle = document.getElementById('roundStrokes');
                 return !!(toggle && toggle.checked);
+            }
+
+            getFillValue() {
+                const none = document.getElementById('noFill');
+                if (none && none.checked) return 'none';
+                return document.getElementById('fillColor').value;
+            }
+
+            getStrokeValue() {
+                const none = document.getElementById('noStroke');
+                if (none && none.checked) return 'none';
+                return document.getElementById('strokeColor').value;
+            }
+
+            syncPaintControls() {
+                const noFill = document.getElementById('noFill');
+                const noStroke = document.getElementById('noStroke');
+                const fOff = !!(noFill && noFill.checked);
+                const sOff = !!(noStroke && noStroke.checked);
+                const fc = document.getElementById('fillColor');
+                const fct = document.getElementById('fillColorText');
+                const sc = document.getElementById('strokeColor');
+                const sct = document.getElementById('strokeColorText');
+                if (!fc || !fct || !sc || !sct) return;
+                fc.disabled = fct.disabled = fOff;
+                sc.disabled = sct.disabled = sOff;
+                fc.style.opacity = fct.style.opacity = fOff ? '0.4' : '';
+                sc.style.opacity = sct.style.opacity = sOff ? '0.4' : '';
             }
 
             applyStrokeStyle(element) {
@@ -1676,6 +1714,22 @@
                     }
                 });
 
+                // "None" toggles for fill / stroke (hollow shapes).
+                const noFill = document.getElementById('noFill');
+                const noStroke = document.getElementById('noStroke');
+                const applyPaintToSelection = () => {
+                    if (!this.selectedElement) return;
+                    this.selectedElement.setAttribute('fill', this.getFillValue());
+                    if (this.selectedElement.tagName !== 'text') {
+                        this.selectedElement.setAttribute('stroke', this.getStrokeValue());
+                    }
+                    this.updateSVGCode();
+                    this.renderTransformOverlay();
+                };
+                if (noFill) noFill.addEventListener('change', () => { this.syncPaintControls(); applyPaintToSelection(); });
+                if (noStroke) noStroke.addEventListener('change', () => { this.syncPaintControls(); applyPaintToSelection(); });
+                this.syncPaintControls();
+
                 document.getElementById('strokeWidth').addEventListener('input', (e) => {
                     if (this.selectedElement) {
                         this.selectedElement.setAttribute('stroke-width', e.target.value);
@@ -1976,11 +2030,26 @@
                 element.style.outline = '2px dashed #e74c3c';
                 this.renderTransformOverlay();
                 
-                document.getElementById('fillColor').value = element.getAttribute('fill') || '#000000';
-                document.getElementById('fillColorText').value = element.getAttribute('fill') || '#000000';
-                document.getElementById('strokeColor').value = element.getAttribute('stroke') || '#000000';
-                document.getElementById('strokeColorText').value = element.getAttribute('stroke') || '#000000';
+                const fillAttr = element.getAttribute('fill');
+                const strokeAttr = element.getAttribute('stroke');
+                const fillNone = (fillAttr || '').trim().toLowerCase() === 'none';
+                const strokeNone = (strokeAttr || '').trim().toLowerCase() === 'none';
+
+                const noFill = document.getElementById('noFill');
+                const noStroke = document.getElementById('noStroke');
+                if (noFill) noFill.checked = fillNone;
+                if (noStroke) noStroke.checked = strokeNone;
+
+                if (!fillNone && fillAttr) {
+                    document.getElementById('fillColor').value = fillAttr;
+                    document.getElementById('fillColorText').value = fillAttr;
+                }
+                if (!strokeNone && strokeAttr) {
+                    document.getElementById('strokeColor').value = strokeAttr;
+                    document.getElementById('strokeColorText').value = strokeAttr;
+                }
                 document.getElementById('strokeWidth').value = element.getAttribute('stroke-width') || '1';
+                this.syncPaintControls();
 
                 const roundToggle = document.getElementById('roundStrokes');
                 if (roundToggle) {
@@ -2398,8 +2467,8 @@
             updateShapePreview(currentX, currentY) {
                 this.clearAllPreviews();
                 
-                const fill = document.getElementById('fillColor').value;
-                const stroke = document.getElementById('strokeColor').value;
+                const fill = this.getFillValue();
+                const stroke = this.getStrokeValue();
                 const strokeWidth = document.getElementById('strokeWidth').value;
                 
                 const mainPreview = this.createPreviewElement(this.startX, this.startY, currentX, currentY, fill, stroke, strokeWidth);
@@ -2479,7 +2548,7 @@
                 const points = this.pathPoints.map(p => `${p.x},${p.y}`).join(' ');
                 polyline.setAttribute('points', points);
                 polyline.setAttribute('fill', 'none');
-                polyline.setAttribute('stroke', document.getElementById('strokeColor').value);
+                polyline.setAttribute('stroke', this.getStrokeValue());
                 polyline.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                 
                 this.svg.appendChild(polyline);
@@ -2508,7 +2577,7 @@
                 const points = this.pathPoints.map(p => `${p.x},${p.y}`).join(' ');
                 polyline.setAttribute('points', points);
                 polyline.setAttribute('fill', 'none');
-                polyline.setAttribute('stroke', document.getElementById('strokeColor').value);
+                polyline.setAttribute('stroke', this.getStrokeValue());
                 polyline.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                 this.applyStrokeStyle(polyline);
                 
@@ -2551,7 +2620,7 @@
                 
                 path.setAttribute('d', d);
                 path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                path.setAttribute('stroke', this.getStrokeValue());
                 path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                 this.applyStrokeStyle(path);
                 
@@ -2578,7 +2647,7 @@
                     }
                     path.setAttribute('d', d);
                     path.setAttribute('fill', 'none');
-                    path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                    path.setAttribute('stroke', this.getStrokeValue());
                     path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                     this.applyStrokeStyle(path);
                     this.appendToActiveLayer(path);
@@ -2593,7 +2662,7 @@
                     }
                     path.setAttribute('d', d);
                     path.setAttribute('fill', 'none');
-                    path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                    path.setAttribute('stroke', this.getStrokeValue());
                     path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                     this.applyStrokeStyle(path);
                     this.appendToActiveLayer(path);
@@ -2608,7 +2677,7 @@
                     }
                     path.setAttribute('d', d);
                     path.setAttribute('fill', 'none');
-                    path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                    path.setAttribute('stroke', this.getStrokeValue());
                     path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                     this.applyStrokeStyle(path);
                     this.appendToActiveLayer(path);
@@ -2627,8 +2696,8 @@
                 if (close) d += ' Z';
                 
                 path.setAttribute('d', d);
-                path.setAttribute('fill', document.getElementById('fillColor').value);
-                path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                path.setAttribute('fill', this.getFillValue());
+                path.setAttribute('stroke', this.getStrokeValue());
                 path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                 this.applyStrokeStyle(path);
                 
@@ -2655,8 +2724,8 @@
                     }
                     d += ' Z';
                     path.setAttribute('d', d);
-                    path.setAttribute('fill', document.getElementById('fillColor').value);
-                    path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                    path.setAttribute('fill', this.getFillValue());
+                    path.setAttribute('stroke', this.getStrokeValue());
                     path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                     this.applyStrokeStyle(path);
                     this.appendToActiveLayer(path);
@@ -2671,8 +2740,8 @@
                     }
                     d += ' Z';
                     path.setAttribute('d', d);
-                    path.setAttribute('fill', document.getElementById('fillColor').value);
-                    path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                    path.setAttribute('fill', this.getFillValue());
+                    path.setAttribute('stroke', this.getStrokeValue());
                     path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                     this.applyStrokeStyle(path);
                     this.appendToActiveLayer(path);
@@ -2687,8 +2756,8 @@
                     }
                     d += ' Z';
                     path.setAttribute('d', d);
-                    path.setAttribute('fill', document.getElementById('fillColor').value);
-                    path.setAttribute('stroke', document.getElementById('strokeColor').value);
+                    path.setAttribute('fill', this.getFillValue());
+                    path.setAttribute('stroke', this.getStrokeValue());
                     path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
                     this.applyStrokeStyle(path);
                     this.appendToActiveLayer(path);
@@ -2705,8 +2774,8 @@
                 const svgNS = 'http://www.w3.org/2000/svg';
                 let element;
                 
-                const fill = document.getElementById('fillColor').value;
-                const stroke = document.getElementById('strokeColor').value;
+                const fill = this.getFillValue();
+                const stroke = this.getStrokeValue();
                 const strokeWidth = document.getElementById('strokeWidth').value;
                 
                 switch (this.currentTool) {
@@ -2802,8 +2871,8 @@
 
                 if (element.tagName === 'svg' || element.tagName === 'g') return;
 
-                const fill = document.getElementById('fillColor').value;
-                const stroke = document.getElementById('strokeColor').value;
+                const fill = this.getFillValue();
+                const stroke = this.getStrokeValue();
                 const tag = String(element.tagName || '').toLowerCase();
 
                 const fillable = new Set(['path', 'rect', 'circle', 'ellipse', 'polygon', 'text']);
@@ -3032,7 +3101,7 @@
                 textElement.setAttribute('y', y);
                 textElement.setAttribute('font-family', 'Arial, sans-serif');
                 textElement.setAttribute('font-size', '16');
-                textElement.setAttribute('fill', document.getElementById('fillColor').value);
+                textElement.setAttribute('fill', this.getFillValue());
                 textElement.textContent = text;
                 this.appendToActiveLayer(textElement);
                 this.elements.push(textElement);
@@ -3051,7 +3120,7 @@
                     textElement.setAttribute('y', y);
                     textElement.setAttribute('font-family', 'Arial, sans-serif');
                     textElement.setAttribute('font-size', '16');
-                    textElement.setAttribute('fill', document.getElementById('fillColor').value);
+                    textElement.setAttribute('fill', this.getFillValue());
                     textElement.textContent = text;
                     this.appendToActiveLayer(textElement);
                     this.elements.push(textElement);
@@ -3062,7 +3131,7 @@
                     textElement.setAttribute('y', height - y);
                     textElement.setAttribute('font-family', 'Arial, sans-serif');
                     textElement.setAttribute('font-size', '16');
-                    textElement.setAttribute('fill', document.getElementById('fillColor').value);
+                    textElement.setAttribute('fill', this.getFillValue());
                     textElement.textContent = text;
                     this.appendToActiveLayer(textElement);
                     this.elements.push(textElement);
@@ -3073,7 +3142,7 @@
                     textElement.setAttribute('y', height - y);
                     textElement.setAttribute('font-family', 'Arial, sans-serif');
                     textElement.setAttribute('font-size', '16');
-                    textElement.setAttribute('fill', document.getElementById('fillColor').value);
+                    textElement.setAttribute('fill', this.getFillValue());
                     textElement.textContent = text;
                     this.appendToActiveLayer(textElement);
                     this.elements.push(textElement);
