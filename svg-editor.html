@@ -858,6 +858,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
+            position: relative;
         }
         .dock-panel > h3 {
             margin: 0;
@@ -869,27 +870,28 @@
             color: #cfd3d8;
             background: var(--panel-2);
             border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
+        .dock-panel > h3::after { content: '▾'; font-size: 11px; opacity: .7; transition: transform .15s; }
+        .dock-panel.collapsed > h3::after { transform: rotate(-90deg); }
+        .dock-panel.collapsed > .dock-body { display: none; }
         .dock-panel .dock-body {
             padding: 12px;
             overflow: auto;
             resize: vertical;
             min-height: 48px;
+            border-bottom: 6px solid var(--panel-2);
         }
         /* Style the native resize grip so it reads as a drag handle. */
         .dock-panel .dock-body::-webkit-resizer { background: transparent; }
-        .dock-panel { position: relative; }
-        .dock-panel .dock-body { border-bottom: 1px solid transparent; }
-        .dock-panel:not(.collapsed) .dock-body { border-bottom: 6px solid var(--panel-2); }
         .dock-panel:not(.collapsed) .dock-body:hover { border-bottom-color: var(--border-2); }
         .dock-panel .dock-body > .controls-group:first-child { margin-top: 0; }
         .dock-panel .dock-body > .controls-group:last-child { margin-bottom: 0; }
-
-        /* Collapsible panels */
-        .dock-panel > h3 { cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        .dock-panel > h3::after { content: '▾'; font-size: 11px; opacity: .7; transition: transform .15s; }
-        .dock-panel.collapsed > h3::after { transform: rotate(-90deg); }
-        .dock-panel.collapsed > .dock-body { display: none; }
 
         /* Draggable splitter between canvas and dock */
         .dock-resizer {
@@ -1048,11 +1050,10 @@
     <header class="app-menubar">
         <div class="brand">🎨 SVG Icon Studio</div>
         <div class="menu-actions">
-            <input type="file" id="fileInput" accept=".svg,image/svg+xml" class="hidden">
-            <input type="file" id="importToCanvasInput" accept=".svg,image/svg+xml" class="hidden">
+            <input type="file" id="fileInput" accept=".svg,image/svg+xml" class="hidden" aria-label="Upload SVG file">
+            <input type="file" id="importToCanvasInput" accept=".svg,image/svg+xml" class="hidden" aria-label="Import SVG file to canvas">
             <button id="undoBtn" class="secondary" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
             <button id="redoBtn" class="secondary" title="Redo (Ctrl+Y)" disabled>↷ Redo</button>
-            <button id="insertGearBtn" class="secondary" title="Insert a parametric gear">⚙ Gear</button>
             <span class="menu-sep"></span>
             <button id="uploadBtn" title="Load an SVG file into the code editor">⬆ Upload</button>
             <button id="importToCanvasBtn" class="secondary" title="Place an SVG file onto the canvas">⬇ Import to Canvas</button>
@@ -1159,9 +1160,9 @@
 
                     <div class="controls-group">
                         <span>Canvas</span>
-                        <input type="number" id="canvasWidth" value="400" min="100" max="1000" style="width: 70px;">
+                        <input type="number" id="canvasWidth" value="400" min="100" max="1000" style="width: 70px;" aria-label="Canvas width">
                         <span style="min-width:auto;">×</span>
-                        <input type="number" id="canvasHeight" value="400" min="100" max="1000" style="width: 70px;">
+                        <input type="number" id="canvasHeight" value="400" min="100" max="1000" style="width: 70px;" aria-label="Canvas height">
                         <button id="resizeCanvas" class="secondary">Apply</button>
                     </div>
                 </div>
@@ -1180,9 +1181,18 @@
                         <button id="bringFrontBtn" class="secondary" title="Bring to front">Front</button>
                         <button id="sendBackBtn" class="secondary" title="Send to back">Back</button>
                     </div>
+                    <div class="tool-bar">
+                        <button id="axisLockBtn" class="secondary" title="Constrain dragging to one axis (or hold Shift while dragging)">Lock Axis: Off</button>
+                    </div>
+                    <div class="tool-bar">
+                        <button id="boolUnionBtn" class="secondary" title="Merge selected shapes">Union</button>
+                        <button id="boolSubtractBtn" class="secondary" title="Subtract upper shapes from the bottom one">Subtract</button>
+                        <button id="boolIntersectBtn" class="secondary" title="Keep only the overlap">Intersect</button>
+                        <button id="boolExcludeBtn" class="secondary" title="Keep everything except the overlap">Exclude</button>
+                    </div>
                     <div class="controls-group">
                         <span>Radial</span>
-                        <input type="number" id="radialCount" value="8" min="2" max="64" style="width:64px;" title="Number of copies">
+                        <input type="number" id="radialCount" value="8" min="2" max="64" style="width:64px;" title="Number of copies" aria-label="Radial copy count">
                         <button id="radialArrayBtn" class="secondary" title="Duplicate the selection in a ring around the canvas center">Array around center</button>
                     </div>
                 </div>
@@ -1300,6 +1310,8 @@
         <span class="size-display" id="codeSize">Size: 0 bytes</span>
     </footer>
 
+    <!-- Boolean path operations (union/subtract/intersect/exclude) -->
+    <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.7/dist/polygon-clipping.umd.js"></script>
     <script>
         // ==================== SVG Drawing App with Mirror Mode ====================
 
@@ -1350,7 +1362,8 @@
                 this.transformState = null;
                 this.isPointerDragging = false;
                 this.suppressNextClick = false;
-                this.clipboardElement = null;
+                this.clipboard = [];
+                this.axisLock = 'off';
 
                 // Layers
                 this.layersRoot = null;
@@ -1659,13 +1672,25 @@
             selectAll() {
                 const els = Array.from(this.layersRoot.querySelectorAll(':scope > g[data-layer-id] > *'))
                     .filter(el => this.isSelectable(el));
+                this.setSelectionList(els);
+                this.showStatus(`Selected ${els.length} object(s)`, 'info');
+            }
+
+            selectLayerContents(layerId) {
+                const layer = this.layers.find(l => l.id === layerId);
+                if (!layer) return;
+                const els = Array.from(layer.group.children).filter(el => this.isSelectable(el));
+                this.setSelectionList(els);
+                this.showStatus(`Selected ${els.length} object(s) on "${layer.name}"`, 'info');
+            }
+
+            setSelectionList(els) {
                 this.clearSelection();
                 this.selectedElements = els;
                 this.selectedElement = els[els.length - 1] || null;
                 this.outlineSelection();
                 this.renderTransformOverlay();
                 if (this.selectedElement) this.syncPropertiesFromElement(this.selectedElement);
-                this.showStatus(`Selected ${els.length} object(s)`, 'info');
             }
 
             // ============ Opacity / eyedropper / arrange ============
@@ -1686,9 +1711,9 @@
             }
 
             async pickColor() {
-                if (window.EyeDropper) {
+                if (globalThis.EyeDropper) {
                     try {
-                        const result = await new window.EyeDropper().open();
+                        const result = await new globalThis.EyeDropper().open();
                         const hex = result.sRGBHex;
                         document.getElementById('fillColor').value = hex;
                         document.getElementById('fillColorText').value = hex;
@@ -1698,7 +1723,9 @@
                         this.applyToSelection(el => { if (el.tagName !== 'g') el.setAttribute('fill', hex); });
                         this.scheduleSVGCodeUpdate();
                         this.showStatus(`Picked ${hex}`, 'success');
-                    } catch (err) { /* cancelled */ }
+                    } catch (err) {
+                        console.debug('Eyedropper cancelled', err);
+                    }
                 } else {
                     this.showStatus('Eyedropper not supported here — click a shape with the Fill tool instead', 'warning');
                 }
@@ -1710,7 +1737,7 @@
                 this.recordHistory();
                 const svgNS = 'http://www.w3.org/2000/svg';
                 // Keep DOM order (z-order) of the elements.
-                els.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+                els.sort((a, b) => ((a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0) ? -1 : 1);
                 const parent = els[els.length - 1].parentNode;
                 const g = document.createElementNS(svgNS, 'g');
                 parent.appendChild(g);
@@ -1736,7 +1763,7 @@
                             const ct = child.getAttribute('transform');
                             child.setAttribute('transform', ct ? `${gt} ${ct}` : gt);
                         }
-                        parent.insertBefore(child, g);
+                        g.before(child);
                         freed.push(child);
                     });
                     g.remove();
@@ -1763,10 +1790,12 @@
             }
 
             reorderSelection(toFront) {
+                if (!this.selectedElements.length && !this.selectedElement) { this.showStatus('Nothing selected', 'warning'); return; }
+                this.recordHistory();
                 this.applyToSelection(el => {
                     const parent = el.parentNode;
                     if (toFront) parent.appendChild(el);
-                    else parent.insertBefore(el, parent.firstChild);
+                    else parent.prepend(el);
                 });
                 this.renderTransformOverlay();
                 this.scheduleSVGCodeUpdate();
@@ -1782,7 +1811,6 @@
                 const cx = this.baseWidth / 2;
                 const cy = this.baseHeight / 2;
                 const sources = this.selectedElements.length ? this.selectedElements : [this.selectedElement];
-                const created = [];
                 for (let i = 1; i < count; i++) {
                     const angle = (360 / count) * i;
                     sources.forEach(src => {
@@ -1792,56 +1820,164 @@
                         const rot = `rotate(${angle} ${cx} ${cy})`;
                         clone.setAttribute('transform', base ? `${rot} ${base}` : rot);
                         src.parentNode.appendChild(clone);
-                        created.push(clone);
                     });
                 }
                 this.scheduleSVGCodeUpdate();
                 this.showStatus(`Arrayed ×${count} around center`, 'success');
             }
 
-            insertGear(opts = {}) {
-                const svgNS = 'http://www.w3.org/2000/svg';
-                const teeth = opts.teeth || 12;
-                const cx = this.baseWidth / 2;
-                const cy = this.baseHeight / 2;
-                const outerR = opts.outerR || Math.min(this.baseWidth, this.baseHeight) * 0.42;
-                const rootR = outerR * 0.82;       // valley radius
-                const toothW = 0.5;                // fraction of each tooth pitch that is "tooth"
-                const holeR = opts.holeR || outerR * 0.30;
+            // ============ Boolean path operations ============
+            matrixApplyToPoints(el, pts) {
+                const m = el.getCTM();
+                if (!m) return pts.map(p => [p[0], p[1]]);
+                return pts.map(([x, y]) => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]);
+            }
 
-                let d = '';
-                const step = (Math.PI * 2) / teeth;
-                for (let i = 0; i < teeth; i++) {
-                    const a0 = i * step;
-                    const a1 = a0 + step * (0.5 - toothW / 2);
-                    const a2 = a0 + step * (0.5 + toothW / 2);
-                    const a3 = a0 + step;
-                    const pt = (r, a) => `${(cx + r * Math.cos(a)).toFixed(2)} ${(cy + r * Math.sin(a)).toFixed(2)}`;
-                    d += (i === 0 ? 'M ' : 'L ') + pt(rootR, a0);
-                    d += ' L ' + pt(outerR, a1);
-                    d += ' L ' + pt(outerR, a2);
-                    d += ' L ' + pt(rootR, a3);
+            ringArea(ring) {
+                let a = 0;
+                for (let i = 0; i < ring.length; i++) {
+                    const [x1, y1] = ring[i];
+                    const [x2, y2] = ring[(i + 1) % ring.length];
+                    a += x1 * y2 - x2 * y1;
                 }
-                d += ' Z';
-                // Inner hole as a counter-clockwise circle so even-odd fill makes it hollow.
-                d += ` M ${(cx + holeR).toFixed(2)} ${cy.toFixed(2)}` +
-                     ` A ${holeR} ${holeR} 0 1 0 ${(cx - holeR).toFixed(2)} ${cy.toFixed(2)}` +
-                     ` A ${holeR} ${holeR} 0 1 0 ${(cx + holeR).toFixed(2)} ${cy.toFixed(2)} Z`;
+                return Math.abs(a) / 2;
+            }
+
+            // Returns a polygon-clipping MultiPolygon (array of polygons; each polygon = array of rings) in canvas coords.
+            flattenElementToGeometry(el) {
+                const tag = (el.tagName || '').toLowerCase();
+                const N = 64;
+                let localRings = [];
+
+                if (tag === 'rect') {
+                    const x = +el.getAttribute('x') || 0, y = +el.getAttribute('y') || 0;
+                    const w = +el.getAttribute('width') || 0, h = +el.getAttribute('height') || 0;
+                    localRings.push([[x, y], [x + w, y], [x + w, y + h], [x, y + h]]);
+                } else if (tag === 'circle' || tag === 'ellipse') {
+                    const cx = +el.getAttribute('cx') || 0, cy = +el.getAttribute('cy') || 0;
+                    const rx = +(el.getAttribute('rx') || el.getAttribute('r')) || 0;
+                    const ry = +(el.getAttribute('ry') || el.getAttribute('r')) || 0;
+                    const ring = [];
+                    for (let i = 0; i < N; i++) {
+                        const a = (i / N) * Math.PI * 2;
+                        ring.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+                    }
+                    localRings.push(ring);
+                } else if (tag === 'polygon' || tag === 'polyline') {
+                    const pts = (el.getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+                    const ring = [];
+                    for (let i = 0; i + 1 < pts.length; i += 2) ring.push([pts[i], pts[i + 1]]);
+                    if (ring.length >= 3) localRings.push(ring);
+                } else if (tag === 'path') {
+                    localRings = this.samplePathRings(el);
+                } else if (tag === 'g') {
+                    // Union of all child geometries.
+                    let geom = [];
+                    Array.from(el.children).forEach(child => {
+                        const g = this.flattenElementToGeometry(child);
+                        if (g && g.length) geom = geom.length ? polygonClipping.union(geom, g) : g;
+                    });
+                    return geom;
+                }
+
+                if (!localRings.length) return [];
+                // Transform local rings into canvas coords, largest ring first (exterior).
+                const rings = localRings
+                    .map(r => this.matrixApplyToPoints(el, r))
+                    .filter(r => r.length >= 3)
+                    .sort((a, b) => this.ringArea(b) - this.ringArea(a));
+                return [rings]; // one polygon with [exterior, ...holes]
+            }
+
+            samplePathRings(pathEl) {
+                // Split the path into subpaths (each "M ... [Z]") and sample each into a ring.
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const d = pathEl.getAttribute('d') || '';
+                const subDs = ('M' + d.split(/M/i).slice(1).join('|||M')).split('|||').filter(s => /[ML]/i.test(s));
+                const rings = [];
+                subDs.forEach(sub => {
+                    const tmp = document.createElementNS(svgNS, 'path');
+                    tmp.setAttribute('d', sub.trim().endsWith('Z') || sub.trim().endsWith('z') ? sub : sub + ' Z');
+                    this.svg.appendChild(tmp);
+                    let len = 0;
+                    try { len = tmp.getTotalLength(); } catch (err) { len = 0; }
+                    if (len > 0) {
+                        const steps = Math.max(12, Math.min(400, Math.round(len / 2)));
+                        const ring = [];
+                        for (let i = 0; i < steps; i++) {
+                            const pt = tmp.getPointAtLength((i / steps) * len);
+                            ring.push([pt.x, pt.y]);
+                        }
+                        rings.push(ring);
+                    }
+                    tmp.remove();
+                });
+                return rings;
+            }
+
+            ringsToPathData(multiPoly) {
+                let d = '';
+                multiPoly.forEach(poly => {
+                    poly.forEach(ring => {
+                        ring.forEach((p, i) => {
+                            d += (i === 0 ? 'M ' : 'L ') + p[0].toFixed(2) + ' ' + p[1].toFixed(2) + ' ';
+                        });
+                        d += 'Z ';
+                    });
+                });
+                return d.trim();
+            }
+
+            booleanOp(kind) {
+                if (typeof polygonClipping === 'undefined') {
+                    this.showStatus('Boolean library is still loading — try again in a second', 'warning');
+                    return;
+                }
+                const els = this.selectedElements.filter(el => this.svg.contains(el));
+                if (els.length < 2) { this.showStatus('Select 2+ shapes for a boolean op', 'warning'); return; }
+
+                // Bottom-to-top order so "subtract" removes upper shapes from the lowest one.
+                els.sort((a, b) => ((a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0) ? -1 : 1);
+
+                const geoms = els.map(el => this.flattenElementToGeometry(el)).filter(g => g && g.length);
+                if (geoms.length < 2) { this.showStatus('These shapes could not be converted to paths', 'warning'); return; }
+
+                let result;
+                try {
+                    if (kind === 'union') result = polygonClipping.union(geoms[0], ...geoms.slice(1));
+                    else if (kind === 'subtract') result = polygonClipping.difference(geoms[0], ...geoms.slice(1));
+                    else if (kind === 'intersect') result = polygonClipping.intersection(geoms[0], ...geoms.slice(1));
+                    else result = polygonClipping.xor(geoms[0], ...geoms.slice(1));
+                } catch (err) {
+                    console.error(err);
+                    this.showStatus('Boolean operation failed on these shapes', 'error');
+                    return;
+                }
+
+                if (!result || !result.length) { this.showStatus('Boolean result was empty', 'warning'); return; }
 
                 this.recordHistory();
+                const primary = els[els.length - 1];
+                const layer = primary.closest('g[data-layer-id]') || this.getActiveLayerGroup();
+                const inv = layer.getCTM() ? layer.getCTM().inverse() : null;
+                const mapped = result.map(poly => poly.map(ring => ring.map(([x, y]) =>
+                    inv ? [inv.a * x + inv.c * y + inv.e, inv.b * x + inv.d * y + inv.f] : [x, y])));
+
+                const svgNS = 'http://www.w3.org/2000/svg';
                 const path = document.createElementNS(svgNS, 'path');
-                path.setAttribute('d', d);
-                path.setAttribute('fill-rule', 'evenodd');
-                path.setAttribute('fill', this.getFillValue());
-                path.setAttribute('stroke', this.getStrokeValue());
-                path.setAttribute('stroke-width', document.getElementById('strokeWidth').value);
-                this.applyStrokeStyle(path);
-                this.appendToActiveLayer(path);
-                this.elements.push(path);
+                path.setAttribute('d', this.ringsToPathData(mapped));
+                path.setAttribute('fill', primary.getAttribute('fill') || this.getFillValue());
+                const stroke = primary.getAttribute('stroke');
+                if (stroke) path.setAttribute('stroke', stroke);
+                const sw = primary.getAttribute('stroke-width');
+                if (sw) path.setAttribute('stroke-width', sw);
+
+                els.forEach(el => el.remove());
+                layer.appendChild(path);
                 this.clearSelection();
                 this.selectElement(path);
                 this.scheduleSVGCodeUpdate();
-                this.showStatus(`Inserted ${teeth}-tooth gear`, 'success');
+                this.showStatus(`Boolean: ${kind}`, 'success');
             }
 
             applyStrokeStyle(element) {
@@ -1966,8 +2102,9 @@
                     row.appendChild(meta);
                     row.appendChild(actions);
 
-                    row.addEventListener('click', () => {
+                    row.addEventListener('click', (e) => {
                         this.setActiveLayer(layer.id);
+                        if (e.ctrlKey || e.metaKey) this.selectLayerContents(layer.id);
                     });
 
                     list.appendChild(row);
@@ -2066,8 +2203,11 @@
                         if (previousTool === 'crop' && this.currentTool !== 'crop') {
                             this.cancelCrop({ silent: true });
                         }
-                        
-                        if (this.selectedElement) {
+
+                        if (this.currentTool === 'crop' && previousTool !== 'crop' && this.selectedElements.length) {
+                            // Photoshop-style: entering Crop with a selection pre-fills the crop box.
+                            this.cropToSelection();
+                        } else if (this.selectedElements.length) {
                             this.clearSelection();
                         }
                         
@@ -2261,7 +2401,6 @@
 
                 // Arrange / opacity / eyedropper / gear
                 const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
-                on('insertGearBtn', () => this.insertGear({ teeth: 12 }));
                 on('eyedropBtn', () => this.pickColor());
                 on('groupBtn', () => this.groupSelection());
                 on('ungroupBtn', () => this.ungroupSelection());
@@ -2270,6 +2409,20 @@
                 on('bringFrontBtn', () => this.reorderSelection(true));
                 on('sendBackBtn', () => this.reorderSelection(false));
                 on('radialArrayBtn', () => this.radialArray());
+                on('boolUnionBtn', () => this.booleanOp('union'));
+                on('boolSubtractBtn', () => this.booleanOp('subtract'));
+                on('boolIntersectBtn', () => this.booleanOp('intersect'));
+                on('boolExcludeBtn', () => this.booleanOp('exclude'));
+
+                const axisBtn = document.getElementById('axisLockBtn');
+                if (axisBtn) {
+                    axisBtn.addEventListener('click', () => {
+                        const order = ['off', 'x', 'y'];
+                        this.axisLock = order[(order.indexOf(this.axisLock) + 1) % order.length];
+                        axisBtn.textContent = 'Lock Axis: ' + this.axisLock.toUpperCase();
+                        axisBtn.classList.toggle('active', this.axisLock !== 'off');
+                    });
+                }
 
                 const opacitySlider = document.getElementById('opacitySlider');
                 if (opacitySlider) {
@@ -2633,7 +2786,7 @@
                 document.getElementById('strokeWidth').value = element.getAttribute('stroke-width') || '1';
 
                 const opAttr = element.getAttribute('opacity');
-                let opPct = opAttr === null ? 100 : Math.round(parseFloat(opAttr) * 100);
+                let opPct = opAttr === null ? 100 : Math.round(Number.parseFloat(opAttr) * 100);
                 if (!Number.isFinite(opPct)) opPct = 100;
                 const opSlider = document.getElementById('opacitySlider');
                 const opVal = document.getElementById('opacityValue');
@@ -2735,39 +2888,52 @@
             }
 
             copySelected() {
-                if (!this.selectedElement) return;
-                this.clipboardElement = this.selectedElement.cloneNode(true);
-                this.showStatus('Copied selection', 'info');
+                const els = this.selectedElements.length ? this.selectedElements : (this.selectedElement ? [this.selectedElement] : []);
+                if (!els.length) return;
+                this.clipboard = els.map(el => el.cloneNode(true));
+                this.showStatus(`Copied ${this.clipboard.length} object(s)`, 'info');
             }
 
             pasteClipboard() {
-                if (!this.clipboardElement) {
+                if (!this.clipboard || !this.clipboard.length) {
                     this.showStatus('Clipboard is empty', 'warning');
                     return;
                 }
-
-                const clone = this.clipboardElement.cloneNode(true);
-                this.offsetElement(clone, 20, 20);
-                this.appendToActiveLayer(clone);
-                this.elements.push(clone);
-                this.selectElement(clone);
+                this.recordHistory();
+                const pasted = [];
+                this.clipboard.forEach(src => {
+                    const clone = src.cloneNode(true);
+                    clone.style.outline = 'none';
+                    this.offsetElement(clone, 20, 20);
+                    this.appendToActiveLayer(clone);
+                    this.elements.push(clone);
+                    pasted.push(clone);
+                });
+                this.clearSelection();
+                this.selectedElements = pasted;
+                this.selectedElement = pasted[pasted.length - 1] || null;
+                this.outlineSelection();
+                this.renderTransformOverlay();
+                if (this.selectedElement) this.syncPropertiesFromElement(this.selectedElement);
                 this.scheduleSVGCodeUpdate();
-                this.showStatus('Pasted selection', 'success');
+                this.showStatus(`Pasted ${pasted.length} object(s)`, 'success');
             }
 
             duplicateSelected() {
-                if (!this.selectedElement) {
+                const els = this.selectedElements.length ? this.selectedElements : (this.selectedElement ? [this.selectedElement] : []);
+                if (!els.length) {
                     this.showStatus('No selected object to duplicate', 'warning');
                     return;
                 }
-                this.clipboardElement = this.selectedElement.cloneNode(true);
+                this.clipboard = els.map(el => el.cloneNode(true));
                 this.pasteClipboard();
             }
 
             offsetElement(element, dx, dy) {
                 const base = element.getAttribute('transform');
                 const translate = `translate(${dx} ${dy})`;
-                element.setAttribute('transform', base ? `${base} ${translate}` : translate);
+                // Prepend so the offset is in canvas space regardless of the element's own transform.
+                element.setAttribute('transform', base ? `${translate} ${base}` : translate);
             }
 
             beginSelectInteraction(e) {
@@ -3043,6 +3209,10 @@
                 let tx = dx;
                 let ty = dy;
 
+                // Axis constraint: Shift-drag picks the dominant axis; the Lock Axis toggle is sticky.
+                let lock = this.axisLock;
+                if (e.shiftKey) lock = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+
                 const snapOn = document.getElementById('snapToggle').checked && !e.altKey;
                 if (snapOn && state.snapTargets) {
                     const snapped = this.computeMoveSnap(state.bbox, tx, ty, state.snapTargets);
@@ -3057,9 +3227,13 @@
                     }
                 }
 
+                if (lock === 'x') ty = 0;
+                else if (lock === 'y') tx = 0;
+
+                // Prepend the translate so it acts in canvas space even for rotated/scaled objects.
                 const translate = `translate(${tx} ${ty})`;
                 state.initialTransforms.forEach((init, el) => {
-                    el.setAttribute('transform', init ? `${init} ${translate}` : translate);
+                    el.setAttribute('transform', init ? `${translate} ${init}` : translate);
                 });
             }
 
@@ -3906,15 +4080,51 @@
                 if (selectBtn) selectBtn.click();
             }
 
+            cropToSelection() {
+                const bbox = this.getSelectionBBox();
+                if (!bbox) return false;
+                const pad = 0;
+                const x = Math.max(0, Math.round(bbox.x - pad));
+                const y = Math.max(0, Math.round(bbox.y - pad));
+                const w = Math.round(bbox.width + pad * 2);
+                const h = Math.round(bbox.height + pad * 2);
+
+                this.clearSelection();
+                if (this.cropState.rectEl) { this.cropState.rectEl.remove(); this.cropState.rectEl = null; }
+
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const rect = document.createElementNS(svgNS, 'rect');
+                rect.id = 'crop-preview';
+                rect.classList.add('crop-preview');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', w);
+                rect.setAttribute('height', h);
+                this.svg.appendChild(rect);
+                this.cropState.rectEl = rect;
+                this.cropState.isCropping = false;
+
+                document.getElementById('applyCrop')?.classList.remove('hidden');
+                document.getElementById('cancelCrop')?.classList.remove('hidden');
+                this.showStatus('Crop set to selection — adjust or click Apply Crop', 'info');
+                return true;
+            }
+
             applyCrop(x, y, w, h) {
                 const width = Math.round(w);
                 const height = Math.round(h);
+                this.recordHistory();
 
                 this.svg.setAttribute('width', String(width));
                 this.svg.setAttribute('height', String(height));
                 this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                this.baseWidth = width;
+                this.baseHeight = height;
+                this.applyZoom();
                 document.getElementById('canvasWidth').value = String(width);
                 document.getElementById('canvasHeight').value = String(height);
+                const info = document.getElementById('statusCanvasInfo');
+                if (info) info.textContent = `${width} × ${height}`;
 
                 // Rebase all layer content so crop top-left becomes new origin.
                 const translate = `translate(${-x} ${-y})`;
