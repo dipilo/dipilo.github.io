@@ -653,235 +653,548 @@
         .rotate-zone:active {
             cursor: grabbing;
         }
+
+        /* ===================== Pro Editor Shell (dark theme) ===================== */
+        :root {
+            --bg: #1e1f22;
+            --bg-2: #26282c;
+            --panel: #2b2d31;
+            --panel-2: #303237;
+            --border: #3a3d42;
+            --border-2: #45484e;
+            --text: #e6e7ea;
+            --muted: #9aa0a6;
+            --accent: #3a8ee6;
+            --accent-2: #2f6fb3;
+            --success: #3fb568;
+            --danger: #e25c5c;
+            --rail: 66px;
+            --dock: 360px;
+            --menubar: 50px;
+            --statusbar: 26px;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Top menu bar */
+        .app-menubar {
+            height: var(--menubar);
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 14px;
+            margin: 0;
+            background: var(--bg-2);
+            border-bottom: 1px solid var(--border);
+            box-shadow: none;
+            position: static;
+            color: var(--text);
+            z-index: 30;
+        }
+        .app-menubar .brand {
+            font-size: 15px;
+            font-weight: 700;
+            white-space: nowrap;
+            letter-spacing: .2px;
+        }
+        .menu-actions {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+        .menu-actions button {
+            padding: 6px 11px;
+            font-size: 12.5px;
+        }
+        .menu-sep {
+            width: 1px;
+            height: 24px;
+            background: var(--border-2);
+            margin: 0 2px;
+        }
+
+        /* Workspace: tools | canvas | dock */
+        .workspace {
+            flex: 1 1 auto;
+            display: flex;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Left tool rail */
+        .tool-rail {
+            flex: 0 0 var(--rail);
+            width: var(--rail);
+            position: static;
+            top: auto;
+            background: var(--bg-2);
+            border: none;
+            border-right: 1px solid var(--border);
+            border-radius: 0;
+            padding: 8px 7px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        .tool-rail .tool-btn {
+            width: 100%;
+            padding: 7px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-size: 9.5px;
+            cursor: pointer;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+        .tool-rail .tool-btn * { pointer-events: none; }
+        .tool-rail .tool-btn .ti { font-size: 18px; line-height: 1; }
+        .tool-rail .tool-btn .tl { letter-spacing: .2px; }
+        .tool-rail .tool-btn:hover {
+            background: var(--panel-2);
+            color: var(--text);
+            border-color: var(--border);
+        }
+        .tool-rail .tool-btn.active {
+            background: var(--accent-2);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* Center canvas stage */
+        .canvas-stage {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 34px;
+            background-color: #212327;
+            background-image:
+                linear-gradient(45deg, #1a1b1e 25%, transparent 25%),
+                linear-gradient(-45deg, #1a1b1e 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #1a1b1e 75%),
+                linear-gradient(-45deg, transparent 75%, #1a1b1e 75%);
+            background-size: 24px 24px;
+            background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+        }
+
+        #drawingContainer {
+            position: relative;
+            overflow: visible;
+            height: auto;
+            min-height: 0;
+            margin: auto;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            background: transparent;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.45);
+        }
+        #drawingSvg {
+            display: block;
+            margin: 0;
+            cursor: crosshair;
+            border: 1px solid #555;
+            background-color: #ffffff;
+            background-image:
+                linear-gradient(45deg, #e6e6e6 25%, transparent 25%),
+                linear-gradient(-45deg, #e6e6e6 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #e6e6e6 75%),
+                linear-gradient(-45deg, transparent 75%, #e6e6e6 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+        #drawingSvg.grid {
+            background-image:
+                linear-gradient(rgba(120,120,120,0.28) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(120,120,120,0.28) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0;
+        }
+
+        /* Right dock */
+        .right-dock {
+            flex: 0 0 var(--dock);
+            width: var(--dock);
+            background: var(--bg-2);
+            border-left: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+        .dock-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .dock-panel > h3 {
+            margin: 0;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: #cfd3d8;
+            background: var(--panel-2);
+            border-bottom: 1px solid var(--border);
+        }
+        .dock-panel .dock-body { padding: 12px; }
+        .dock-panel .dock-body > .controls-group:first-child { margin-top: 0; }
+        .dock-panel .dock-body > .controls-group:last-child { margin-bottom: 0; }
+
+        /* Bottom status bar */
+        .status-bar {
+            height: var(--statusbar);
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 0 14px;
+            background: var(--bg-2);
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .status-bar .size-display { background: transparent; color: var(--muted); padding: 0; }
+
+        /* Controls — dark */
+        .tool-section { margin: 0; padding: 0; border: none; border-radius: 0; background: transparent; }
+        .controls-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 9px 0; }
+        .controls-group > label,
+        .controls-group > span:first-child { min-width: 78px; font-size: 12.5px; font-weight: 600; color: #c7ccd2; }
+        .controls-group > span { color: var(--muted); }
+        .toggle-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .toggle-group label {
+            display: flex; align-items: center; gap: 5px; cursor: pointer;
+            font-size: 12.5px; color: #c7ccd2;
+            padding: 3px 9px; border: 1px solid var(--border-2); border-radius: 999px; background: var(--panel-2);
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            background: #1f2024; border: 1px solid var(--border-2); color: var(--text);
+            border-radius: 6px; padding: 7px; font-size: 13px;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            outline: none; border-color: var(--accent);
+        }
+        input[type="color"] {
+            width: 42px; height: 34px; padding: 2px;
+            background: #1f2024; border: 1px solid var(--border-2); border-radius: 6px; cursor: pointer;
+        }
+        input[type="range"] { accent-color: var(--accent); }
+        textarea#svgCode { width: 100%; min-height: 150px; font-family: 'Courier New', monospace; font-size: 12.5px; resize: vertical; }
+
+        /* Buttons — dark */
+        button {
+            background: var(--accent-2); color: #fff; border: 1px solid transparent;
+            padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+            line-height: 1.15; font-weight: 500; transition: background .15s, border-color .15s;
+        }
+        button:hover { background: var(--accent); }
+        button.secondary { background: var(--panel-2); color: var(--text); border-color: var(--border-2); }
+        button.secondary:hover { background: #3a3d44; }
+        button.success { background: var(--success); }
+        button.success:hover { background: #34a259; }
+        button.active { background: var(--danger); }
+        button.mirror { background: #7e5bb5; min-width: 70px; }
+        button.mirror:hover { background: #8e44ad; }
+        button.mirror.active { background: #d98324; }
+
+        /* Layers — dark */
+        .layers-panel { border: 1px solid var(--border-2); border-radius: 6px; background: #1f2024; max-height: 200px; overflow: auto; }
+        .layer-row { border-bottom: 1px solid var(--border); color: var(--text); }
+        .layer-row.active { background: var(--panel-2); }
+        .layer-meta { color: var(--muted); }
+        .layer-actions button { padding: 3px 7px; font-size: 11px; }
+        .drop-hint { color: var(--muted); margin-top: 8px; }
+
+        /* Stats / sliders / bitmap — dark */
+        .optimization-stats { margin: 0; }
+        .stat-card { background: var(--panel-2); border: 1px solid var(--border); }
+        .stat-value { color: #fff; font-size: 20px; }
+        .stat-label { color: var(--muted); }
+        .slider-container { margin: 8px 0; }
+        .slider-container label { color: #c7ccd2; font-size: 12.5px; min-width: auto; }
+        .slider-value { color: var(--text); }
+        .bitmap-converter { background: var(--panel-2); border: 1px dashed var(--accent); color: var(--text); padding: 12px; }
+        .convert-options label { color: #c7ccd2; font-size: 12.5px; }
+        .trace-canvas { border: 1px solid var(--border-2); background: #fff; }
+
+        /* Preview / size pill */
+        .preview-box {
+            background: #fff; border: 1px solid var(--border-2); border-radius: 6px;
+            padding: 12px; min-height: 120px; max-height: 240px; overflow: auto; text-align: center; color: #333;
+        }
+        .size-display { background: var(--panel-2); color: var(--muted); }
+
+        /* Icon library — dark */
+        .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+        .icon-preview { background: #fff; border: 1px solid var(--border-2); }
+        .icon-preview p { color: #333; }
+
+        /* Toast notifications */
+        #statusContainer {
+            position: fixed; right: 16px; bottom: 36px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 8px; max-width: 320px; pointer-events: none;
+        }
+        #statusContainer .status-message {
+            margin: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            animation: toastIn .18s ease; pointer-events: auto;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        .mirror-indicator { z-index: 1000; }
+
+        @media (max-width: 1100px) {
+            .right-dock { flex-basis: 300px; width: 300px; }
+        }
+        @media (max-width: 820px) {
+            .right-dock { flex-basis: 260px; width: 260px; }
+            .menu-actions button { padding: 6px 8px; font-size: 11.5px; }
+        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>God I Hate SVGs</h1>
+    <header class="app-menubar">
+        <div class="brand">🎨 SVG Icon Studio</div>
+        <div class="menu-actions">
+            <input type="file" id="fileInput" accept=".svg,image/svg+xml" class="hidden">
+            <input type="file" id="importToCanvasInput" accept=".svg,image/svg+xml" class="hidden">
+            <button id="uploadBtn" title="Load an SVG file into the code editor">⬆ Upload</button>
+            <button id="importToCanvasBtn" class="secondary" title="Place an SVG file onto the canvas">⬇ Import to Canvas</button>
+            <button id="pasteBtn" class="secondary" title="Paste SVG from clipboard">📋 Paste</button>
+            <button id="sampleBtn" class="secondary" title="Load a sample SVG">✨ Sample</button>
+            <span class="menu-sep"></span>
+            <button id="extractBitmapBtn" class="success" title="Trace embedded bitmap images into vectors">🖼 Trace Image</button>
+            <button id="optimizeBtn" class="success" title="Optimize / minify the SVG code">⚡ Optimize</button>
+            <span class="menu-sep"></span>
+            <button id="downloadBtn" title="Download as .svg">💾 SVG</button>
+            <button id="exportImageBtn" title="Export as PNG / JPG / WebP">🖼 Export</button>
         </div>
     </header>
 
-    <div id="statusContainer"></div>
+    <div id="statusContainer" aria-live="polite"></div>
 
-    <div class="container">
-        <div class="app-grid">
-            <div class="panel">
-                <h2>✏️ Drawing Tools</h2>
+    <div class="workspace">
+        <aside class="tool-rail" aria-label="Tools">
+            <button id="toolSelect" class="tool-btn" data-tool="select" title="Select / move / transform"><span class="ti">⬚</span><span class="tl">Select</span></button>
+            <button id="toolPen" class="tool-btn active" data-tool="pen" title="Freehand pen"><span class="ti">✏️</span><span class="tl">Pen</span></button>
+            <button id="toolPath" class="tool-btn" data-tool="path" title="Click to add path points"><span class="ti">✒️</span><span class="tl">Path</span></button>
+            <button id="toolLine" class="tool-btn" data-tool="line" title="Straight line"><span class="ti">╱</span><span class="tl">Line</span></button>
+            <button id="toolRect" class="tool-btn" data-tool="rect" title="Rectangle"><span class="ti">▭</span><span class="tl">Rect</span></button>
+            <button id="toolCircle" class="tool-btn" data-tool="circle" title="Ellipse / circle"><span class="ti">◯</span><span class="tl">Circle</span></button>
+            <button id="toolTriangle" class="tool-btn" data-tool="triangle" title="Triangle"><span class="ti">△</span><span class="tl">Tri</span></button>
+            <button id="toolDiamond" class="tool-btn" data-tool="diamond" title="Diamond"><span class="ti">◇</span><span class="tl">Diam</span></button>
+            <button id="toolStar" class="tool-btn" data-tool="star" title="Star"><span class="ti">★</span><span class="tl">Star</span></button>
+            <button id="toolText" class="tool-btn" data-tool="text" title="Text"><span class="ti">T</span><span class="tl">Text</span></button>
+            <button id="toolFill" class="tool-btn" data-tool="fill" title="Fill an element"><span class="ti">🪣</span><span class="tl">Fill</span></button>
+            <button id="toolEraser" class="tool-btn" data-tool="eraser" title="Erase elements"><span class="ti">🧽</span><span class="tl">Erase</span></button>
+            <button id="toolCrop" class="tool-btn" data-tool="crop" title="Crop the canvas"><span class="ti">✂️</span><span class="tl">Crop</span></button>
+        </aside>
 
-                <div class="drawing-layout">
-                    <aside class="tool-rail" aria-label="Tools">
-                        <div class="tool-rail-buttons">
-                            <button id="toolSelect" class="tool-btn" data-tool="select">Select</button>
-                            <button id="toolRect" class="tool-btn" data-tool="rect">Rect</button>
-                            <button id="toolCircle" class="tool-btn" data-tool="circle">Circle</button>
-                            <button id="toolTriangle" class="tool-btn" data-tool="triangle">Triangle</button>
-                            <button id="toolDiamond" class="tool-btn" data-tool="diamond">Diamond</button>
-                            <button id="toolStar" class="tool-btn" data-tool="star">Star</button>
-                            <button id="toolPath" class="tool-btn" data-tool="path">Path</button>
-                            <button id="toolLine" class="tool-btn" data-tool="line">Line</button>
-                            <button id="toolText" class="tool-btn" data-tool="text">Text</button>
-                            <button id="toolFill" class="tool-btn" data-tool="fill">Fill</button>
-                            <button id="toolPen" class="tool-btn active" data-tool="pen">Pen</button>
-                            <button id="toolEraser" class="tool-btn" data-tool="eraser">Erase</button>
-                            <button id="toolCrop" class="tool-btn" data-tool="crop">Crop</button>
-                        </div>
-                    </aside>
+        <main class="canvas-stage">
+            <div id="drawingContainer">
+                <svg id="drawingSvg" width="400" height="400"></svg>
+            </div>
+        </main>
 
-                    <div class="canvas-area">
-                        <div id="drawingContainer">
-                            <svg id="drawingSvg" width="400" height="400"></svg>
+        <aside class="right-dock" aria-label="Panels">
+            <section class="dock-panel">
+                <h3>Properties</h3>
+                <div class="dock-body">
+                    <div class="controls-group">
+                        <label for="fillColor">Fill</label>
+                        <input type="color" id="fillColor" value="#3498db">
+                        <input type="text" id="fillColorText" value="#3498db" placeholder="#000000" aria-label="Fill color (hex)" style="flex:1;min-width:90px;">
+                    </div>
+
+                    <div class="controls-group">
+                        <label for="strokeColor">Stroke</label>
+                        <input type="color" id="strokeColor" value="#2c3e50">
+                        <input type="text" id="strokeColorText" value="#2c3e50" placeholder="#000000" aria-label="Stroke color (hex)" style="flex:1;min-width:90px;">
+                    </div>
+
+                    <div class="controls-group">
+                        <label for="strokeWidth">Stroke W</label>
+                        <input type="number" id="strokeWidth" value="2" min="0" max="20" step="0.5" style="width:80px;">
+                    </div>
+
+                    <div class="controls-group">
+                        <div class="toggle-group">
+                            <label><input type="checkbox" id="roundStrokes" checked> Round strokes</label>
                         </div>
                     </div>
 
-                    <aside class="props-sidebar" aria-label="Properties and Layers">
-                        <div class="tool-section">
-                            <h3>Properties</h3>
-
-                            <div class="controls-group">
-                                <label for="fillColor">Fill:</label>
-                                <input type="color" id="fillColor" value="#3498db">
-                                <input type="text" id="fillColorText" value="#3498db" placeholder="#000000" aria-label="Fill color (hex)">
-                            </div>
-
-                            <div class="controls-group">
-                                <label for="strokeColor">Stroke:</label>
-                                <input type="color" id="strokeColor" value="#2c3e50">
-                                <input type="text" id="strokeColorText" value="#2c3e50" placeholder="#000000" aria-label="Stroke color (hex)">
-                            </div>
-
-                            <div class="controls-group">
-                                <label for="strokeWidth">Stroke Width:</label>
-                                <input type="number" id="strokeWidth" value="2" min="0" max="20" step="0.5">
-                            </div>
-
-                            <div class="controls-group">
-                                <div class="toggle-group">
-                                    <label>
-                                        <input type="checkbox" id="roundStrokes" checked>
-                                        Round strokes
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="controls-group">
-                                <div class="toggle-group">
-                                    <label>
-                                        <input type="checkbox" id="gridToggle">
-                                        Grid
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="snapToggle">
-                                        Snap
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="controls-group">
-                                <button id="importToCanvasBtn" class="secondary">Import SVG</button>
-                                <button id="clearCanvas" class="secondary">Clear</button>
-                                <button id="deleteSelected" class="secondary">Delete</button>
-                                <button id="finishPath" class="success hidden">Finish Path</button>
-                            </div>
-
-                            <div class="controls-group">
-                                <button id="applyCrop" class="success hidden">Apply Crop</button>
-                                <button id="cancelCrop" class="secondary hidden">Cancel</button>
-                            </div>
-
-                            <input type="file" id="importToCanvasInput" accept=".svg,image/svg+xml" class="hidden">
-
-                            <div class="controls-group">
-                                <span>Mirror Mode:</span>
-                                <button id="mirrorToggle" class="mirror">Off</button>
-                                <label>
-                                    <input type="checkbox" id="mirrorRealtime" checked>
-                                    Real-time Preview
-                                </label>
-                            </div>
-
-                            <div class="controls-group">
-                                <span>Canvas Size:</span>
-                                <input type="number" id="canvasWidth" value="400" min="100" max="1000" style="width: 80px;">
-                                <span>×</span>
-                                <input type="number" id="canvasHeight" value="400" min="100" max="1000" style="width: 80px;">
-                                <button id="resizeCanvas" class="secondary">Apply</button>
-                            </div>
+                    <div class="controls-group">
+                        <div class="toggle-group">
+                            <label><input type="checkbox" id="gridToggle"> Grid</label>
+                            <label><input type="checkbox" id="snapToggle"> Snap</label>
                         </div>
+                    </div>
 
-                        <div class="tool-section">
-                            <h3>Layers</h3>
-                            <div class="tool-bar">
-                                <button id="addLayer" class="secondary">New Layer</button>
-                                <button id="renameLayer" class="secondary">Rename</button>
-                            </div>
-                            <div class="layers-panel" id="layersList"></div>
-                            <div class="drop-hint">Tip: drag & drop an .svg onto the canvas to import it into the active layer.</div>
-                        </div>
+                    <div class="controls-group">
+                        <button id="clearCanvas" class="secondary">Clear</button>
+                        <button id="deleteSelected" class="secondary">Delete</button>
+                        <button id="finishPath" class="success hidden">Finish Path</button>
+                        <button id="applyCrop" class="success hidden">Apply Crop</button>
+                        <button id="cancelCrop" class="secondary hidden">Cancel</button>
+                    </div>
 
-                        <div class="tool-section">
-                            <h3>Optimizer &amp; Converter</h3>
-                            <div class="tool-bar">
-                                <button id="uploadBtn">Upload SVG</button>
-                                <button id="pasteBtn">Paste SVG</button>
-                                <button id="sampleBtn">Load Sample</button>
-                                <button id="extractBitmapBtn" class="success">Extract &amp; Convert Images</button>
-                                <button id="optimizeBtn" class="success">Optimize</button>
-                                <button id="downloadBtn">Download SVG</button>
-                                <button id="exportImageBtn">Export as Image</button>
-                            </div>
-                            <input type="file" id="fileInput" accept=".svg" class="hidden">
-                        </div>
+                    <div class="controls-group">
+                        <span>Mirror</span>
+                        <button id="mirrorToggle" class="mirror">Off</button>
+                        <label style="font-size:12.5px;"><input type="checkbox" id="mirrorRealtime" checked> Live preview</label>
+                    </div>
 
-                        <div class="tool-section hidden" id="bitmapConverter">
-                            <h3>🖼️ Bitmap to SVG Converter</h3>
-                            <div class="bitmap-converter">
-                                <p id="bitmapInfo">No embedded images detected</p>
-                                <canvas id="traceCanvas" class="trace-canvas hidden"></canvas>
-                                <div class="convert-options">
-                                    <label>
-                                        Threshold: <input type="range" id="threshold" min="0" max="255" value="128">
-                                        <span id="thresholdValue">128</span>
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="simplifyShapes" checked> Simplify Shapes
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="detectShapes" checked> Detect Geometric Shapes
-                                    </label>
-                                </div>
-                                <button id="convertBitmap" class="success hidden">Convert to Paths</button>
-                                <div id="conversionProgress" class="hidden" style="margin-top: 10px; color: #3498db;">
-                                    Converting...
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tool-section">
-                            <h3>Optimization Settings</h3>
-                            <div class="toggle-group">
-                                <label><input type="checkbox" id="removeMetadata" checked> Remove Metadata</label>
-                                <label><input type="checkbox" id="removeComments" checked> Remove Comments</label>
-                                <label><input type="checkbox" id="simplifyPaths" checked> Simplify Paths</label>
-                                <label><input type="checkbox" id="removeHidden" checked> Remove Hidden</label>
-                                <label><input type="checkbox" id="minifyColors" checked> Minify Colors</label>
-                                <label><input type="checkbox" id="removeEmpty" checked> Remove Empty</label>
-                            </div>
-                            <div class="slider-container">
-                                <label for="precisionSlider">Precision:</label>
-                                <input type="range" id="precisionSlider" min="0" max="5" value="3" step="1">
-                                <span class="slider-value" id="precisionValue">3 decimals</span>
-                            </div>
-                        </div>
-
-                        <div class="optimization-stats hidden" id="statsPanel">
-                            <div class="stat-card">
-                                <div class="stat-value" id="originalSize">0</div>
-                                <div class="stat-label">Original Size</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="optimizedSize">0</div>
-                                <div class="stat-label">Optimized Size</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="savingsPercent">0%</div>
-                                <div class="stat-label">Reduction</div>
-                            </div>
-                        </div>
-
-                        <div class="tool-section">
-                            <h3>Preview</h3>
-                            <div class="preview-box">
-                                <div id="previewContainer">
-                                    <p style="color: #7f8c8d; margin-top: 40px;">No SVG loaded</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tool-section">
-                            <h3>SVG Code</h3>
-                            <textarea id="svgCode" placeholder="Paste your SVG code here, or upload an SVG file..."></textarea>
-                            <div class="controls-group">
-                                <button id="copyCode" class="secondary">Copy Code</button>
-                                <button id="clearCode" class="secondary">Clear</button>
-                                <span class="size-display" id="codeSize">Size: 0 bytes</span>
-                            </div>
-                        </div>
-                    </aside>
+                    <div class="controls-group">
+                        <span>Canvas</span>
+                        <input type="number" id="canvasWidth" value="400" min="100" max="1000" style="width: 70px;">
+                        <span style="min-width:auto;">×</span>
+                        <input type="number" id="canvasHeight" value="400" min="100" max="1000" style="width: 70px;">
+                        <button id="resizeCanvas" class="secondary">Apply</button>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- Library Section -->
-        <div class="panel">
-            <h2>📚 Icon Library</h2>
-            <div class="tool-bar">
-                <button id="saveToLibrary">Save Current to Library</button>
-                <button id="clearLibrary" class="secondary">Clear Library</button>
-            </div>
-            <div class="icon-grid" id="iconLibrary"></div>
-        </div>
+            <section class="dock-panel">
+                <h3>Layers</h3>
+                <div class="dock-body">
+                    <div class="tool-bar">
+                        <button id="addLayer" class="secondary">New Layer</button>
+                        <button id="renameLayer" class="secondary">Rename</button>
+                    </div>
+                    <div class="layers-panel" id="layersList"></div>
+                    <div class="drop-hint">Tip: drag &amp; drop an .svg onto the canvas to import it into the active layer.</div>
+                </div>
+            </section>
+
+            <section class="dock-panel hidden" id="bitmapConverter">
+                <h3>🖼️ Bitmap to SVG Converter</h3>
+                <div class="dock-body">
+                    <div class="bitmap-converter">
+                        <p id="bitmapInfo">No embedded images detected</p>
+                        <canvas id="traceCanvas" class="trace-canvas hidden"></canvas>
+                        <div class="convert-options">
+                            <label>
+                                Threshold: <input type="range" id="threshold" min="0" max="255" value="128">
+                                <span id="thresholdValue">128</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" id="simplifyShapes" checked> Simplify Shapes
+                            </label>
+                            <label>
+                                <input type="checkbox" id="detectShapes" checked> Detect Geometric Shapes
+                            </label>
+                        </div>
+                        <button id="convertBitmap" class="success hidden">Convert to Paths</button>
+                        <div id="conversionProgress" class="hidden" style="margin-top: 10px; color: #3a8ee6;">
+                            Converting...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dock-panel">
+                <h3>Optimization Settings</h3>
+                <div class="dock-body">
+                    <div class="toggle-group">
+                        <label><input type="checkbox" id="removeMetadata" checked> Metadata</label>
+                        <label><input type="checkbox" id="removeComments" checked> Comments</label>
+                        <label><input type="checkbox" id="simplifyPaths" checked> Simplify</label>
+                        <label><input type="checkbox" id="removeHidden" checked> Hidden</label>
+                        <label><input type="checkbox" id="minifyColors" checked> Colors</label>
+                        <label><input type="checkbox" id="removeEmpty" checked> Empty</label>
+                    </div>
+                    <div class="slider-container">
+                        <label for="precisionSlider">Precision:</label>
+                        <input type="range" id="precisionSlider" min="0" max="5" value="3" step="1">
+                        <span class="slider-value" id="precisionValue">3 decimals</span>
+                    </div>
+                    <div class="optimization-stats hidden" id="statsPanel">
+                        <div class="stat-card">
+                            <div class="stat-value" id="originalSize">0</div>
+                            <div class="stat-label">Original Size</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="optimizedSize">0</div>
+                            <div class="stat-label">Optimized Size</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="savingsPercent">0%</div>
+                            <div class="stat-label">Reduction</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dock-panel">
+                <h3>Preview</h3>
+                <div class="dock-body">
+                    <div class="preview-box">
+                        <div id="previewContainer">
+                            <p style="color: #7f8c8d; margin-top: 40px;">No SVG loaded</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dock-panel">
+                <h3>SVG Code</h3>
+                <div class="dock-body">
+                    <textarea id="svgCode" placeholder="Paste your SVG code here, or upload an SVG file..."></textarea>
+                    <div class="controls-group">
+                        <button id="copyCode" class="secondary">Copy Code</button>
+                        <button id="clearCode" class="secondary">Clear</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dock-panel">
+                <h3>📚 Icon Library</h3>
+                <div class="dock-body">
+                    <div class="tool-bar">
+                        <button id="saveToLibrary">Save Current</button>
+                        <button id="clearLibrary" class="secondary">Clear Library</button>
+                    </div>
+                    <div class="icon-grid" id="iconLibrary"></div>
+                </div>
+            </section>
+        </aside>
     </div>
+
+    <footer class="status-bar">
+        <span id="statusToolName">Tool: Pen</span>
+        <span id="statusCanvasInfo">400 × 400</span>
+        <span class="size-display" id="codeSize">Size: 0 bytes</span>
+    </footer>
 
     <script>
         // ==================== SVG Drawing App with Mirror Mode ====================
@@ -1216,6 +1529,12 @@
                         e.target.classList.add('active');
                         this.currentTool = e.target.dataset.tool;
 
+                        const toolLabel = document.getElementById('statusToolName');
+                        if (toolLabel) {
+                            const labelEl = e.target.querySelector('.tl');
+                            toolLabel.textContent = 'Tool: ' + (labelEl ? labelEl.textContent : this.currentTool);
+                        }
+
                         if (previousTool === 'crop' && this.currentTool !== 'crop') {
                             this.cancelCrop({ silent: true });
                         }
@@ -1394,6 +1713,8 @@
                     const height = document.getElementById('canvasHeight').value;
                     this.svg.setAttribute('width', width);
                     this.svg.setAttribute('height', height);
+                    const info = document.getElementById('statusCanvasInfo');
+                    if (info) info.textContent = `${width} × ${height}`;
                     this.scheduleSVGCodeUpdate();
                     this.showStatus(`Canvas resized to ${width}×${height}`, 'success');
                 });
@@ -2942,6 +3263,23 @@
 
             showStatus(message, type = 'info') {
                 console.info(`[${type}] ${message}`);
+                const container = document.getElementById('statusContainer');
+                if (!container) return;
+                const el = document.createElement('div');
+                el.className = `status-message ${type}`;
+                el.textContent = message;
+                container.appendChild(el);
+
+                // Keep at most 4 toasts on screen.
+                while (container.children.length > 4) {
+                    container.firstChild.remove();
+                }
+
+                setTimeout(() => {
+                    el.style.transition = 'opacity .3s ease';
+                    el.style.opacity = '0';
+                    setTimeout(() => el.remove(), 300);
+                }, 2800);
             }
         }
 
@@ -2959,16 +3297,23 @@
 
                 document.getElementById('fileInput').addEventListener('change', (e) => {
                     const file = e.target.files[0];
-                    if (file && file.type === 'image/svg+xml') {
-                        file.text()
-                            .then((text) => {
-                                document.getElementById('svgCode').value = String(text || '');
-                                this.updatePreview();
-                                this.checkForBitmaps();
-                                drawingApp.showStatus('SVG uploaded successfully', 'success');
-                            })
-                            .catch(() => drawingApp.showStatus('Failed to read file', 'error'));
+                    if (!file) return;
+                    // Windows often reports an empty MIME type for .svg, so also accept by extension.
+                    const isSvg = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name);
+                    if (!isSvg) {
+                        drawingApp.showStatus('Please choose an .svg file', 'warning');
+                        e.target.value = '';
+                        return;
                     }
+                    file.text()
+                        .then((text) => {
+                            document.getElementById('svgCode').value = String(text || '');
+                            this.updatePreview();
+                            this.checkForBitmaps();
+                            drawingApp.showStatus('SVG uploaded successfully', 'success');
+                        })
+                        .catch(() => drawingApp.showStatus('Failed to read file', 'error'));
+                    e.target.value = '';
                 });
 
                 document.getElementById('pasteBtn').addEventListener('click', async () => {
