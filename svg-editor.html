@@ -788,8 +788,7 @@
             min-width: 0;
             overflow: auto;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative;
             padding: 34px;
             background-color: #212327;
             background-image:
@@ -870,6 +869,38 @@
         .dock-panel .dock-body { padding: 12px; }
         .dock-panel .dock-body > .controls-group:first-child { margin-top: 0; }
         .dock-panel .dock-body > .controls-group:last-child { margin-bottom: 0; }
+
+        /* Collapsible panels */
+        .dock-panel > h3 { cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .dock-panel > h3::after { content: '▾'; font-size: 11px; opacity: .7; transition: transform .15s; }
+        .dock-panel.collapsed > h3::after { transform: rotate(-90deg); }
+        .dock-panel.collapsed > .dock-body { display: none; }
+
+        /* Draggable splitter between canvas and dock */
+        .dock-resizer {
+            flex: 0 0 6px; width: 6px; cursor: col-resize;
+            background: transparent; border-left: 1px solid var(--border);
+            position: relative; z-index: 5;
+        }
+        .dock-resizer:hover, .dock-resizer.active { background: var(--accent-2); }
+
+        /* Floating zoom toolbar over the canvas */
+        .canvas-toolbar {
+            position: absolute; bottom: 14px; right: 14px; z-index: 20;
+            display: flex; align-items: center; gap: 4px;
+            background: rgba(38,40,44,0.92); border: 1px solid var(--border);
+            border-radius: 8px; padding: 4px 6px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+        }
+        .canvas-toolbar button {
+            padding: 4px 9px; font-size: 14px; min-width: 30px;
+            background: var(--panel-2); border: 1px solid var(--border-2); color: var(--text);
+        }
+        .canvas-toolbar button:hover { background: var(--accent-2); }
+        .canvas-toolbar #zoomLabel {
+            min-width: 46px; text-align: center; font-size: 12px; color: var(--text);
+            font-variant-numeric: tabular-nums; cursor: default;
+        }
 
         /* Bottom status bar */
         .status-bar {
@@ -1032,7 +1063,15 @@
             <div id="drawingContainer">
                 <svg id="drawingSvg" width="400" height="400"></svg>
             </div>
+            <div class="canvas-toolbar" aria-label="Zoom controls">
+                <button id="zoomFit" title="Fit to view">⤢</button>
+                <button id="zoomOut" title="Zoom out (Ctrl -)">−</button>
+                <button id="zoomLabel" title="Reset to 100% (Ctrl 0)">100%</button>
+                <button id="zoomIn" title="Zoom in (Ctrl +)">+</button>
+            </div>
         </main>
+
+        <div class="dock-resizer" id="dockResizer" title="Drag to resize panel"></div>
 
         <aside class="right-dock" aria-label="Panels">
             <section class="dock-panel">
@@ -1270,10 +1309,101 @@
                 this.mirrorMode = 'none';
                 this.lastMirrorPoint = null;
 
+                // Zoom
+                this.zoom = 1;
+                this.minZoom = 0.1;
+                this.maxZoom = 8;
+                this.baseWidth = Number.parseInt(this.svg.getAttribute('width'), 10) || 400;
+                this.baseHeight = Number.parseInt(this.svg.getAttribute('height'), 10) || 400;
+
                 this.initializeLayers();
                 this.initializeTools();
                 this.initializeEvents();
+                this.initializeZoom();
                 this.updateSVGCode();
+            }
+
+            // Convert a mouse/pointer event to canvas user coordinates (zoom-aware).
+            canvasX(e) { return this.getSvgPointFromClient(e.clientX, e.clientY).x; }
+            canvasY(e) { return this.getSvgPointFromClient(e.clientX, e.clientY).y; }
+
+            initializeZoom() {
+                // A viewBox keeps internal coordinates fixed while we scale the rendered size.
+                if (!this.svg.getAttribute('viewBox')) {
+                    this.svg.setAttribute('viewBox', `0 0 ${this.baseWidth} ${this.baseHeight}`);
+                }
+
+                const stage = document.querySelector('.canvas-stage');
+                if (stage) {
+                    stage.addEventListener('wheel', (e) => {
+                        if (!(e.ctrlKey || e.metaKey)) return; // plain scroll = pan
+                        e.preventDefault();
+                        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+                        this.setZoom(this.zoom * factor, e.clientX, e.clientY);
+                    }, { passive: false });
+                }
+
+                const bind = (id, fn) => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('click', fn);
+                };
+                bind('zoomIn', () => this.setZoom(this.zoom * 1.2));
+                bind('zoomOut', () => this.setZoom(this.zoom / 1.2));
+                bind('zoomLabel', () => this.setZoom(1));
+                bind('zoomFit', () => this.zoomToFit());
+
+                this.applyZoom();
+            }
+
+            clampZoom(z) {
+                return Math.min(this.maxZoom, Math.max(this.minZoom, z));
+            }
+
+            applyZoom() {
+                this.svg.style.width = (this.baseWidth * this.zoom) + 'px';
+                this.svg.style.height = (this.baseHeight * this.zoom) + 'px';
+                const label = document.getElementById('zoomLabel');
+                if (label) label.textContent = Math.round(this.zoom * 100) + '%';
+            }
+
+            setZoom(z, anchorClientX = null, anchorClientY = null) {
+                const stage = document.querySelector('.canvas-stage');
+                z = this.clampZoom(z);
+                if (z === this.zoom) return;
+
+                // Keep the point under the cursor (or stage center) stationary.
+                if (!stage) { this.zoom = z; this.applyZoom(); return; }
+                if (anchorClientX === null || anchorClientY === null) {
+                    const r = stage.getBoundingClientRect();
+                    anchorClientX = r.left + r.width / 2;
+                    anchorClientY = r.top + r.height / 2;
+                }
+
+                const before = this.svg.getBoundingClientRect();
+                const ratioX = before.width ? (anchorClientX - before.left) / before.width : 0.5;
+                const ratioY = before.height ? (anchorClientY - before.top) / before.height : 0.5;
+
+                this.zoom = z;
+                this.applyZoom();
+
+                const after = this.svg.getBoundingClientRect();
+                const targetX = after.left + ratioX * after.width;
+                const targetY = after.top + ratioY * after.height;
+                stage.scrollLeft += (targetX - anchorClientX);
+                stage.scrollTop += (targetY - anchorClientY);
+            }
+
+            zoomToFit() {
+                const stage = document.querySelector('.canvas-stage');
+                if (!stage) return;
+                const pad = 48;
+                const zx = (stage.clientWidth - pad) / this.baseWidth;
+                const zy = (stage.clientHeight - pad) / this.baseHeight;
+                this.zoom = this.clampZoom(Math.min(zx, zy));
+                this.applyZoom();
+                // Center the artboard in the stage.
+                stage.scrollLeft = (this.svg.offsetWidth - stage.clientWidth) / 2;
+                stage.scrollTop = (this.svg.offsetHeight - stage.clientHeight) / 2;
             }
 
             initializeLayers() {
@@ -1767,6 +1897,10 @@
                     const height = document.getElementById('canvasHeight').value;
                     this.svg.setAttribute('width', width);
                     this.svg.setAttribute('height', height);
+                    this.baseWidth = Number.parseInt(width, 10) || this.baseWidth;
+                    this.baseHeight = Number.parseInt(height, 10) || this.baseHeight;
+                    this.svg.setAttribute('viewBox', `0 0 ${this.baseWidth} ${this.baseHeight}`);
+                    this.applyZoom();
                     const info = document.getElementById('statusCanvasInfo');
                     if (info) info.textContent = `${width} × ${height}`;
                     this.scheduleSVGCodeUpdate();
@@ -1797,6 +1931,45 @@
                 });
 
                 this.loadLibrary();
+                this.initializeDockUI();
+            }
+
+            initializeDockUI() {
+                // Collapsible panels: click a panel header to fold/unfold it.
+                document.querySelectorAll('.dock-panel > h3').forEach((h3) => {
+                    h3.addEventListener('click', () => {
+                        h3.parentElement.classList.toggle('collapsed');
+                    });
+                });
+
+                // Drag the splitter to resize the right dock.
+                const resizer = document.getElementById('dockResizer');
+                const dock = document.querySelector('.right-dock');
+                if (resizer && dock) {
+                    let startX = 0;
+                    let startW = 0;
+                    const onMove = (ev) => {
+                        const dx = ev.clientX - startX;
+                        const w = Math.min(640, Math.max(220, startW - dx));
+                        dock.style.flexBasis = w + 'px';
+                        dock.style.width = w + 'px';
+                    };
+                    const onUp = () => {
+                        resizer.classList.remove('active');
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', onUp);
+                        document.body.style.userSelect = '';
+                    };
+                    resizer.addEventListener('pointerdown', (ev) => {
+                        ev.preventDefault();
+                        startX = ev.clientX;
+                        startW = dock.getBoundingClientRect().width;
+                        resizer.classList.add('active');
+                        document.body.style.userSelect = 'none';
+                        document.addEventListener('pointermove', onMove);
+                        document.addEventListener('pointerup', onUp);
+                    });
+                }
             }
 
             updateMirrorIndicator() {
@@ -1871,8 +2044,8 @@
                 if (this.currentTool === 'select' || this.currentTool === 'text' || this.currentTool === 'fill') return;
                 
                 this.isDrawing = true;
-                const snappedX = this.snapToGrid(e.offsetX);
-                const snappedY = this.snapToGrid(e.offsetY);
+                const snappedX = this.snapToGrid(this.canvasX(e));
+                const snappedY = this.snapToGrid(this.canvasY(e));
                 this.startX = snappedX;
                 this.startY = snappedY;
                 
@@ -1904,8 +2077,8 @@
                     return;
                 }
                 
-                const currentX = this.snapToGrid(e.offsetX);
-                const currentY = this.snapToGrid(e.offsetY);
+                const currentX = this.snapToGrid(this.canvasX(e));
+                const currentY = this.snapToGrid(this.canvasY(e));
                 
                 if (['rect', 'circle', 'triangle', 'diamond', 'star', 'line'].includes(this.currentTool)) {
                     this.updateShapePreview(currentX, currentY);
@@ -1936,8 +2109,8 @@
                     return;
                 }
                 
-                const endX = this.snapToGrid(e.offsetX);
-                const endY = this.snapToGrid(e.offsetY);
+                const endX = this.snapToGrid(this.canvasX(e));
+                const endY = this.snapToGrid(this.canvasY(e));
                 
                 this.clearAllPreviews();
 
@@ -1982,9 +2155,9 @@
                 } else if (this.currentTool === 'text') {
                     const text = prompt('Enter text:');
                     if (text) {
-                        this.createText(e.offsetX, e.offsetY, text);
+                        this.createText(this.canvasX(e), this.canvasY(e), text);
                         if (this.mirrorMode !== 'none') {
-                            this.createMirroredText(e.offsetX, e.offsetY, text);
+                            this.createMirroredText(this.canvasX(e), this.canvasY(e), text);
                         }
                     }
                 }
@@ -2062,25 +2235,57 @@
                 if (this.isInputFocused()) return;
 
                 const key = String(e.key || '').toLowerCase();
-                if (!e.ctrlKey && !e.metaKey) return;
 
-                if (key === 'c') {
-                    if (!this.selectedElement) return;
-                    this.copySelected();
-                    e.preventDefault();
+                if (e.ctrlKey || e.metaKey) {
+                    if (key === '=' || key === '+') { this.setZoom(this.zoom * 1.2); e.preventDefault(); return; }
+                    if (key === '-' || key === '_') { this.setZoom(this.zoom / 1.2); e.preventDefault(); return; }
+                    if (key === '0') { this.setZoom(1); e.preventDefault(); return; }
+                    if (key === 'c') {
+                        if (this.selectedElement) { this.copySelected(); e.preventDefault(); }
+                        return;
+                    }
+                    if (key === 'v') { this.pasteClipboard(); e.preventDefault(); return; }
+                    if (key === 'd') { this.duplicateSelected(); e.preventDefault(); return; }
                     return;
                 }
 
-                if (key === 'v') {
-                    this.pasteClipboard();
-                    e.preventDefault();
+                // No-modifier shortcuts
+                if (key === 'delete' || key === 'backspace') {
+                    if (this.selectedElement) {
+                        this.selectedElement.remove();
+                        this.clearSelection();
+                        this.scheduleSVGCodeUpdate();
+                        this.showStatus('Element deleted', 'info');
+                        e.preventDefault();
+                    }
                     return;
                 }
 
-                if (key === 'd') {
-                    this.duplicateSelected();
+                if (key === 'escape') {
+                    if (this.currentTool === 'path' && this.pathPoints.length) {
+                        this.pathPoints = [];
+                        this.clearPathPreview();
+                    } else if (this.cropState && this.cropState.isCropping) {
+                        this.cancelCrop();
+                    } else {
+                        this.clearSelection();
+                    }
+                    return;
+                }
+
+                const toolKeys = {
+                    v: 'select', b: 'pen', p: 'path', l: 'line', r: 'rect',
+                    o: 'circle', t: 'text', s: 'star', e: 'eraser', g: 'fill', x: 'crop'
+                };
+                if (toolKeys[key]) {
+                    this.activateTool(toolKeys[key]);
                     e.preventDefault();
                 }
+            }
+
+            activateTool(tool) {
+                const btn = document.querySelector(`.tool-btn[data-tool="${tool}"]`);
+                if (btn) btn.click();
             }
 
             isInputFocused() {
@@ -2966,8 +3171,8 @@
             startCrop(e) {
                 this.isDrawing = true;
                 this.cropState.isCropping = true;
-                this.cropState.startX = this.snapToGrid(e.offsetX);
-                this.cropState.startY = this.snapToGrid(e.offsetY);
+                this.cropState.startX = this.snapToGrid(this.canvasX(e));
+                this.cropState.startY = this.snapToGrid(this.canvasY(e));
 
                 if (this.cropState.rectEl) {
                     this.cropState.rectEl.remove();
@@ -2991,8 +3196,8 @@
 
             updateCrop(e) {
                 if (!this.cropState.isCropping || !this.cropState.rectEl) return;
-                const x2 = this.snapToGrid(e.offsetX);
-                const y2 = this.snapToGrid(e.offsetY);
+                const x2 = this.snapToGrid(this.canvasX(e));
+                const y2 = this.snapToGrid(this.canvasY(e));
                 const x1 = this.cropState.startX;
                 const y1 = this.cropState.startY;
                 const x = Math.min(x1, x2);
@@ -3256,6 +3461,13 @@
 
             updateSVGCode() {
                 const clone = this.svg.cloneNode(true);
+                // Strip editor-only inline sizing/cursor so exported SVG keeps its true (base) size.
+                clone.style.removeProperty('width');
+                clone.style.removeProperty('height');
+                clone.style.removeProperty('cursor');
+                if (!clone.getAttribute('style')) clone.removeAttribute('style');
+                clone.classList.remove('grid');
+                if (!clone.getAttribute('class')) clone.removeAttribute('class');
                 clone.querySelectorAll('.preview-element, .path-point, .editor-ui').forEach((el) => el.remove());
                 ['path-preview', 'pen-preview', 'crop-preview', 'transformOverlay'].forEach((id) => {
                     const node = clone.querySelector(`#${id}`);
