@@ -883,15 +883,32 @@
         .dock-panel .dock-body {
             padding: 12px;
             overflow: auto;
-            resize: vertical;
-            min-height: 48px;
-            border-bottom: 6px solid var(--panel-2);
+            min-height: 40px;
         }
-        /* Style the native resize grip so it reads as a drag handle. */
-        .dock-panel .dock-body::-webkit-resizer { background: transparent; }
-        .dock-panel:not(.collapsed) .dock-body:hover { border-bottom-color: var(--border-2); }
         .dock-panel .dock-body > .controls-group:first-child { margin-top: 0; }
         .dock-panel .dock-body > .controls-group:last-child { margin-bottom: 0; }
+        /* Explicit drag handle to resize each panel vertically. */
+        .panel-resize {
+            height: 9px;
+            cursor: ns-resize;
+            background: var(--panel-2);
+            border-top: 1px solid var(--border);
+            position: relative;
+            flex: 0 0 auto;
+        }
+        .panel-resize::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 26px;
+            height: 3px;
+            border-top: 1px solid var(--border-2);
+            border-bottom: 1px solid var(--border-2);
+        }
+        .panel-resize:hover { background: var(--accent-2); }
+        .dock-panel.collapsed .panel-resize { display: none; }
 
         /* Draggable splitter between canvas and dock */
         .dock-resizer {
@@ -1191,6 +1208,11 @@
                         <button id="boolExcludeBtn" class="secondary" title="Keep everything except the overlap">Exclude</button>
                     </div>
                     <div class="controls-group">
+                        <span>Corners</span>
+                        <input type="number" id="roundRadius" value="8" min="1" max="200" style="width:64px;" aria-label="Corner radius">
+                        <button id="roundCornersBtn" class="secondary" title="Round the corners of a polygon / straight-line path">Round Corners</button>
+                    </div>
+                    <div class="controls-group">
                         <span>Radial</span>
                         <input type="number" id="radialCount" value="8" min="2" max="64" style="width:64px;" title="Number of copies" aria-label="Radial copy count">
                         <button id="radialArrayBtn" class="secondary" title="Duplicate the selection in a ring around the canvas center">Array around center</button>
@@ -1270,21 +1292,12 @@
             </section>
 
             <section class="dock-panel">
-                <h3>Preview</h3>
-                <div class="dock-body">
-                    <div class="preview-box">
-                        <div id="previewContainer">
-                            <p style="color: #7f8c8d; margin-top: 40px;">No SVG loaded</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="dock-panel">
                 <h3>SVG Code</h3>
                 <div class="dock-body">
-                    <textarea id="svgCode" placeholder="Paste your SVG code here, or upload an SVG file..."></textarea>
+                    <p class="drop-hint" style="margin:0 0 8px;">Live serialization of the canvas. Edit and click "Apply to Canvas" to push changes back.</p>
+                    <textarea id="svgCode" placeholder="The canvas SVG appears here..."></textarea>
                     <div class="controls-group">
+                        <button id="applyCodeBtn" class="success">Apply to Canvas</button>
                         <button id="copyCode" class="secondary">Copy Code</button>
                         <button id="clearCode" class="secondary">Clear</button>
                     </div>
@@ -1589,8 +1602,9 @@
 
             recordHistory() {
                 if (this._restoring) return;
-                const snap = this.contentRoot.innerHTML;
-                if (this.history[this.historyIndex] === snap) return;
+                const snap = { html: this.contentRoot.innerHTML, w: this.baseWidth, h: this.baseHeight };
+                const prev = this.history[this.historyIndex];
+                if (prev && prev.html === snap.html && prev.w === snap.w && prev.h === snap.h) return;
                 this.history = this.history.slice(0, this.historyIndex + 1);
                 this.history.push(snap);
                 if (this.history.length > 80) this.history.shift();
@@ -1605,11 +1619,25 @@
             }
 
             applyHistory() {
+                const snap = this.history[this.historyIndex];
                 this._restoring = true;
                 this.clearSelection();
                 this.clearAllPreviews();
                 this.removeTransformOverlay();
-                this.contentRoot.innerHTML = this.history[this.historyIndex];
+                this.contentRoot.innerHTML = snap.html;
+                // Restore canvas dimensions (so Crop is undoable).
+                this.baseWidth = snap.w;
+                this.baseHeight = snap.h;
+                this.svg.setAttribute('width', String(snap.w));
+                this.svg.setAttribute('height', String(snap.h));
+                this.svg.setAttribute('viewBox', `0 0 ${snap.w} ${snap.h}`);
+                this.applyZoom();
+                const cw = document.getElementById('canvasWidth');
+                const ch = document.getElementById('canvasHeight');
+                if (cw) cw.value = String(snap.w);
+                if (ch) ch.value = String(snap.h);
+                const info = document.getElementById('statusCanvasInfo');
+                if (info) info.textContent = `${snap.w} × ${snap.h}`;
                 this.rebuildLayersFromDOM();
                 this.updateSVGCode();
                 this._restoring = false;
@@ -1881,12 +1909,21 @@
                 }
 
                 if (!localRings.length) return [];
-                // Transform local rings into canvas coords, largest ring first (exterior).
+                // Transform local rings into canvas coords.
                 const rings = localRings
                     .map(r => this.matrixApplyToPoints(el, r))
-                    .filter(r => r.length >= 3)
-                    .sort((a, b) => this.ringArea(b) - this.ringArea(a));
-                return [rings]; // one polygon with [exterior, ...holes]
+                    .filter(r => r.length >= 3);
+                if (!rings.length) return [];
+                if (rings.length === 1) return [[rings[0]]];
+
+                // Multiple subpaths: combine with even-odd (XOR) so disjoint rings become
+                // separate polygons and nested rings become holes — matches how SVG renders them.
+                let geom = [[rings[0]]];
+                for (let i = 1; i < rings.length; i++) {
+                    try { geom = polygonClipping.xor(geom, [[rings[i]]]); }
+                    catch (err) { geom = polygonClipping.union(geom, [[rings[i]]]); }
+                }
+                return geom;
             }
 
             samplePathRings(pathEl) {
@@ -1978,6 +2015,117 @@
                 this.selectElement(path);
                 this.scheduleSVGCodeUpdate();
                 this.showStatus(`Boolean: ${kind}`, 'success');
+            }
+
+            // ============ Round corners ============
+            elementToVertexRings(el) {
+                const tag = (el.tagName || '').toLowerCase();
+                if (tag === 'rect') {
+                    const x = +el.getAttribute('x') || 0, y = +el.getAttribute('y') || 0;
+                    const w = +el.getAttribute('width') || 0, h = +el.getAttribute('height') || 0;
+                    return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h]]];
+                }
+                if (tag === 'polygon' || tag === 'polyline') {
+                    const nums = (el.getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+                    const ring = [];
+                    for (let i = 0; i + 1 < nums.length; i += 2) ring.push([nums[i], nums[i + 1]]);
+                    return ring.length >= 3 ? [ring] : null;
+                }
+                if (tag === 'path') {
+                    const d = el.getAttribute('d') || '';
+                    if (/[CSQTA]/i.test(d)) return 'curves';   // signal: has curves, can't round simply
+                    const rings = [];
+                    let cur = [];
+                    const re = /([MLZ])([^MLZ]*)/gi;
+                    let m;
+                    while ((m = re.exec(d))) {
+                        const cmd = m[1].toUpperCase();
+                        const nums = (m[2].match(/-?\d*\.?\d+(?:e-?\d+)?/gi) || []).map(Number);
+                        if (cmd === 'M') {
+                            if (cur.length >= 3) rings.push(cur);
+                            cur = [];
+                            for (let i = 0; i + 1 < nums.length; i += 2) cur.push([nums[i], nums[i + 1]]);
+                        } else if (cmd === 'L') {
+                            for (let i = 0; i + 1 < nums.length; i += 2) cur.push([nums[i], nums[i + 1]]);
+                        } else if (cmd === 'Z') {
+                            if (cur.length >= 3) rings.push(cur);
+                            cur = [];
+                        }
+                    }
+                    if (cur.length >= 3) rings.push(cur);
+                    return rings.length ? rings : null;
+                }
+                return null;
+            }
+
+            roundRingToPath(ring, radius) {
+                // Drop a trailing duplicate of the first point if present.
+                const pts = ring.slice();
+                if (pts.length > 1) {
+                    const a = pts[0], b = pts[pts.length - 1];
+                    if (Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6) pts.pop();
+                }
+                const n = pts.length;
+                if (n < 3) return '';
+                const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+                let d = '';
+                for (let i = 0; i < n; i++) {
+                    const V = pts[i];
+                    const P = pts[(i - 1 + n) % n];
+                    const Nx = pts[(i + 1) % n];
+                    const dP = dist(V, P);
+                    const dN = dist(V, Nx);
+                    if (dP < 1e-6 || dN < 1e-6) {
+                        // Degenerate corner: keep the vertex as-is.
+                        d += (i === 0 ? 'M ' : 'L ') + `${V[0].toFixed(2)} ${V[1].toFixed(2)} `;
+                        continue;
+                    }
+                    const rIn = Math.min(radius, dP / 2);
+                    const rOut = Math.min(radius, dN / 2);
+                    const uP = [(P[0] - V[0]) / dP, (P[1] - V[1]) / dP];
+                    const uN = [(Nx[0] - V[0]) / dN, (Nx[1] - V[1]) / dN];
+                    const t1 = [V[0] + uP[0] * rIn, V[1] + uP[1] * rIn];
+                    const t2 = [V[0] + uN[0] * rOut, V[1] + uN[1] * rOut];
+                    if (i === 0) d += `M ${t1[0].toFixed(2)} ${t1[1].toFixed(2)} `;
+                    else d += `L ${t1[0].toFixed(2)} ${t1[1].toFixed(2)} `;
+                    d += `Q ${V[0].toFixed(2)} ${V[1].toFixed(2)} ${t2[0].toFixed(2)} ${t2[1].toFixed(2)} `;
+                }
+                return d + 'Z';
+            }
+
+            roundCorners() {
+                const els = (this.selectedElements.length ? this.selectedElements : (this.selectedElement ? [this.selectedElement] : []))
+                    .filter(el => this.svg.contains(el));
+                if (!els.length) { this.showStatus('Select a shape to round', 'warning'); return; }
+                const radius = Math.max(1, Number(document.getElementById('roundRadius').value) || 8);
+
+                this.recordHistory();
+                const svgNS = 'http://www.w3.org/2000/svg';
+                let done = 0;
+                let skipped = 0;
+                const newSelection = [];
+                els.forEach(el => {
+                    const rings = this.elementToVertexRings(el);
+                    if (rings === 'curves' || !rings) { skipped++; newSelection.push(el); return; }
+                    const d = rings.map(r => this.roundRingToPath(r, radius)).filter(Boolean).join(' ');
+                    if (!d) { skipped++; newSelection.push(el); return; }
+                    const path = document.createElementNS(svgNS, 'path');
+                    path.setAttribute('d', d);
+                    const t = el.getAttribute('transform');
+                    if (t) path.setAttribute('transform', t);
+                    ['fill', 'fill-rule', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'opacity'].forEach(a => {
+                        const v = el.getAttribute(a);
+                        if (v !== null) path.setAttribute(a, v);
+                    });
+                    el.replaceWith(path);
+                    newSelection.push(path);
+                    done++;
+                });
+
+                this.setSelectionList(newSelection);
+                this.scheduleSVGCodeUpdate();
+                if (done) this.showStatus(`Rounded ${done} shape(s)` + (skipped ? `, skipped ${skipped}` : ''), 'success');
+                else this.showStatus('Round corners needs a polygon or straight-line path (curved paths are skipped)', 'warning');
             }
 
             applyStrokeStyle(element) {
@@ -2413,6 +2561,7 @@
                 on('boolSubtractBtn', () => this.booleanOp('subtract'));
                 on('boolIntersectBtn', () => this.booleanOp('intersect'));
                 on('boolExcludeBtn', () => this.booleanOp('exclude'));
+                on('roundCornersBtn', () => this.roundCorners());
 
                 const axisBtn = document.getElementById('axisLockBtn');
                 if (axisBtn) {
@@ -2476,6 +2625,38 @@
                 document.querySelectorAll('.dock-panel > h3').forEach((h3) => {
                     h3.addEventListener('click', () => {
                         h3.parentElement.classList.toggle('collapsed');
+                    });
+                });
+
+                // Per-panel vertical resize handles + scrollable bodies.
+                document.querySelectorAll('.dock-panel').forEach((panel) => {
+                    const body = panel.querySelector('.dock-body');
+                    if (!body) return;
+                    const handle = document.createElement('div');
+                    handle.className = 'panel-resize';
+                    handle.title = 'Drag to resize this panel';
+                    panel.appendChild(handle);
+
+                    let startY = 0;
+                    let startH = 0;
+                    const onMove = (ev) => {
+                        const h = Math.max(40, Math.min(1200, startH + (ev.clientY - startY)));
+                        body.style.height = h + 'px';
+                    };
+                    const onUp = () => {
+                        handle.classList.remove('active');
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', onUp);
+                        document.body.style.userSelect = '';
+                    };
+                    handle.addEventListener('pointerdown', (ev) => {
+                        ev.preventDefault();
+                        startY = ev.clientY;
+                        startH = body.getBoundingClientRect().height;
+                        handle.classList.add('active');
+                        document.body.style.userSelect = 'none';
+                        document.addEventListener('pointermove', onMove);
+                        document.addEventListener('pointerup', onUp);
                     });
                 });
 
@@ -4242,6 +4423,58 @@
                     .catch(() => this.showStatus('Failed to read SVG file', 'warning'));
             }
 
+            // Replace the entire canvas content with the SVG in the code box (used by Apply / Optimize).
+            loadCodeToCanvas() {
+                const code = document.getElementById('svgCode').value;
+                if (!code.trim()) { this.showStatus('Code box is empty', 'warning'); return; }
+                const doc = new DOMParser().parseFromString(code, 'image/svg+xml');
+                if (doc.querySelector('parsererror')) { this.showStatus('Invalid SVG code', 'error'); return; }
+                const srcSvg = doc.documentElement;
+                if (!srcSvg || srcSvg.nodeName.toLowerCase() !== 'svg') { this.showStatus('Code must be a full <svg>', 'warning'); return; }
+
+                this.recordHistory();
+                this.clearSelection();
+                this.clearAllPreviews();
+                this.removeTransformOverlay();
+
+                // Adopt canvas size from the code if present.
+                const vb = (srcSvg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+                const w = Number.parseInt(srcSvg.getAttribute('width'), 10) || (vb.length === 4 ? vb[2] : this.baseWidth);
+                const h = Number.parseInt(srcSvg.getAttribute('height'), 10) || (vb.length === 4 ? vb[3] : this.baseHeight);
+                this.baseWidth = w; this.baseHeight = h;
+                this.svg.setAttribute('width', String(w));
+                this.svg.setAttribute('height', String(h));
+                this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+                document.getElementById('canvasWidth').value = String(w);
+                document.getElementById('canvasHeight').value = String(h);
+
+                const srcContent = srcSvg.querySelector('#contentRoot');
+                if (srcContent) {
+                    this.contentRoot.innerHTML = srcContent.innerHTML;
+                } else {
+                    // No editor wrapper: drop everything into a single fresh layer.
+                    this.contentRoot.innerHTML = '<g id="layersRoot"></g>';
+                    this.layersRoot = this.contentRoot.querySelector('#layersRoot');
+                    const layerId = `layer-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    g.dataset.layerId = layerId;
+                    g.dataset.layerName = 'Layer 1';
+                    g.dataset.layerVisible = 'true';
+                    Array.from(srcSvg.childNodes).forEach(n => {
+                        if (n.nodeType === 1 && !['defs', 'script'].includes(n.nodeName.toLowerCase())) {
+                            g.appendChild(document.importNode(n, true));
+                        }
+                    });
+                    this.layersRoot.appendChild(g);
+                    this.activeLayerId = layerId;
+                }
+
+                this.rebuildLayersFromDOM();
+                this.applyZoom();
+                this.updateSVGCode();
+                this.showStatus('Applied code to canvas', 'success');
+            }
+
             importSvgTextToCanvas(svgText) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(svgText, 'image/svg+xml');
@@ -4556,6 +4789,11 @@
                     drawingApp.showStatus('Code cleared', 'info');
                 });
 
+                const applyCodeBtn = document.getElementById('applyCodeBtn');
+                if (applyCodeBtn) {
+                    applyCodeBtn.addEventListener('click', () => drawingApp.loadCodeToCanvas());
+                }
+
                 document.getElementById('svgCode').addEventListener('input', () => {
                     this.updatePreview();
                     this.checkForBitmaps();
@@ -4569,7 +4807,14 @@
             updatePreview() {
                 const code = document.getElementById('svgCode').value.trim();
                 const container = document.getElementById('previewContainer');
-                
+                if (!container) {
+                    // Preview panel was removed; just keep stats bookkeeping.
+                    if (!code) { document.getElementById('statsPanel').classList.add('hidden'); return; }
+                    this.originalSVG = code;
+                    this.originalSize = new Blob([code]).size;
+                    return;
+                }
+
                 if (!code) {
                     container.innerHTML = '<p style="color: #7f8c8d; margin-top: 80px;">No SVG loaded</p>';
                     document.getElementById('statsPanel').classList.add('hidden');
@@ -4957,8 +5202,10 @@
 
                     document.getElementById('svgCode').value = this.formatXML(svg);
                     this.updatePreview();
-                    drawingApp.showStatus('✅ SVG optimized successfully!', 'success');
-                    
+                    // Apply the optimized result back onto the canvas.
+                    drawingApp.loadCodeToCanvas();
+                    drawingApp.showStatus('✅ SVG optimized and applied to canvas', 'success');
+
                 } catch (err) {
                     drawingApp.showStatus('❌ Optimization failed: ' + err.message, 'error');
                     console.error(err);
