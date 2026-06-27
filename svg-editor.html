@@ -882,19 +882,21 @@
         .dock-panel.collapsed > .dock-body { display: none; }
         .dock-panel .dock-body {
             padding: 12px;
-            overflow: auto;
+            overflow-y: auto;
             min-height: 40px;
+            max-height: 320px;   /* default cap so each section scrolls on its own */
         }
         .dock-panel .dock-body > .controls-group:first-child { margin-top: 0; }
         .dock-panel .dock-body > .controls-group:last-child { margin-bottom: 0; }
         /* Explicit drag handle to resize each panel vertically. */
         .panel-resize {
-            height: 9px;
+            height: 14px;
             cursor: ns-resize;
             background: var(--panel-2);
             border-top: 1px solid var(--border);
             position: relative;
             flex: 0 0 auto;
+            touch-action: none;
         }
         .panel-resize::after {
             content: '';
@@ -902,12 +904,13 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            width: 26px;
-            height: 3px;
-            border-top: 1px solid var(--border-2);
-            border-bottom: 1px solid var(--border-2);
+            width: 32px;
+            height: 4px;
+            border-top: 2px solid var(--muted);
+            border-bottom: 2px solid var(--muted);
         }
-        .panel-resize:hover { background: var(--accent-2); }
+        .panel-resize:hover, .panel-resize.active { background: var(--accent-2); }
+        .panel-resize:hover::after, .panel-resize.active::after { border-color: #fff; }
         .dock-panel.collapsed .panel-resize { display: none; }
 
         /* Draggable splitter between canvas and dock */
@@ -2058,7 +2061,7 @@
                 return null;
             }
 
-            roundRingToPath(ring, radius) {
+            roundRingToPath(ring, radius, minTurnDeg = 18) {
                 // Drop a trailing duplicate of the first point if present.
                 const pts = ring.slice();
                 if (pts.length > 1) {
@@ -2075,15 +2078,21 @@
                     const Nx = pts[(i + 1) % n];
                     const dP = dist(V, P);
                     const dN = dist(V, Nx);
-                    if (dP < 1e-6 || dN < 1e-6) {
-                        // Degenerate corner: keep the vertex as-is.
-                        d += (i === 0 ? 'M ' : 'L ') + `${V[0].toFixed(2)} ${V[1].toFixed(2)} `;
-                        continue;
-                    }
-                    const rIn = Math.min(radius, dP / 2);
-                    const rOut = Math.min(radius, dN / 2);
+                    const lineVertex = () => { d += (i === 0 ? 'M ' : 'L ') + `${V[0].toFixed(2)} ${V[1].toFixed(2)} `; };
+
+                    if (dP < 1e-6 || dN < 1e-6) { lineVertex(); continue; }
+
                     const uP = [(P[0] - V[0]) / dP, (P[1] - V[1]) / dP];
                     const uN = [(Nx[0] - V[0]) / dN, (Nx[1] - V[1]) / dN];
+
+                    // Skip near-straight vertices so densely-sampled curves don't get scalloped;
+                    // only genuine corners (turn >= minTurn) are rounded.
+                    const dot = Math.max(-1, Math.min(1, uP[0] * uN[0] + uP[1] * uN[1]));
+                    const interiorDeg = Math.acos(dot) * 180 / Math.PI; // 180 = straight, 90 = right angle
+                    if (interiorDeg > 180 - minTurnDeg) { lineVertex(); continue; }
+
+                    const rIn = Math.min(radius, dP / 2);
+                    const rOut = Math.min(radius, dN / 2);
                     const t1 = [V[0] + uP[0] * rIn, V[1] + uP[1] * rIn];
                     const t2 = [V[0] + uN[0] * rOut, V[1] + uN[1] * rOut];
                     if (i === 0) d += `M ${t1[0].toFixed(2)} ${t1[1].toFixed(2)} `;
@@ -2140,10 +2149,12 @@
             }
 
             updateSelectedStrokeStyle() {
-                if (!this.selectedElement) return;
-                if (this.selectedElement.tagName === 'text') return;
-                if (!this.selectedElement.getAttribute('stroke')) return;
-                this.applyStrokeStyle(this.selectedElement);
+                if (!this.selectedElements.length) return;
+                this.applyToSelection(el => {
+                    if (el.tagName === 'text') return;
+                    if (!el.getAttribute('stroke')) return;
+                    this.applyStrokeStyle(el);
+                });
                 this.scheduleSVGCodeUpdate();
             }
 
@@ -2459,48 +2470,39 @@
                 const strokeColor = document.getElementById('strokeColor');
                 const strokeColorText = document.getElementById('strokeColorText');
 
+                const setOnSelection = (attr, value) => {
+                    if (!this.selectedElements.length) return;
+                    this.applyToSelection(el => el.setAttribute(attr, value));
+                    this.updateSVGCode();
+                    this.renderTransformOverlay();
+                };
+
                 fillColor.addEventListener('input', (e) => {
                     fillColorText.value = e.target.value;
-                    if (this.selectedElement) {
-                        this.selectedElement.setAttribute('fill', e.target.value);
-                        this.updateSVGCode();
-                        this.renderTransformOverlay();
-                    }
+                    setOnSelection('fill', e.target.value);
                 });
                 fillColorText.addEventListener('input', (e) => {
                     fillColor.value = e.target.value;
-                    if (this.selectedElement) {
-                        this.selectedElement.setAttribute('fill', e.target.value);
-                        this.updateSVGCode();
-                        this.renderTransformOverlay();
-                    }
+                    setOnSelection('fill', e.target.value);
                 });
                 strokeColor.addEventListener('input', (e) => {
                     strokeColorText.value = e.target.value;
-                    if (this.selectedElement) {
-                        this.selectedElement.setAttribute('stroke', e.target.value);
-                        this.updateSVGCode();
-                        this.renderTransformOverlay();
-                    }
+                    setOnSelection('stroke', e.target.value);
                 });
                 strokeColorText.addEventListener('input', (e) => {
                     strokeColor.value = e.target.value;
-                    if (this.selectedElement) {
-                        this.selectedElement.setAttribute('stroke', e.target.value);
-                        this.updateSVGCode();
-                        this.renderTransformOverlay();
-                    }
+                    setOnSelection('stroke', e.target.value);
                 });
 
                 // "None" toggles for fill / stroke (hollow shapes).
                 const noFill = document.getElementById('noFill');
                 const noStroke = document.getElementById('noStroke');
                 const applyPaintToSelection = () => {
-                    if (!this.selectedElement) return;
-                    this.selectedElement.setAttribute('fill', this.getFillValue());
-                    if (this.selectedElement.tagName !== 'text') {
-                        this.selectedElement.setAttribute('stroke', this.getStrokeValue());
-                    }
+                    if (!this.selectedElements.length) return;
+                    this.applyToSelection(el => {
+                        el.setAttribute('fill', this.getFillValue());
+                        if (el.tagName !== 'text') el.setAttribute('stroke', this.getStrokeValue());
+                    });
                     this.updateSVGCode();
                     this.renderTransformOverlay();
                 };
@@ -2509,8 +2511,8 @@
                 this.syncPaintControls();
 
                 document.getElementById('strokeWidth').addEventListener('input', (e) => {
-                    if (this.selectedElement) {
-                        this.selectedElement.setAttribute('stroke-width', e.target.value);
+                    if (this.selectedElements.length) {
+                        this.applyToSelection(el => el.setAttribute('stroke-width', e.target.value));
                         this.scheduleSVGCodeUpdate();
                         this.renderTransformOverlay();
                     }
@@ -2616,8 +2618,8 @@
                     this.showStatus('Library cleared', 'info');
                 });
 
-                this.loadLibrary();
                 this.initializeDockUI();
+                this.loadLibrary();
             }
 
             initializeDockUI() {
@@ -2640,23 +2642,28 @@
                     let startY = 0;
                     let startH = 0;
                     const onMove = (ev) => {
-                        const h = Math.max(40, Math.min(1200, startH + (ev.clientY - startY)));
+                        const h = Math.max(40, Math.min(2000, startH + (ev.clientY - startY)));
                         body.style.height = h + 'px';
                     };
-                    const onUp = () => {
+                    const onUp = (ev) => {
                         handle.classList.remove('active');
-                        document.removeEventListener('pointermove', onMove);
-                        document.removeEventListener('pointerup', onUp);
+                        try { handle.releasePointerCapture(ev.pointerId); } catch (err) { /* ignore */ }
+                        handle.removeEventListener('pointermove', onMove);
+                        handle.removeEventListener('pointerup', onUp);
                         document.body.style.userSelect = '';
                     };
                     handle.addEventListener('pointerdown', (ev) => {
                         ev.preventDefault();
                         startY = ev.clientY;
                         startH = body.getBoundingClientRect().height;
+                        // Free the body from the default cap so it can grow or shrink freely.
+                        body.style.maxHeight = 'none';
+                        body.style.height = startH + 'px';
                         handle.classList.add('active');
                         document.body.style.userSelect = 'none';
-                        document.addEventListener('pointermove', onMove);
-                        document.addEventListener('pointerup', onUp);
+                        try { handle.setPointerCapture(ev.pointerId); } catch (err) { /* ignore */ }
+                        handle.addEventListener('pointermove', onMove);
+                        handle.addEventListener('pointerup', onUp);
                     });
                 });
 
