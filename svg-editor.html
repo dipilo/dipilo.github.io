@@ -859,6 +859,7 @@
             border-radius: 8px;
             overflow: hidden;
             position: relative;
+            flex: 0 0 auto;   /* never let the column flex shrink/clip a panel (keeps the resize handle visible) */
         }
         .dock-panel > h3 {
             margin: 0;
@@ -1057,6 +1058,42 @@
 
         .mirror-indicator { z-index: 1000; }
 
+        /* Keyboard shortcuts overlay */
+        #shortcutsOverlay {
+            position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #shortcutsOverlay .sc-card {
+            background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+            padding: 18px 20px; max-width: 860px; max-height: 82vh; overflow: auto;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+        }
+        #shortcutsOverlay .sc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        #shortcutsOverlay .sc-head strong { font-size: 16px; color: #fff; }
+        #shortcutsOverlay .sc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        #shortcutsOverlay h4 { margin: 0 0 6px; color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+        #shortcutsOverlay .sc-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 2px 0; color: var(--text); }
+        #shortcutsOverlay kbd {
+            background: var(--panel-2); border: 1px solid var(--border-2); border-radius: 4px;
+            padding: 1px 6px; font-family: 'Courier New', monospace; font-size: 11.5px; color: #cfd3d8; white-space: nowrap;
+        }
+        #shortcutsOverlay .sc-note { margin: 14px 0 0; color: var(--muted); font-size: 12px; }
+
+        /* Scrollbars (dark theme) */
+        * { scrollbar-width: thin; scrollbar-color: #51555d var(--bg-2); }
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track { background: var(--bg-2); }
+        ::-webkit-scrollbar-thumb {
+            background: #51555d;
+            border-radius: 7px;
+            border: 3px solid var(--bg-2);
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #646973; }
+        ::-webkit-scrollbar-corner { background: var(--bg-2); }
+        .canvas-stage::-webkit-scrollbar-track { background: #17181b; }
+        .canvas-stage::-webkit-scrollbar-thumb { border-color: #17181b; }
+
         @media (max-width: 1100px) {
             .right-dock { flex-basis: 300px; width: 300px; }
         }
@@ -1072,11 +1109,13 @@
         <div class="menu-actions">
             <input type="file" id="fileInput" accept=".svg,image/svg+xml" class="hidden" aria-label="Upload SVG file">
             <input type="file" id="importToCanvasInput" accept=".svg,image/svg+xml" class="hidden" aria-label="Import SVG file to canvas">
+            <input type="file" id="refImageInput" accept="image/*" class="hidden" aria-label="Import reference image">
             <button id="undoBtn" class="secondary" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
             <button id="redoBtn" class="secondary" title="Redo (Ctrl+Y)" disabled>↷ Redo</button>
             <span class="menu-sep"></span>
             <button id="uploadBtn" title="Load an SVG file into the code editor">⬆ Upload</button>
             <button id="importToCanvasBtn" class="secondary" title="Place an SVG file onto the canvas">⬇ Import to Canvas</button>
+            <button id="refImageBtn" class="secondary" title="Import a reference image (PNG/JPG) onto the canvas — or paste with Ctrl+V">🖼 Reference</button>
             <button id="pasteBtn" class="secondary" title="Paste SVG from clipboard">📋 Paste</button>
             <button id="sampleBtn" class="secondary" title="Load a sample SVG">🧾 Sample</button>
             <span class="menu-sep"></span>
@@ -1324,6 +1363,7 @@
         <span id="statusToolName">Tool: Pen</span>
         <span id="statusCanvasInfo">400 × 400</span>
         <span class="size-display" id="codeSize">Size: 0 bytes</span>
+        <button id="shortcutsBtn" class="secondary" style="padding:2px 8px;font-size:11px;" title="Keyboard shortcuts (press ?)">⌨ Shortcuts</button>
     </footer>
 
     <!-- Boolean path operations (union/subtract/intersect/exclude) -->
@@ -1380,6 +1420,7 @@
                 this.suppressNextClick = false;
                 this.clipboard = [];
                 this.axisLock = 'off';
+                this.spaceActive = false;
 
                 // Layers
                 this.layersRoot = null;
@@ -1433,10 +1474,15 @@
                 const stage = document.querySelector('.canvas-stage');
                 if (stage) {
                     stage.addEventListener('wheel', (e) => {
-                        if (!(e.ctrlKey || e.metaKey)) return; // plain scroll = pan
-                        e.preventDefault();
-                        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-                        this.setZoom(this.zoom * factor, e.clientX, e.clientY);
+                        // Alt+wheel = zoom (at cursor); Ctrl/Cmd+wheel = horizontal scroll; plain = vertical scroll.
+                        if (e.altKey) {
+                            e.preventDefault();
+                            const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+                            this.setZoom(this.zoom * factor, e.clientX, e.clientY);
+                        } else if (e.ctrlKey || e.metaKey) {
+                            e.preventDefault();
+                            stage.scrollLeft += (e.deltaY || e.deltaX);
+                        }
                     }, { passive: false });
                 }
 
@@ -1450,6 +1496,33 @@
                 bind('zoomFit', () => this.zoomToFit());
 
                 this.applyZoom();
+            }
+
+            initializePan() {
+                const stage = document.querySelector('.canvas-stage');
+                if (!stage) return;
+                let panning = false, sx = 0, sy = 0, sl = 0, st = 0;
+                stage.addEventListener('pointerdown', (e) => {
+                    if (!this.spaceActive) return;
+                    panning = true;
+                    sx = e.clientX; sy = e.clientY;
+                    sl = stage.scrollLeft; st = stage.scrollTop;
+                    this.setPanCursor(true);
+                    stage.style.cursor = 'grabbing';
+                    try { stage.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+                    e.preventDefault();
+                });
+                stage.addEventListener('pointermove', (e) => {
+                    if (!panning) return;
+                    stage.scrollLeft = sl - (e.clientX - sx);
+                    stage.scrollTop = st - (e.clientY - sy);
+                });
+                stage.addEventListener('pointerup', (e) => {
+                    if (!panning) return;
+                    panning = false;
+                    stage.style.cursor = this.spaceActive ? 'grab' : '';
+                    try { stage.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+                });
             }
 
             clampZoom(z) {
@@ -1722,6 +1795,120 @@
                 this.outlineSelection();
                 this.renderTransformOverlay();
                 if (this.selectedElement) this.syncPropertiesFromElement(this.selectedElement);
+            }
+
+            // ============ Edit / select commands (keyboard) ============
+            cutSelection() {
+                if (!this.selectedElements.length) return;
+                this.copySelected();
+                this.recordHistory();
+                this.selectedElements.forEach(el => el.remove());
+                this.clearSelection();
+                this.scheduleSVGCodeUpdate();
+                this.showStatus('Cut', 'info');
+            }
+
+            invertSelection() {
+                const all = Array.from(this.layersRoot.querySelectorAll(':scope > g[data-layer-id] > *'))
+                    .filter(el => this.isSelectable(el));
+                const cur = new Set(this.selectedElements);
+                this.setSelectionList(all.filter(el => !cur.has(el)));
+                this.showStatus('Inverted selection', 'info');
+            }
+
+            fillSelection() {
+                if (!this.selectedElements.length) { this.showStatus('Nothing selected to fill', 'warning'); return; }
+                this.recordHistory();
+                const v = this.getFillValue();
+                this.applyToSelection(el => { if (el.tagName !== 'g') el.setAttribute('fill', v); });
+                this.scheduleSVGCodeUpdate();
+                this.showStatus('Filled selection', 'success');
+            }
+
+            swapColors() {
+                const fc = document.getElementById('fillColor'), sc = document.getElementById('strokeColor');
+                const fct = document.getElementById('fillColorText'), sct = document.getElementById('strokeColorText');
+                const tmp = fc.value; fc.value = sc.value; sc.value = tmp;
+                fct.value = fc.value; sct.value = sc.value;
+                this.showStatus('Swapped fill / stroke colors', 'info');
+            }
+
+            setDefaultColors() {
+                const fc = document.getElementById('fillColor'), sc = document.getElementById('strokeColor');
+                const fct = document.getElementById('fillColorText'), sct = document.getElementById('strokeColorText');
+                fc.value = '#000000'; fct.value = '#000000';
+                sc.value = '#000000'; sct.value = '#000000';
+                const nf = document.getElementById('noFill'), ns = document.getElementById('noStroke');
+                if (nf) nf.checked = false;
+                if (ns) ns.checked = false;
+                this.syncPaintControls();
+                this.showStatus('Default colors', 'info');
+            }
+
+            adjustStrokeWidth(delta) {
+                const inp = document.getElementById('strokeWidth');
+                const v = Math.max(0, Math.round(((Number(inp.value) || 0) + delta) * 10) / 10);
+                inp.value = String(v);
+                if (this.selectedElements.length) {
+                    this.applyToSelection(el => el.setAttribute('stroke-width', v));
+                    this.scheduleSVGCodeUpdate();
+                }
+                this.showStatus(`Stroke width ${v}`, 'info');
+            }
+
+            mergeDown() {
+                const idx = this.layers.findIndex(l => l.id === this.activeLayerId);
+                if (idx <= 0) { this.showStatus('No layer below to merge into', 'warning'); return; }
+                this.recordHistory();
+                const top = this.layers[idx];
+                const below = this.layers[idx - 1];
+                Array.from(top.group.childNodes).forEach(n => below.group.appendChild(n));
+                top.group.remove();
+                this.layers.splice(idx, 1);
+                this.activeLayerId = below.id;
+                this.renderLayersList();
+                this.scheduleSVGCodeUpdate();
+                this.showStatus('Merged down', 'success');
+            }
+
+            freeTransform() {
+                this.activateTool('select');
+                this.renderTransformOverlay();
+                this.showStatus('Free transform: drag handles to scale, top knob to rotate', 'info');
+            }
+
+            toggleGridShortcut() {
+                const t = document.getElementById('gridToggle');
+                if (t) { t.checked = !t.checked; this.svg.classList.toggle('grid', t.checked); }
+            }
+
+            toggleSnapShortcut() {
+                const t = document.getElementById('snapToggle');
+                if (t) { t.checked = !t.checked; this.showStatus('Snap ' + (t.checked ? 'on' : 'off'), 'info'); }
+            }
+
+            toggleShortcutsHelp() {
+                let ov = document.getElementById('shortcutsOverlay');
+                if (ov) { ov.remove(); return; }
+                const rows = [
+                    ['File', [['Ctrl+O', 'Import to canvas'], ['Ctrl+S', 'Download SVG'], ['Shift+Ctrl+S', 'Download SVG'], ['Alt+Shift+Ctrl+S', 'Export as image']]],
+                    ['Edit', [['Ctrl+Z', 'Undo'], ['Shift+Ctrl+Z / Ctrl+Y', 'Redo'], ['Ctrl+X', 'Cut'], ['Ctrl+C', 'Copy'], ['Ctrl+V', 'Paste'], ['Ctrl+J', 'Duplicate'], ['Del', 'Delete'], ['Alt+Backspace', 'Fill selection'], ['Alt+Ctrl+T', 'Free transform']]],
+                    ['Select', [['Ctrl+A', 'Select all'], ['Ctrl+D', 'Deselect'], ['Shift+Ctrl+I', 'Inverse'], ['Marquee drag / Shift+click', 'Multi-select']]],
+                    ['Layers', [['Shift+Ctrl+N', 'New layer'], ['Ctrl+G', 'Group'], ['Shift+Ctrl+G', 'Ungroup'], ['Ctrl+E', 'Merge down']]],
+                    ['View', [['Ctrl +/-', 'Zoom in/out'], ['Ctrl+0', 'Reset zoom'], ['Alt+Scroll', 'Zoom'], ['Ctrl+Scroll', 'Horizontal scroll'], ['Space+drag', 'Pan'], ["Ctrl+'", 'Grid'], ['Ctrl+;', 'Snap']]],
+                    ['Tools', [['V', 'Select/Move'], ['M / R', 'Rectangle'], ['O', 'Ellipse'], ['L / P', 'Path'], ['B', 'Pen'], ['T', 'Text'], ['G', 'Fill'], ['E', 'Eraser'], ['C', 'Crop'], ['I', 'Eyedropper'], ['S', 'Star']]],
+                    ['Color', [['X', 'Swap fill/stroke'], ['D', 'Default colors'], ['[ / ]', 'Stroke width −/+']]]
+                ];
+                ov = document.createElement('div');
+                ov.id = 'shortcutsOverlay';
+                ov.innerHTML = `<div class="sc-card">
+                    <div class="sc-head"><strong>Keyboard shortcuts</strong><button id="scClose" class="secondary">Close</button></div>
+                    <div class="sc-grid">${rows.map(([title, items]) => `<div class="sc-col"><h4>${title}</h4>${items.map(([k, v]) => `<div class="sc-row"><kbd>${k}</kbd><span>${v}</span></div>`).join('')}</div>`).join('')}</div>
+                    <p class="sc-note">SVG editor — raster-only Photoshop tools (Levels, Curves, Healing, etc.) are not applicable.</p>
+                </div>`;
+                document.body.appendChild(ov);
+                ov.addEventListener('click', (ev) => { if (ev.target === ov) ov.remove(); });
+                document.getElementById('scClose').addEventListener('click', () => ov.remove());
             }
 
             // ============ Opacity / eyedropper / arrange ============
@@ -2423,6 +2610,10 @@
                 this.svg.addEventListener('mouseup', this.handleMouseUp);
                 this.svg.addEventListener('click', this.handleClick);
                 document.addEventListener('keydown', this.handleKeyDown);
+                document.addEventListener('keyup', (e) => {
+                    if (e.key === ' ' || e.code === 'Space') { this.spaceActive = false; this.setPanCursor(false); }
+                });
+                this.initializePan();
 
                 // Layer UI
                 const addLayerBtn = document.getElementById('addLayer');
@@ -2452,6 +2643,32 @@
                     });
                 }
 
+                // Reference (raster) image: button + file input.
+                const refBtn = document.getElementById('refImageBtn');
+                const refInput = document.getElementById('refImageInput');
+                if (refBtn && refInput) {
+                    refBtn.addEventListener('click', () => refInput.click());
+                    refInput.addEventListener('change', (e) => {
+                        const file = e.target.files && e.target.files[0];
+                        if (file) this.importImageFile(file);
+                        e.target.value = '';
+                    });
+                }
+
+                // Paste an image from the clipboard anywhere in the app.
+                document.addEventListener('paste', (e) => {
+                    if (this.isInputFocused()) return;
+                    const items = e.clipboardData && e.clipboardData.items;
+                    if (!items) return;
+                    for (const it of items) {
+                        if (it.type && it.type.startsWith('image/')) {
+                            const file = it.getAsFile();
+                            if (file) { this.importImageFile(file); e.preventDefault(); }
+                            return;
+                        }
+                    }
+                });
+
                 const drawingContainer = document.getElementById('drawingContainer');
                 if (drawingContainer) {
                     drawingContainer.addEventListener('dragover', (e) => {
@@ -2461,7 +2678,10 @@
                     drawingContainer.addEventListener('drop', (e) => {
                         e.preventDefault();
                         const file = e.dataTransfer.files && e.dataTransfer.files[0];
-                        if (file) this.importSvgFileToCanvas(file);
+                        if (!file) return;
+                        const isSvg = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name);
+                        if (isSvg) this.importSvgFileToCanvas(file);
+                        else if (file.type.startsWith('image/')) this.importImageFile(file);
                     });
                 }
 
@@ -2564,6 +2784,7 @@
                 on('boolIntersectBtn', () => this.booleanOp('intersect'));
                 on('boolExcludeBtn', () => this.booleanOp('exclude'));
                 on('roundCornersBtn', () => this.roundCorners());
+                on('shortcutsBtn', () => this.toggleShortcutsHelp());
 
                 const axisBtn = document.getElementById('axisLockBtn');
                 if (axisBtn) {
@@ -2751,6 +2972,7 @@
             }
 
             handleMouseDown = (e) => {
+                if (this.spaceActive) return; // panning with the hand tool
                 if (this.currentTool === 'select') {
                     if (this.beginSelectInteraction(e)) return;
                 }
@@ -2995,24 +3217,51 @@
 
                 const key = String(e.key || '').toLowerCase();
 
+                // Alt+Backspace = fill selection (before plain delete handling).
+                if (e.altKey && key === 'backspace') { this.fillSelection(); e.preventDefault(); return; }
+
                 if (e.ctrlKey || e.metaKey) {
-                    if (key === '=' || key === '+') { this.setZoom(this.zoom * 1.2); e.preventDefault(); return; }
-                    if (key === '-' || key === '_') { this.setZoom(this.zoom / 1.2); e.preventDefault(); return; }
-                    if (key === '0') { this.setZoom(1); e.preventDefault(); return; }
-                    if (key === 'z') { e.shiftKey ? this.redo() : this.undo(); e.preventDefault(); return; }
-                    if (key === 'y') { this.redo(); e.preventDefault(); return; }
-                    if (key === 'a') { this.selectAll(); e.preventDefault(); return; }
-                    if (key === 'g') { e.shiftKey ? this.ungroupSelection() : this.groupSelection(); e.preventDefault(); return; }
-                    if (key === 'c') {
-                        if (this.selectedElement) { this.copySelected(); e.preventDefault(); }
-                        return;
+                    const stop = () => e.preventDefault();
+                    if (key === '=' || key === '+') { this.setZoom(this.zoom * 1.2); return stop(); }
+                    if (key === '-' || key === '_') { this.setZoom(this.zoom / 1.2); return stop(); }
+                    if (key === '0') { this.setZoom(1); return stop(); }
+                    if (key === 'z') { e.shiftKey ? this.redo() : this.undo(); return stop(); }
+                    if (key === 'y') { this.redo(); return stop(); }
+                    if (key === 'a') { this.selectAll(); return stop(); }
+                    if (key === 'd') { this.clearSelection(); this.showStatus('Deselected', 'info'); return stop(); }
+                    if (key === 'j') { this.duplicateSelected(); return stop(); }
+                    if (key === 'g') { e.shiftKey ? this.ungroupSelection() : this.groupSelection(); return stop(); }
+                    if (key === 'e') { this.mergeDown(); return stop(); }
+                    if (key === 'n' && e.shiftKey) { this.addLayer(null, { setActive: true }); this.showStatus('New layer', 'success'); return stop(); }
+                    if (key === 'i' && e.shiftKey) { this.invertSelection(); return stop(); }
+                    if (key === 'x') { this.cutSelection(); return stop(); }
+                    if (key === 'c') { if (this.selectedElements.length) { this.copySelected(); stop(); } return; }
+                    if (key === 'v') {
+                        if (this.clipboard && this.clipboard.length) { this.pasteClipboard(); stop(); }
+                        return; // else let native 'paste' handle images
                     }
-                    if (key === 'v') { this.pasteClipboard(); e.preventDefault(); return; }
-                    if (key === 'd') { this.duplicateSelected(); e.preventDefault(); return; }
+                    if (key === 't' && e.altKey) { this.freeTransform(); return stop(); }
+                    if (key === 's') {
+                        if (typeof optimizer !== 'undefined') {
+                            if (e.altKey && e.shiftKey) optimizer.exportAsImage('png');
+                            else optimizer.downloadSVG();
+                        }
+                        return stop();
+                    }
+                    if (key === 'o') { document.getElementById('importToCanvasInput')?.click(); return stop(); }
+                    if (key === "'") { this.toggleGridShortcut(); return stop(); }
+                    if (key === ';') { this.toggleSnapShortcut(); return stop(); }
+                    return; // let the browser handle other Ctrl combos
+                }
+
+                if (key === '?') { this.toggleShortcutsHelp(); e.preventDefault(); return; }
+
+                if (key === ' ') {
+                    if (!this.spaceActive) { this.spaceActive = true; this.setPanCursor(true); }
+                    e.preventDefault();
                     return;
                 }
 
-                // No-modifier shortcuts
                 if (key === 'delete' || key === 'backspace') {
                     if (this.selectedElements.length) {
                         this.recordHistory();
@@ -3053,14 +3302,28 @@
                     return;
                 }
 
+                // Color / size single-key actions
+                if (key === 'x') { this.swapColors(); e.preventDefault(); return; }
+                if (key === 'd') { this.setDefaultColors(); e.preventDefault(); return; }
+                if (key === '[') { this.adjustStrokeWidth(-1); e.preventDefault(); return; }
+                if (key === ']') { this.adjustStrokeWidth(1); e.preventDefault(); return; }
+                if (key === 'i') { this.pickColor(); e.preventDefault(); return; }
+
+                // Tool letters (Photoshop-style where an equivalent tool exists)
                 const toolKeys = {
-                    v: 'select', b: 'pen', p: 'path', l: 'line', r: 'rect',
-                    o: 'circle', t: 'text', s: 'star', e: 'eraser', g: 'fill', x: 'crop'
+                    v: 'select', m: 'rect', r: 'rect', u: 'rect', o: 'circle',
+                    l: 'path', p: 'path', b: 'pen', t: 'text', g: 'fill',
+                    e: 'eraser', c: 'crop', s: 'star'
                 };
                 if (toolKeys[key]) {
                     this.activateTool(toolKeys[key]);
                     e.preventDefault();
                 }
+            }
+
+            setPanCursor(on) {
+                const stage = document.querySelector('.canvas-stage');
+                if (stage) stage.style.cursor = on ? 'grab' : '';
             }
 
             activateTool(tool) {
@@ -4428,6 +4691,49 @@
                 file.text()
                     .then((text) => this.importSvgTextToCanvas(String(text || '')))
                     .catch(() => this.showStatus('Failed to read SVG file', 'warning'));
+            }
+
+            importImageFile(file) {
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    this.showStatus('Please choose a PNG/JPG/WebP image', 'warning');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => this.addReferenceImage(String(reader.result || ''));
+                reader.onerror = () => this.showStatus('Failed to read image', 'error');
+                reader.readAsDataURL(file);
+            }
+
+            addReferenceImage(dataUrl) {
+                if (!dataUrl) return;
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const xlinkNS = 'http://www.w3.org/1999/xlink';
+                const img = new Image();
+                img.onload = () => {
+                    this.recordHistory();
+                    const cw = this.baseWidth, ch = this.baseHeight;
+                    const scale = Math.min((cw * 0.9) / img.width, (ch * 0.9) / img.height, 1);
+                    const w = img.width * scale;
+                    const h = img.height * scale;
+                    const el = document.createElementNS(svgNS, 'image');
+                    el.setAttributeNS(xlinkNS, 'xlink:href', dataUrl);
+                    el.setAttribute('href', dataUrl);
+                    el.setAttribute('x', ((cw - w) / 2).toFixed(2));
+                    el.setAttribute('y', ((ch - h) / 2).toFixed(2));
+                    el.setAttribute('width', w.toFixed(2));
+                    el.setAttribute('height', h.toFixed(2));
+                    el.setAttribute('data-reference', 'true');
+                    // Drop it at the back of the active layer so you can trace over it.
+                    const layer = this.getActiveLayerGroup();
+                    layer.prepend(el);
+                    this.elements.push(el);
+                    this.clearSelection();
+                    this.selectElement(el);
+                    this.scheduleSVGCodeUpdate();
+                    this.showStatus('Reference image added — lower its Opacity to trace over it', 'success');
+                };
+                img.onerror = () => this.showStatus('Could not load that image', 'error');
+                img.src = dataUrl;
             }
 
             // Replace the entire canvas content with the SVG in the code box (used by Apply / Optimize).
