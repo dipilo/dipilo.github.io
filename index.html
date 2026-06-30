@@ -108,6 +108,13 @@
   </script>
 
   <!-- Ko-fi floating donate widget -->
+  <style>
+    /* Widen the Ko-fi widget so the full button shows (no horizontal scrollbar) */
+    .floatingchat-container-wrap,
+    .floatingchat-container-wrap-mobi { max-width: 260px !important; }
+    .floatingchat-container,
+    .floatingchat-container-mobi { width: 260px !important; overflow: hidden !important; }
+  </style>
   <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
   <script>
     kofiWidgetOverlay.draw('dipilodopilasaurus', {

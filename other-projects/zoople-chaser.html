@@ -155,5 +155,22 @@
     function draw(){ctx.clearRect(0,0,W,H);const el=running?(performance.now()-pauseOffset-levelStartTime)/1000:0;const rem=Math.max(0,levelDuration-Math.floor(el));ctx.fillStyle='#222';ctx.font='200px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(rem,W/2,H/2);ctx.fillStyle='#fff';ctx.font='36px sans-serif';ctx.textBaseline='top';ctx.fillText(`Level: ${level}`,W/2,10);ctx.drawImage(imgP,player.x-player.r,player.y-player.r,player.r*2,player.r*2);enemies.forEach(e=>{ctx.drawImage(imgE,e.x-ER,e.y-ER,ER*2,ER*2);});}
     let last=performance.now();(function loop(){const now=performance.now(),dt=now-last;update(dt);draw();last=now;requestAnimationFrame(loop);})();
   </script>
+  <!-- Ko-fi floating donate widget -->
+  <style>
+    /* Widen the Ko-fi widget so the full button shows (no horizontal scrollbar) */
+    .floatingchat-container-wrap,
+    .floatingchat-container-wrap-mobi { max-width: 260px !important; }
+    .floatingchat-container,
+    .floatingchat-container-mobi { width: 260px !important; overflow: hidden !important; }
+  </style>
+  <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+  <script>
+    kofiWidgetOverlay.draw('dipilodopilasaurus', {
+      'type': 'floating-chat',
+      'floating-chat.donateButton.text': 'Buy me a KitKat',
+      'floating-chat.donateButton.background-color': '#794bc4',
+      'floating-chat.donateButton.text-color': '#fff'
+    });
+  </script>
 </body>
 </html>

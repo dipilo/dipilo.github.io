@@ -50,5 +50,22 @@
   <!-- Include the external drag-resize script -->
   <script src="drag-resize.js"></script>
   <script src="dropdown.js"></script>
+  <!-- Ko-fi floating donate widget -->
+  <style>
+    /* Widen the Ko-fi widget so the full button shows (no horizontal scrollbar) */
+    .floatingchat-container-wrap,
+    .floatingchat-container-wrap-mobi { max-width: 260px !important; }
+    .floatingchat-container,
+    .floatingchat-container-mobi { width: 260px !important; overflow: hidden !important; }
+  </style>
+  <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+  <script>
+    kofiWidgetOverlay.draw('dipilodopilasaurus', {
+      'type': 'floating-chat',
+      'floating-chat.donateButton.text': 'Buy me a KitKat',
+      'floating-chat.donateButton.background-color': '#794bc4',
+      'floating-chat.donateButton.text-color': '#fff'
+    });
+  </script>
 </body>
 </html>
